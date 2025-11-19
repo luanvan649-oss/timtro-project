@@ -1,0 +1,762 @@
+{
+  "posts": [
+    {
+      "title": "PHÒNG TRỌ MỚI RẤT ĐẸP SỐ 373/1 ĐƯỜNG LÝ THƯỜNG KIỆT, QUẬN TÂN BÌNH - GẦN BÊN TRƯỜNG ĐH BÁCH KHOA",
+      "description": "PHÒNG TRỌ MỚI, ĐẸP SỐ 373/1/2a LÝ THƯỜNG KIỆT, GẦN ĐH BÁCH KHOA - Phòng nằm ngay trung tâm quận Tân Bình (xem hình thật). HẼM THÔNG, HẼM TO cách ĐƯỜNG LÝ THƯỜNG KIỆT chỉ 50m. Gần trường Đại học Bách Khoa, Đại học Công nghiệp, Đại học Tôn Đức Thắng...",
+      "price": 3900000,
+      "area": 25,
+      "location": "Hồ Chí Minh",
+      "district": "Tân Bình",
+      "category": "Phòng trọ",
+      "images": [
+        "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+      ],
+      "amenities": [
+        "Máy lạnh",
+        "Wifi",
+        "Giường",
+        "Tủ quần áo",
+        "Bàn học"
+      ],
+      "utilities": [
+        "Điện",
+        "Nước",
+        "Internet"
+      ],
+      "deposit": 1000000,
+      "contact": {
+        "name": "Anh Hiếu",
+        "phone": "0918180057",
+        "email": "hieu@example.com"
+      },
+      "address": "373/1 Đường Lý Thường Kiệt, Phường 7, Quận Tân Bình, TP.HCM",
+      "userId": "user1",
+      "featured": true,
+      "rating": 5,
+      "views": 245,
+      "likes": 12,
+      "id": "1",
+      "type": "room_listing"
+    },
+    {
+      "title": "Cho thuê phòng trọ có ban công, máy lạnh, thang máy giá 2.5 - 2.7tr tại P15, Q Tân Bình",
+      "description": "Phòng trọ đẹp. Nằm trên trục đường chính số 346 PHẠM VĂN BẠCH, Phía sau Sân Bay Tân Sơn Nhất, gần eTown Công hòa, thuận tiện đi tất cả các Quận. Phòng có ban công, máy lạnh, thang máy, an ninh tốt.",
+      "price": 2500000,
+      "area": 20,
+      "location": "Hồ Chí Minh",
+      "district": "Tân Bình",
+      "category": "Phòng trọ",
+      "images": [
+        "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+      ],
+      "amenities": [
+        "Máy lạnh",
+        "Ban công",
+        "Thang máy",
+        "Wifi",
+        "Giường"
+      ],
+      "utilities": [
+        "Điện",
+        "Nước",
+        "Internet"
+      ],
+      "deposit": 2000000,
+      "contact": {
+        "name": "Chị Mai",
+        "phone": "0908123456",
+        "email": "mai@example.com"
+      },
+      "address": "346 Phạm Văn Bạch, Phường 15, Quận Tân Bình, TP.HCM",
+      "userId": "user1",
+      "featured": true,
+      "rating": 5,
+      "views": 189,
+      "likes": 8,
+      "id": "2",
+      "type": "room_listing"
+    },
+    {
+      "title": "CHO THUÊ PHÒNG TRỌ MỚI CHÍNH CHỦ, GIẢM GIÁ, QUẬN TÂN PHÚ - GẦN BÊN TRƯỜNG ĐH CÔNG NGHỆ THỰC PHẨM",
+      "description": "PHÒNG TRỌ 24 SƠN KỲ TÂN PHÚ, GẦN ĐH CÔNG NGHỆ THỰC PHẨM - Cách trường Đại Học Công nghệ Thực Phẩm 700m, cách AeOnMall Tân Phú 500m, Gần eTown, PanDoRa. An ninh tốt, môi trường sạch sẽ.",
+      "price": 2900000,
+      "area": 20,
+      "location": "Hồ Chí Minh",
+      "district": "Tân Phú",
+      "category": "Phòng trọ",
+      "images": [
+        "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+      ],
+      "amenities": [
+        "Máy lạnh",
+        "Wifi",
+        "Giường",
+        "Tủ quần áo",
+        "Bàn học",
+        "Tủ lạnh"
+      ],
+      "utilities": [
+        "Điện",
+        "Nước",
+        "Internet"
+      ],
+      "deposit": 1500000,
+      "contact": {
+        "name": "Anh Tuấn",
+        "phone": "0912345678",
+        "email": "tuan@example.com"
+      },
+      "address": "24 Sơn Kỳ, Phường Sơn Kỳ, Quận Tân Phú, TP.HCM",
+      "userId": "user1",
+      "featured": false,
+      "rating": 4,
+      "views": 156,
+      "likes": 6,
+      "id": "3",
+      "type": "room_listing"
+    },
+    {
+      "title": "CĂN HỘ DUPLEX CỬA SỔ THOÁNG - FULL NỘI THẤT P.TÂN HƯNG Q.7 GẦN CRESENT MALL, LOTTE, RMIT, TDTU, Q1-4",
+      "description": "Căn hộ duplex 2 tầng, thiết kế hiện đại, đầy đủ nội thất cao cấp. Gần các trường đại học và trung tâm thương mại. Vị trí thuận tiện di chuyển đến quận 1, quận 4.",
+      "price": 5000000,
+      "area": 45,
+      "location": "Hồ Chí Minh",
+      "district": "Quận 7",
+      "category": "Căn hộ chung cư",
+      "images": [
+        "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+      ],
+      "amenities": [
+        "Máy lạnh",
+        "Wifi",
+        "Giường",
+        "Tủ quần áo",
+        "Bàn học",
+        "Tủ lạnh",
+        "Máy giặt",
+        "Bếp",
+        "Sofa"
+      ],
+      "utilities": [
+        "Điện",
+        "Nước",
+        "Internet",
+        "Cáp TV"
+      ],
+      "deposit": 5000000,
+      "contact": {
+        "name": "Chị Linh",
+        "phone": "0909876543",
+        "email": "linh@example.com"
+      },
+      "address": "Phường Tân Hưng, Quận 7, TP.HCM",
+      "userId": "user1",
+      "featured": true,
+      "rating": 5,
+      "views": 312,
+      "likes": 18,
+      "id": "4",
+      "type": "room_listing"
+    },
+    {
+      "title": "Duplex bancon siêu đẹp 30m2 - 656 Quang Trung F11 Gò Vấp",
+      "description": "Phòng duplex có ban công rộng rãi, thoáng mát. Nằm trên đường Quang Trung, giao thông thuận tiện. Đầy đủ tiện nghi, an ninh tốt.",
+      "price": 4500000,
+      "area": 30,
+      "location": "Hồ Chí Minh",
+      "district": "Gò Vấp",
+      "category": "Căn hộ mini",
+      "images": [
+        "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+      ],
+      "amenities": [
+        "Máy lạnh",
+        "Ban công",
+        "Thang máy",
+        "Wifi",
+        "Giường",
+        "Tủ quần áo",
+        "Bàn học",
+        "Tủ lạnh"
+      ],
+      "utilities": [
+        "Điện",
+        "Nước",
+        "Internet"
+      ],
+      "deposit": 3000000,
+      "contact": {
+        "name": "Anh Đức",
+        "phone": "0918765432",
+        "email": "duc@example.com"
+      },
+      "address": "656 Quang Trung, Phường 11, Quận Gò Vấp, TP.HCM",
+      "userId": "user1",
+      "featured": false,
+      "rating": 4,
+      "views": 198,
+      "likes": 9,
+      "id": "5",
+      "type": "room_listing"
+    },
+    {
+      "title": "Phòng trọ Hà Nội - Gần Đại học Bách Khoa, giá tốt sinh viên",
+      "description": "Phòng trọ dành cho sinh viên, gần các trường đại học. Giá cả hợp lý, môi trường an toàn, sạch sẽ. Đầy đủ tiện nghi cơ bản.",
+      "price": 2200000,
+      "area": 18,
+      "location": "Hà Nội",
+      "district": "Hai Bà Trưng",
+      "category": "Phòng trọ",
+      "images": [
+        "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+      ],
+      "amenities": [
+        "Wifi",
+        "Giường",
+        "Tủ quần áo",
+        "Bàn học"
+      ],
+      "utilities": [
+        "Điện",
+        "Nước",
+        "Internet"
+      ],
+      "deposit": 1500000,
+      "contact": {
+        "name": "Chị Hương",
+        "phone": "0987654321",
+        "email": "huong@example.com"
+      },
+      "address": "Phường Bách Khoa, Quận Hai Bà Trưng, Hà Nội",
+      "userId": "user1",
+      "featured": false,
+      "rating": 4,
+      "views": 123,
+      "likes": 5,
+      "id": "6",
+      "type": "room_listing"
+    },
+    {
+      "title": "Nhà nguyên căn 2 tầng Đà Nẵng - Gần biển, full nội thất",
+      "description": "Nhà nguyên căn 2 tầng, gần biển Mỹ Khê. Đầy đủ nội thất, có sân vườn, garage để xe. Phù hợp cho gia đình hoặc nhóm bạn.",
+      "price": 8000000,
+      "area": 80,
+      "location": "Đà Nẵng",
+      "district": "Ngũ Hành Sơn",
+      "category": "Nhà nguyên căn",
+      "images": [
+        "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+      ],
+      "amenities": [
+        "Máy lạnh",
+        "Wifi",
+        "Giường",
+        "Tủ quần áo",
+        "Bàn học",
+        "Tủ lạnh",
+        "Máy giặt",
+        "Bếp",
+        "Sofa",
+        "Sân vườn"
+      ],
+      "utilities": [
+        "Điện",
+        "Nước",
+        "Internet",
+        "Cáp TV"
+      ],
+      "deposit": 10000000,
+      "contact": {
+        "name": "Anh Nam",
+        "phone": "0905432109",
+        "email": "nam@example.com"
+      },
+      "address": "Phường Mỹ An, Quận Ngũ Hành Sơn, Đà Nẵng",
+      "userId": "user1",
+      "featured": true,
+      "rating": 5,
+      "views": 456,
+      "likes": 23,
+      "id": "7",
+      "type": "room_listing"
+    },
+    {
+      "title": "Mặt bằng kinh doanh trung tâm Cần Thơ - Vị trí đẹp",
+      "description": "Mặt bằng kinh doanh tại trung tâm thành phố Cần Thơ. Vị trí đẹp, giao thông thuận tiện, phù hợp mở cửa hàng, quán ăn, văn phòng.",
+      "price": 12000000,
+      "area": 50,
+      "location": "Cần Thơ",
+      "district": "Ninh Kiều",
+      "category": "Mặt bằng",
+      "images": [
+        "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+      ],
+      "amenities": [
+        "Điện 3 pha",
+        "Nước",
+        "Internet",
+        "Bãi đậu xe"
+      ],
+      "utilities": [
+        "Điện",
+        "Nước",
+        "Internet"
+      ],
+      "deposit": 20000000,
+      "contact": {
+        "name": "Ông Hải",
+        "phone": "0913456789",
+        "email": "hai@example.com"
+      },
+      "address": "Phường Xuân Khánh, Quận Ninh Kiều, Cần Thơ",
+      "userId": "user1",
+      "featured": false,
+      "rating": 4,
+      "views": 234,
+      "likes": 11,
+      "id": "8",
+      "type": "room_listing"
+    }
+  ],
+  "blogs": [
+    {
+      "id": "blog1",
+      "title": "Bí quyết tìm phòng trọ ưng ý cho sinh viên FPT",
+      "author": "FPTro Admin",
+      "date": "2025-07-17",
+      "content": "Việc tìm kiếm một căn phòng trọ phù hợp là một trong những ưu tiên hàng đầu của sinh viên khi bắt đầu cuộc sống tự lập. Đặc biệt đối với sinh viên FPT, việc tìm phòng trọ gần trường, thuận tiện di chuyển và đảm bảo an ninh là vô cùng quan trọng. Bài viết này sẽ chia sẻ những bí quyết giúp bạn tìm được căn phòng ưng ý nhất.",
+      "images": [
+        "https://images.unsplash.com/photo-1549517045-bc93de0e06ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+      ],
+      "tags": [
+        "phòng trọ",
+        "sinh viên",
+        "FPT",
+        "bí quyết"
+      ]
+    },
+    {
+      "id": "blog2",
+      "title": "5 mẹo tiết kiệm chi phí sinh hoạt khi ở trọ",
+      "author": "FPTro Admin",
+      "date": "2025-07-10",
+      "content": "Cuộc sống sinh viên xa nhà luôn đi kèm với nhiều khoản chi phí. Làm thế nào để quản lý tài chính hiệu quả và tiết kiệm chi phí sinh hoạt khi ở trọ? Dưới đây là 5 mẹo nhỏ mà bạn có thể áp dụng ngay hôm nay.",
+      "images": [
+        "https://images.unsplash.com/photo-1593062095908-1647f3a8b276?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+      ],
+      "tags": [
+        "tiết kiệm",
+        "chi phí",
+        "sinh hoạt",
+        "ở trọ"
+      ]
+    },
+    {
+      "id": "blog3",
+      "title": "Làm sao để hòa nhập với bạn cùng phòng mới?",
+      "author": "FPTro Admin",
+      "date": "2025-07-01",
+      "content": "Việc có bạn cùng phòng có thể mang lại nhiều lợi ích nhưng cũng tiềm ẩn những mâu thuẫn nếu không biết cách hòa nhập. Bài viết này sẽ giúp bạn xây dựng mối quan hệ tốt đẹp với bạn cùng phòng, tạo nên một không gian sống thoải mái và vui vẻ.",
+      "images": [
+        "https://images.unsplash.com/photo-1521742918805-f933b0064d30?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+      ],
+      "tags": [
+        "bạn cùng phòng",
+        "hòa nhập",
+        "sinh hoạt",
+        "kinh nghiệm"
+      ]
+    }
+  ],
+  "constants": {
+    "LOCATIONS": [
+      "Hồ Chí Minh",
+      "Hà Nội",
+      "Đà Nẵng",
+      "Cần Thơ",
+      "Quy Nhơn"
+    ],
+    "DISTRICTS": {
+      "Hồ Chí Minh": [
+        "Quận 1",
+        "Quận 2",
+        "Quận 3",
+        "Quận 4",
+        "Quận 5",
+        "Quận 6",
+        "Quận 7",
+        "Quận 8",
+        "Quận 9",
+        "Quận 10",
+        "Quận 11",
+        "Quận 12",
+        "Bình Thạnh",
+        "Phú Nhuận",
+        "Tân Bình",
+        "Tân Phú",
+        "Gò Vấp",
+        "Bình Tân",
+        "Thủ Đức",
+        "Bình Chánh",
+        "Nhà Bè",
+        "Hóc Môn",
+        "Củ Chi",
+        "Cần Giờ"
+      ],
+      "Hà Nội": [
+        "Ba Đình",
+        "Hoàn Kiếm",
+        "Tây Hồ",
+        "Long Biên",
+        "Cầu Giấy",
+        "Đống Đa",
+        "Hai Bà Trưng",
+        "Hoàng Mai",
+        "Thanh Xuân",
+        "Hà Đông",
+        "Nam Từ Liêm",
+        "Bắc Từ Liêm",
+        "Thanh Trì",
+        "Gia Lâm",
+        "Đông Anh",
+        "Sóc Sơn",
+        "Mê Linh",
+        "Sơn Tây",
+        "Ba Vì",
+        "Phúc Thọ",
+        "Đan Phượng",
+        "Hoài Đức",
+        "Quốc Oai",
+        "Thạch Thất",
+        "Chương Mỹ",
+        "Thanh Oai",
+        "Thường Tín",
+        "Phú Xuyên",
+        "Ứng Hòa",
+        "Mỹ Đức"
+      ],
+      "Đà Nẵng": [
+        "Hải Châu",
+        "Thanh Khê",
+        "Sơn Trà",
+        "Ngũ Hành Sơn",
+        "Liên Chiểu",
+        "Cẩm Lệ",
+        "Hòa Vang",
+        "Hoàng Sa"
+      ],
+      "Cần Thơ": [
+        "Ninh Kiều",
+        "Bình Thủy",
+        "Cái Răng",
+        "Ô Môn",
+        "Thốt Nốt",
+        "Phong Điền",
+        "Cờ Đỏ",
+        "Vĩnh Thạnh",
+        "Thới Lai"
+      ],
+      "Quy Nhơn": [
+        "Quy Nhơn",
+        "An Nhơn",
+        "Tuy Phước",
+        "Phù Cát",
+        "Phù Mỹ",
+        "Hoài Nhơn",
+        "Hoài Ân",
+        "Tây Sơn",
+        "Vân Canh",
+        "Vĩnh Thạnh",
+        "An Lão"
+      ]
+    },
+    "CATEGORIES": [
+      "Phòng trọ",
+      "Nhà nguyên căn",
+      "Căn hộ chung cư",
+      "Căn hộ mini",
+      "Căn hộ dịch vụ",
+      "Ở ghép",
+      "Mặt bằng"
+    ],
+    "PRICE_RANGES": [
+      {
+        "label": "Dưới 1 triệu",
+        "min": 0,
+        "max": 1000000
+      },
+      {
+        "label": "Từ 1 - 2 triệu",
+        "min": 1000000,
+        "max": 2000000
+      },
+      {
+        "label": "Từ 2 - 3 triệu",
+        "min": 2000000,
+        "max": 3000000
+      },
+      {
+        "label": "Từ 3 - 5 triệu",
+        "min": 3000000,
+        "max": 5000000
+      },
+      {
+        "label": "Từ 5 - 7 triệu",
+        "min": 5000000,
+        "max": 7000000
+      },
+      {
+        "label": "Trên 7 triệu",
+        "min": 7000000,
+        "max": 1.7976931348623157e+308
+      }
+    ],
+    "AREA_RANGES": [
+      {
+        "label": "Dưới 20 m²",
+        "min": 0,
+        "max": 20
+      },
+      {
+        "label": "Từ 20 - 30m²",
+        "min": 20,
+        "max": 30
+      },
+      {
+        "label": "Từ 30 - 50m²",
+        "min": 30,
+        "max": 50
+      },
+      {
+        "label": "Trên 50m²",
+        "min": 50,
+        "max": 1.7976931348623157e+308
+      }
+    ],
+    "AMENITIES_LIST": [
+      "Máy lạnh",
+      "Wifi",
+      "Giường",
+      "Tủ quần áo",
+      "Bàn học",
+      "Tủ lạnh",
+      "Máy giặt",
+      "Bếp",
+      "Ban công",
+      "Thang máy",
+      "Sân vườn",
+      "Bãi đậu xe",
+      "An ninh 24/7"
+    ]
+  },
+  "users": [
+    {
+      "id": "user1",
+      "email": "demo@test.com",
+      "password": "123456",
+      "fullName": "Demo User",
+      "role": "admin",
+      "phone": "0901234567",
+      "avatar": "https://via.placeholder.com/150",
+      "createdAt": "2023-01-01T00:00:00.000Z",
+      "updatedAt": "2023-01-01T00:00:00.000Z",
+      "school": "Đại học FPT",
+      "major": "Công nghệ thông tin",
+      "year": "3",
+      "gender": "male",
+      "city": "Hồ Chí Minh",
+      "bio": "Sinh viên năng động, tìm bạn ghép trọ hòa đồng, sạch sẽ.",
+      "interests": [
+        "Đọc sách",
+        "Xem phim",
+        "Chơi game"
+      ],
+      "lookingFor": {
+        "gender": "any",
+        "ageRange": "18-25",
+        "budget": "2-3m",
+        "location": "Quận 1, Quận Bình Thạnh",
+        "lifestyle": [
+          "Sạch sẽ",
+          "Yên tĩnh"
+        ]
+      },
+      "verified": true,
+      "responseRate": 90,
+      "responseTime": "Trong 1 giờ",
+      "joinDate": "2023-01-01T00:00:00.000Z",
+      "isActive": true,
+      "creationTime": "2023-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "user2",
+      "email": "test@test.com",
+      "password": "123456",
+      "fullName": "Test User",
+      "role": "user",
+      "phone": "0908765432",
+      "avatar": "https://via.placeholder.com/150",
+      "createdAt": "2023-02-15T00:00:00.000Z",
+      "updatedAt": "2023-02-15T00:00:00.000Z",
+      "school": "Đại học Bách Khoa",
+      "major": "Kỹ thuật",
+      "year": "2",
+      "gender": "female",
+      "city": "Hà Nội",
+      "bio": "Sinh viên thân thiện, tìm bạn cùng phòng gần trường.",
+      "interests": [
+        "Nghe nhạc",
+        "Du lịch",
+        "Nấu ăn"
+      ],
+      "lookingFor": {
+        "gender": "female",
+        "ageRange": "19-24",
+        "budget": "1-2m",
+        "location": "Quận Hai Bà Trưng",
+        "lifestyle": [
+          "Thân thiện",
+          "Không hút thuốc"
+        ]
+      },
+      "verified": false,
+      "responseRate": 85,
+      "responseTime": "Trong 2 giờ",
+      "joinDate": "2023-02-15T00:00:00.000Z",
+      "isActive": true,
+      "creationTime": "2023-02-15T00:00:00.000Z"
+    },
+    {
+      "fullName": "Trần Hoàng Hải",
+      "email": "abc@gmail.com",
+      "phone": "0972773693",
+      "school": "",
+      "major": "",
+      "year": "",
+      "gender": "",
+      "city": "",
+      "bio": "",
+      "interests": [],
+      "lookingFor": {
+        "gender": "male",
+        "ageRange": "",
+        "budget": "2-3m",
+        "location": "Hà Nội",
+        "lifestyle": [
+          "Sạch sẽ",
+          "Không hút thuốc",
+          "Không uống rượu"
+        ]
+      },
+      "id": "74ad"
+    },
+    {
+      "id": "4fe5",
+      "fullName": "Trần Hoàng Hải",
+      "email": "acc@gmail.com",
+      "password": "123456",
+      "role": "admin",
+      "isActive": true,
+      "creationTime": "2025-07-17T03:58:55.610Z"
+    },
+    {
+      "id": "d814",
+      "email": "add@gmail.com",
+      "password": "123456",
+      "fullName": "Trần Hoàng Hải",
+      "phone": "0972773693",
+      "createdAt": "2025-07-17T11:45:55.735Z",
+      "updatedAt": "2025-07-17T11:45:55.735Z",
+      "role": "user"
+    },
+    {
+      "id": "e3f3",
+      "email": "ccc@gmail.com",
+      "password": "123456",
+      "fullName": "Trần Hoàng Hải",
+      "phone": "0972773693",
+      "createdAt": "2025-07-17T11:56:34.995Z",
+      "updatedAt": "2025-07-17T11:56:34.995Z",
+      "role": "user"
+    },
+    {
+      "id": "81ed",
+      "fullName": "Trần Hoàng Hải",
+      "email": "az@gmail.com",
+      "password": "123456",
+      "role": "admin",
+      "isActive": true,
+      "creationTime": "2025-07-17T12:46:24.260Z"
+    },
+    {
+      "id": "b976",
+      "email": "123@gmail.com",
+      "password": "123456",
+      "fullName": "Trần Hoàng Hải",
+      "phone": "0972773693",
+      "createdAt": "2025-07-21T15:10:51.854Z",
+      "updatedAt": "2025-07-21T15:10:51.854Z",
+      "role": "user",
+      "isActive": false,
+      "creationTime": "2025-07-21T15:10:51.854Z"
+    },
+    {
+      "id": "db42",
+      "email": "trandat0601dh@gmail.com",
+      "password": "123456",
+      "fullName": "Trần Đình Đạt",
+      "phone": "0339578143",
+      "createdAt": "2025-07-22T02:55:35.204Z",
+      "updatedAt": "2025-07-22T02:55:35.207Z",
+      "role": "user",
+      "isActive": true,
+      "creationTime": "2025-07-22T02:55:35.207Z"
+    },
+    {
+      "id": "d6a5",
+      "email": "trandat@gmail.com",
+      "password": "Dat123",
+      "fullName": "dat123",
+      "phone": "0233434394",
+      "createdAt": "2025-11-13T01:55:04.291Z",
+      "updatedAt": "2025-11-13T01:55:04.325Z",
+      "role": "user",
+      "isActive": true,
+      "creationTime": "2025-11-13T01:55:04.325Z"
+    },
+    {
+      "id": "3b81",
+      "email": "tran@gmail.com",
+      "password": "123456",
+      "fullName": "dattd",
+      "phone": "0219493322",
+      "createdAt": "2025-11-13T01:56:29.136Z",
+      "updatedAt": "2025-11-13T01:56:29.136Z",
+      "role": "user",
+      "isActive": true,
+      "creationTime": "2025-11-13T01:56:29.136Z"
+    }
+  ],
+  "connections": [],
+  "messages": [],
+  "notifications": [],
+  "settings": []
+}
