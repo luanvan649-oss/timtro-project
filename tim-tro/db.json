@@ -753,6 +753,18 @@
       "role": "user",
       "isActive": true,
       "creationTime": "2025-11-13T01:56:29.136Z"
+    },
+    {
+      "id": "5861",
+      "email": "tran123@gmail.com",
+      "password": "123456",
+      "fullName": "datt123",
+      "phone": "123434345",
+      "createdAt": "2025-11-20T18:46:10.503Z",
+      "updatedAt": "2025-11-20T18:46:10.507Z",
+      "role": "user",
+      "isActive": true,
+      "creationTime": "2025-11-20T18:46:10.507Z"
     }
   ],
   "connections": [],
