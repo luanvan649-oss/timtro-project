@@ -607,15 +607,9 @@
       "creationTime": "2023-01-01T00:00:00.000Z"
     },
     {
-      "id": "user2",
+      "fullName": "Test User1",
       "email": "test@test.com",
-      "password": "123456",
-      "fullName": "Test User",
-      "role": "user",
       "phone": "0908765432",
-      "avatar": "https://via.placeholder.com/150",
-      "createdAt": "2023-02-15T00:00:00.000Z",
-      "updatedAt": "2023-02-15T00:00:00.000Z",
       "school": "Đại học Bách Khoa",
       "major": "Kỹ thuật",
       "year": "2",
@@ -637,12 +631,7 @@
           "Không hút thuốc"
         ]
       },
-      "verified": false,
-      "responseRate": 85,
-      "responseTime": "Trong 2 giờ",
-      "joinDate": "2023-02-15T00:00:00.000Z",
-      "isActive": true,
-      "creationTime": "2023-02-15T00:00:00.000Z"
+      "id": "user2"
     },
     {
       "fullName": "Trần Hoàng Hải",
