@@ -3,17 +3,26 @@ import { Link } from 'react-router-dom';
 import PostCard from '../components/PostCard';
 import SearchFilter from '../components/SearchFilter';
 import Pagination from '../components/Pagination';
-import { LOCATIONS } from '../utils/constants';
 import axios from 'axios';
+
+
+const LOCATIONS = [
+  "Hồ Chí Minh",
+  "Hà Nội",
+  "Đà Nẵng",
+  "Cần Thơ",
+  "Quy Nhơn"
+];
 
 const API_BASE_URL = 'http://localhost:3001';
 
-const Home = () => {
+const Home = ({ globalSearchTerm, setGlobalSearchTerm = () => {} }) => { 
+  // Receive globalSearchTerm and setGlobalSearchTerm
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({});
-  const [searchTerm, setSearchTerm] = useState('');
+  // Use globalSearchTerm as the primary source of truth for search term
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [sortBy, setSortBy] = useState('createdAt');
@@ -22,16 +31,13 @@ const Home = () => {
   const loadPosts = useCallback(async () => {
     try {
       setLoading(true);
-      console.log('Loading posts with filters:', filters, 'search:', searchTerm);
+      console.log('Loading posts with filters:', filters, 'search:', globalSearchTerm);
 
       const queryParams = {
         _page: currentPage,
-        _limit: 20,
-      };
-
-      if (searchTerm.trim()) {
-        queryParams.q = searchTerm.trim();
-      }
+        _limit: 10000, 
+};
+      
 
       if (filters.location) {
         queryParams.location = filters.location;
@@ -51,7 +57,6 @@ const Home = () => {
         queryParams.price_lte = filters.priceMax;
       }
 
-      // Filter by area range
       if (filters.areaMin !== undefined) {
         queryParams.area_gte = filters.areaMin;
       }
@@ -72,10 +77,17 @@ const Home = () => {
       }
       // Note: 'hasVideo' sorting might need custom logic or be removed if not directly supported by json-server
 
+      console.log('Fetching posts with query:', queryParams); // Log the query for debugging
       const response = await axios.get(`${API_BASE_URL}/posts`, { params: queryParams });
-      const totalCount = parseInt(response.headers['x-total-count'], 10);
-
       let fetchedPosts = response.data;
+
+      // Client-side filtering based on globalSearchTerm (by title)
+      if (globalSearchTerm.trim()) {
+        const lowerCaseSearchTerm = globalSearchTerm.trim().toLowerCase();
+        fetchedPosts = fetchedPosts.filter(post => 
+          post.title && post.title.toLowerCase().includes(lowerCaseSearchTerm)
+        );
+      }
 
       // Client-side filtering for amenities if json-server doesn't support it directly
       if (filters.amenities && filters.amenities.length > 0) {
@@ -84,9 +96,17 @@ const Home = () => {
         );
       }
 
-      setPosts(fetchedPosts);
-      setTotalPages(Math.ceil(totalCount / 20));
-      setTotalPosts(totalCount);
+      // Calculate total count after client-side filtering
+      const filteredTotalCount = fetchedPosts.length;
+      
+      // Implement pagination client-side
+      const startIndex = (currentPage - 1) * 20;
+      const endIndex = startIndex + 20;
+      const paginatedPosts = fetchedPosts.slice(startIndex, endIndex);
+
+      setPosts(paginatedPosts);
+      setTotalPages(Math.ceil(filteredTotalCount / 20));
+      setTotalPosts(filteredTotalCount);
     } catch (err) {
       setError('Có lỗi xảy ra khi tải dữ liệu');
       console.error('Error loading posts:', err);
@@ -96,7 +116,7 @@ const Home = () => {
     } finally {
       setLoading(false);
     }
-  }, [filters, searchTerm, currentPage, sortBy]);
+  }, [filters, currentPage, sortBy, globalSearchTerm]); // Removed searchTerm, added globalSearchTerm
 
   useEffect(() => {
     console.log('Home component: loading posts due to dependency change...');
@@ -104,7 +124,7 @@ const Home = () => {
 
     // Loại bỏ real-time listener của Firebase
     return () => {};
-  }, [loadPosts, filters, searchTerm]);
+  }, [loadPosts, filters, globalSearchTerm]); // Add globalSearchTerm to dependencies
 
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters);
@@ -112,7 +132,7 @@ const Home = () => {
   };
 
   const handleSearch = (term) => {
-    setSearchTerm(term);
+    setGlobalSearchTerm(term); // Update global search term
     setCurrentPage(1);
   };
 
@@ -127,9 +147,16 @@ const Home = () => {
   };
 
   const handleLocationFilter = (location) => {
-    const newFilters = location ? { ...filters, location } : { ...filters };
-    delete newFilters.location; // Remove location if empty
-    handleFilterChange(newFilters);
+    setFilters(prevFilters => {
+      const newFilters = { ...prevFilters };
+      if (location) {
+        newFilters.location = location;
+      } else {
+        delete newFilters.location;
+      }
+      return newFilters;
+    });
+    setCurrentPage(1);
   };
 
   if (error) {
@@ -181,7 +208,7 @@ const Home = () => {
               ))}
               <button
                 onClick={() => handleLocationFilter('')}
-                className="flex-shrink-0 bg-white border border-gray-200 rounded px-4 py-3 text-sm text-blue-600 hover:shadow-md transition-shadow"
+                className="flex-shrink-0 bg-white border border-gray-200 rounded px-4 py-3 text-sm text-blue-600 hover:shadow-md transition-colors"
               >
                 Tất cả
                 <svg className="w-3 h-3 ml-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -256,7 +283,7 @@ const Home = () => {
               <button
                 onClick={() => {
                   setFilters({});
-                  setSearchTerm('');
+                  setGlobalSearchTerm(''); // Use globalSearchTerm
                   setCurrentPage(1);
                 }}
                 className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition-colors"
@@ -295,35 +322,6 @@ const Home = () => {
             initialFilters={filters} 
           />
 
-          {/* Recent Posts */}
-          <div className="bg-white rounded shadow-sm p-4">
-            <h3 className="font-medium text-gray-800 mb-4">Tin mới đăng</h3>
-            <div className="space-y-4">
-              {posts.slice(0, 5).map((post) => (
-                <div key={post.id} className="flex space-x-3">
-                  <img
-                    src={post.images?.[0] || '/placeholder-image.jpg'}
-                    alt={post.title}
-                    className="w-20 h-16 object-cover rounded flex-shrink-0"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-medium text-blue-600 hover:text-blue-800 line-clamp-2 cursor-pointer">
-                      {post.title}
-                    </h4>
-                    <div className="flex justify-between items-center mt-2">
-                      <span className="text-sm font-semibold text-green-600">
-                        {post.price?.toLocaleString()} đ/tháng
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {new Date(post.createdAt).toLocaleDateString('vi-VN')}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
           {/* Blog Posts */}
           <div className="bg-white rounded shadow-sm p-4">
             <h3 className="font-medium text-gray-800 mb-4">Bài viết mới</h3>
@@ -352,6 +350,10 @@ const Home = () => {
           </div>
         </div>
       </div>
+      {/* Add ChatWindow component for testing */}
+    {/*  <div className="mt-8 h-[600px]"> {/* Added a fixed height for demonstration */}
+        {/*  <ChatWindow /> 
+      </div> */}
     </div>
   );
 };
