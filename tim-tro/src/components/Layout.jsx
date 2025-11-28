@@ -1,137 +1,267 @@
-// src/components/Layout.jsx
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { User, LogOut, FileText, Settings, ChevronDown, UserPlus } from 'lucide-react';
+import NotificationDropdown from "./components/NotificationDropdown";
 
-// Icons đơn giản thay thế (vì chưa cài lucide-react)
-const UserIcon = () => <span className="inline-block w-5 h-5">Người dùng</span>;
-const LogOutIcon = () => <span className="inline-block w-5 h-5">Ra</span>;
-const DownIcon = () => <span className="inline-block w-4 h-4 ml-1">▼</span>;
+import { Modal, ModalHeader, ModalTitle, ModalContent, ModalFooter } from './ui/Modal'; // Import Modal components
+import Button from './ui/Button'; // Assuming Button component exists
 
-const Layout = ({ children }) => {
+const Layout = ({ children, searchTermValue, onSearchSubmit }) => { // Added searchTermValue, onSearchSubmit props
   const location = useLocation();
-  const navigate = useNavigate();
-  
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null); // Simulated currentUser
   const [showUserDropdown, setShowUserDropdown] = useState(false);
-  const [globalSearchTerm, setGlobalSearchTerm] = useState(''); // Dùng cái này thôi
-  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [headerSearchTerm, setHeaderSearchTerm] = useState(searchTermValue || ''); // Initialize with prop
   const dropdownRef = useRef(null);
+  const navigate = useNavigate(); // Initialize useNavigate
+  const [showLoginModal, setShowLoginModal] = useState(false); // State for login modal
 
   useEffect(() => {
-    const user = localStorage.getItem('currentUser');
-    if (user) setCurrentUser(JSON.parse(user));
+    setHeaderSearchTerm(searchTermValue || ''); // Update when prop changes
+  }, [searchTermValue]);
+
+  useEffect(() => {
+    // Check localStorage for currentUser to simulate login state
+    const storedUser = localStorage.getItem('currentUser');
+    if (storedUser) {
+      setCurrentUser(JSON.parse(storedUser));
+    }
+
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowUserDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('currentUser');
-    setCurrentUser(null);
+    localStorage.removeItem('currentUser'); // Clear user from localStorage
+    setCurrentUser(null); // Clear user from state
+    setShowUserDropdown(false);
+    // Optionally redirect to login page
     navigate('/login');
   };
 
-  const handleCreatePost = () => {
+  const handleClickCreatePost = () => {
     if (!currentUser) {
-      setShowLoginModal(true);
+      setShowLoginModal(true); // Show modal instead of window.confirm
     } else {
       navigate('/create-post');
     }
   };
 
+  const handleConfirmLogin = () => {
+    setShowLoginModal(false);
+    navigate('/login');
+  };
+
+  const handleCancelLogin = () => {
+    setShowLoginModal(false);
+  };
+
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Top blue bar */}
-      <div className="bg-blue-600 text-white text-xs py-2">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          Kênh thông tin Phòng Trọ số 1 Việt Nam
+    <div className="min-h-screen">
+      {/* Top Header */}
+      <div className="bg-blue-600 text-white text-xs py-1">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-4">
+              <span>Kênh thông tin Phòng Trọ số 1 Việt Nam</span>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Main Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-6">
-          <Link to="/" className="text-3xl font-bold text-blue-600">FPTro</Link>
+      <header className="bg-white border-b border-gray-200">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="flex items-center justify-between py-3">
+            {/* Logo */}
+            <div className="flex items-center">
+              <Link to="/" className="flex items-center">
+                <div className="text-2xl font-bold text-blue-600">
+                  FPTro
+                </div>
+              </Link>
+            </div>
 
-          {/* Search Bar - DÙNG globalSearchTerm */}
-          <div className="flex-1 max-w-2xl">
-            <div className="flex border border-gray-300 rounded-lg overflow-hidden">
-              <input
-                type="text"
-                placeholder="Tìm kiếm tin đăng..."
-                className="flex-1 px-4 py-2 text-sm focus:outline-none"
-                value={globalSearchTerm}
-                onChange={(e) => setGlobalSearchTerm(e.target.value)}
-              />
-              <button className="px-5 bg-orange-500 text-white hover:bg-orange-600">
-                Tìm
+            {/* Search Bar */}
+            <div className="flex-1 max-w-2xl mx-8">
+              <div className="flex border border-gray-300 rounded overflow-hidden">
+                <form className="flex-1 flex">
+                  <input
+                    type="text"
+                    placeholder="Tìm kiếm tin đăng..."
+                    className="flex-1 px-3 py-2 text-sm focus:outline-none"
+                    value={headerSearchTerm}
+                    onChange={(e) => {
+                      setHeaderSearchTerm(e.target.value);
+                      onSearchSubmit(e.target.value); // Trigger search on change
+                    }}
+                  />
+                  <button type="button" className="px-4 py-2 bg-orange-500 text-white hover:bg-orange-600 transition-colors">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            {/* Right Menu */}
+            <div className="flex items-center space-x-4">
+              <Link 
+                to="/suggestions" 
+                className="text-gray-600 hover:text-gray-800 text-sm font-medium transition-colors"
+              >
+                Gợi ý phòng trọ
+              </Link>
+
+              <Link 
+                to="/connections" 
+                className="text-gray-600 hover:text-gray-800 text-sm font-medium transition-colors"
+              >
+                Kết nối
+              </Link>
+
+              <Link 
+                to="/ratings" 
+                className="text-gray-600 hover:text-gray-800 text-sm font-medium transition-colors"
+              >
+                Đánh giá
+              </Link>
+
+              <Link 
+                to="/profile" 
+                className="text-gray-600 hover:text-gray-800 text-sm font-medium transition-colors"
+              >
+                Hồ sơ
+              </Link>
+
+              {/* Notification Dropdown */}
+              {currentUser && <NotificationDropdown />}
+
+              {currentUser ? (
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    onClick={() => setShowUserDropdown(!showUserDropdown)}
+                    className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 text-sm font-medium transition-colors"
+                  >
+                    <User className="w-4 h-4" />
+                    <span>{currentUser.displayName || currentUser.email}</span>
+                    <ChevronDown className="w-4 h-4" />
+                  </button>
+
+                  {showUserDropdown && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-50">
+                      <div className="py-1">
+                        <Link
+                          to="/profile"
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                          onClick={() => setShowUserDropdown(false)}
+                        >
+                          <User className="w-4 h-4 mr-2" />
+                          Thông tin cá nhân
+                        </Link>
+                        <Link
+                          to="/my-posts"
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                          onClick={() => setShowUserDropdown(false)}
+                        >
+                          <FileText className="w-4 h-4 mr-2" />
+                          Tin đăng của tôi
+                        </Link>
+                        <Link
+                          to="/connections"
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                          onClick={() => setShowUserDropdown(false)}
+                        >
+                          <UserPlus className="w-4 h-4 mr-2" />
+                          Kết nối của tôi
+                        </Link>
+                        <Link
+                          to="/settings"
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                          onClick={() => setShowUserDropdown(false)}
+                        >
+                          <Settings className="w-4 h-4 mr-2" />
+                          Cài đặt
+                        </Link>
+                        {currentUser && currentUser.role === 'admin' && (
+                          <Link
+                            to="/admin"
+                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                            onClick={() => setShowUserDropdown(false)}
+                          >
+                            <Settings className="w-4 h-4 mr-2" />
+                            Admin Dashboard
+                          </Link>
+                        )}
+                        <hr className="my-1" />
+                        <button
+                          onClick={handleLogout}
+                          className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                        >
+                          <LogOut className="w-4 h-4 mr-2" />
+                          Đăng xuất
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <Link 
+                    to="/login" 
+                    className="text-gray-600 hover:text-gray-800 text-sm font-medium transition-colors"
+                  >
+                    Đăng nhập
+                  </Link>
+
+                  <Link 
+                    to="/register" 
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium transition-colors"
+                  >
+                    Đăng ký
+                  </Link>
+                </>
+              )}
+
+              <button
+                onClick={handleClickCreatePost}
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm font-medium transition-colors"
+              >
+                Đăng tin miễn phí
               </button>
             </div>
-          </div>
-
-          {/* Right menu */}
-          <div className="flex items-center gap-4">
-            {currentUser ? (
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setShowUserDropdown(!showUserDropdown)}
-                  className="flex items-center gap-2 hover:bg-gray-100 px-3 py-2 rounded"
-                >
-                  <UserIcon />
-                  <span className="text-sm">{currentUser.email || 'User'}</span>
-                  <DownIcon />
-                </button>
-
-                {showUserDropdown && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border">
-                    <Link to="/profile" className="block px-4 py-2 hover:bg-gray-100 text-sm">
-                      Thông tin cá nhân
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 hover:bg-red-50 text-red-600 text-sm"
-                    >
-                      <LogOutIcon /> Đăng xuất
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <>
-                <Link to="/login" className="text-sm hover:text-blue-600">Đăng nhập</Link>
-                <Link to="/register" className="bg-blue-500 text-white px-4 py-2 rounded text-sm">
-                  Đăng ký
-                </Link>
-              </>
-            )}
-
-            <button
-              onClick={handleCreatePost}
-              className="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded text-sm font-medium"
-            >
-              Đăng tin miễn phí
-            </button>
           </div>
         </div>
       </header>
 
-      {/* Nav */}
-      <nav className="bg-white border-b">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="flex gap-8">
-            <Link
-              to="/"
-              className={`py-3 text-sm font-medium border-b-2 ${
+      {/* Navigation Menu */}
+      <nav className="bg-white border-b border-gray-200">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="flex space-x-8">
+            <Link 
+              to="/" 
+              className={`py-3 text-sm font-medium border-b-2 transition-colors ${
                 location.pathname === '/' 
                   ? 'text-orange-500 border-orange-500' 
-                  : 'text-gray-600 border-transparent hover:text-gray-900'
+                  : 'text-gray-600 border-transparent hover:text-gray-800'
               }`}
             >
               Phòng trọ
             </Link>
-            <Link
-              to="/blog"
-              className={`py-3 text-sm font-medium border-b-2 ${
-                location.pathname === '/blog'
-                  ? 'text-orange-500 border-orange-500'
-                  : 'text-gray-600 border-transparent hover:text-gray-900'
+            <Link 
+              to="/blog" 
+              className={`py-3 text-sm font-medium border-b-2 transition-colors ${
+                location.pathname === '/blog' 
+                  ? 'text-orange-500 border-orange-500' 
+                  : 'text-gray-600 border-transparent hover:text-gray-800'
               }`}
             >
               Blog
@@ -140,46 +270,78 @@ const Layout = ({ children }) => {
         </div>
       </nav>
 
-      {/* Main content - truyền search term xuống Home */}
-      <main className="flex-1 bg-gray-50">
-        {React.Children.map(children, child =>
-          React.isValidElement(child)
-            ? React.cloneElement(child, { globalSearchTerm, setGlobalSearchTerm })
-            : child
-        )}
+      {/* Main Content */}
+      <main className="bg-gray-50">
+        {children}
       </main>
 
-      {/* Footer giữ nguyên đẹp */}
-      <footer className="bg-gray-800 text-white py-8">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <p className="text-2xl font-bold mb-2">FPTro</p>
-          <p className="text-sm">© 2024 FPTro. Tất cả quyền được bảo lưu.</p>
-        </div>
-      </footer>
+      {/* Footer */}
+      <footer className="bg-gray-100 pt-8 pb-4">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-8">
+            <div className="lg:col-span-2">
+              <h3 className="font-bold text-lg text-gray-800 mb-4">FPTro</h3>
+              <p className="text-gray-600 text-sm mb-4">
+                FPTro tự hào có lượng dữ liệu bài đăng lớn nhất trong lĩnh vực cho thuê phòng trọ dành cho sinh viên FPT.
+              </p>
+              <div className="text-sm text-gray-600">
+                <p className="mb-1"><strong>Điện thoại:</strong> 0917 686 101</p>
+                <p className="mb-1"><strong>Email:</strong> support@fptro.com</p>
+                <p><strong>Địa chỉ:</strong> Khu công nghệ cao Láng - Hòa Lạc, Thạch Thất, Hà Nội, Việt Nam</p>
+              </div>
+            </div>
 
-      {/* Modal đơn giản thay thế */}
-      {showLoginModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full mx-4">
-            <h3 className="text-lg font-bold mb-4">Yêu cầu đăng nhập</h3>
-            <p className="text-gray-600 mb-6">Bạn cần đăng nhập để đăng tin mới.</p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowLoginModal(false)}
-                className="px-4 py-2 border rounded hover:bg-gray-100"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={() => navigate('/login')}
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-              >
-                Đăng nhập
-              </button>
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-4">Phòng trọ</h4>
+              <ul className="space-y-2 text-sm">
+                <li><Link to="/ho-chi-minh" className="text-gray-600 hover:text-gray-800">Phòng trọ Hồ Chí Minh</Link></li>
+                <li><Link to="/ha-noi" className="text-gray-600 hover:text-gray-800">Phòng trọ Hà Nội</Link></li>
+                <li><Link to="/da-nang" className="text-gray-600 hover:text-gray-800">Phòng trọ Đà Nẵng</Link></li>
+                <li><Link to="/binh-duong" className="text-gray-600 hover:text-gray-800">Phòng trọ Bình Dương</Link></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-4">Nhà cho thuê</h4>
+              <ul className="space-y-2 text-sm">
+                <li><Link to="/thue-nha-hcm" className="text-gray-600 hover:text-gray-800">Thuê nhà Hồ Chí Minh</Link></li>
+                <li><Link to="/thue-nha-hn" className="text-gray-600 hover:text-gray-800">Thuê nhà Hà Nội</Link></li>
+                <li><Link to="/thue-nha-dn" className="text-gray-600 hover:text-gray-800">Thuê nhà Đà Nẵng</Link></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-4">Hỗ trợ</h4>
+              <ul className="space-y-2 text-sm">
+                <li><Link to="/lien-he" className="text-gray-600 hover:text-gray-800">Liên hệ</Link></li>
+                <li><Link to="/gop-y" className="text-gray-600 hover:text-gray-800">Góp ý</Link></li>
+                <li><Link to="/quy-dinh" className="text-gray-600 hover:text-gray-800">Quy định sử dụng</Link></li>
+                <li><Link to="/bao-mat" className="text-gray-600 hover:text-gray-800">Chính sách bảo mật</Link></li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="border-t border-gray-200 pt-4">
+            <div className="text-center text-sm text-gray-600">
+              <p>© 2024 FPTro. Tất cả quyền được bảo lưu.</p>
             </div>
           </div>
         </div>
-      )}
+      </footer>
+
+      {/* Login Confirmation Modal */}
+      <Modal isOpen={showLoginModal} onClose={handleCancelLogin}>
+        <ModalHeader onClose={handleCancelLogin}>
+          <ModalTitle>Yêu cầu đăng nhập</ModalTitle>
+        </ModalHeader>
+        <ModalContent>
+          <p>Bạn cần đăng nhập để đăng tin mới. Bạn có muốn đăng nhập ngay bây giờ không?</p>
+        </ModalContent>
+        <ModalFooter>
+          <Button variant="secondary" onClick={handleCancelLogin}>Hủy</Button>
+          <Button onClick={handleConfirmLogin}>Đăng nhập</Button>
+        </ModalFooter>
+      </Modal>
     </div>
   );
 };
