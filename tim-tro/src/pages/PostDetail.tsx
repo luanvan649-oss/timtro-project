@@ -357,6 +357,12 @@ function PostDetail() {
                       <span className="text-gray-600">Loại phòng:</span>
                       <span className="font-medium">{post.roomType || 'N/A'}</span>
                     </div>
+                    {post.area && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Diện tích:</span>
+                        <span className="font-medium">{post.area} m²</span>
+                      </div>
+                    )}
                     <div className="flex justify-between">
                       <span className="text-gray-600">Giới tính mong muốn:</span>
                       <span className="font-medium">{post.genderPreference || 'N/A'}</span>
@@ -388,6 +394,16 @@ function PostDetail() {
                   </div>
                 </div>
             </div>
+            
+            {/* Apartment Utilities */}
+            {post.apartmentPrices && (
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-3">Tiện nghi & Chi phí</h3>
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <p className="text-gray-700 whitespace-pre-wrap">{post.apartmentPrices}</p>
+                </div>
+              </div>
+            )}
             
             {/* Interests & Lifestyle */}
             <div className="mb-6">
