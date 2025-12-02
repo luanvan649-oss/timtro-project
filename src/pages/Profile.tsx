@@ -47,7 +47,9 @@ function Profile() {
   const [userStats, setUserStats] = useState({
     postsCount: 0,
     connectionsCount: 0,
-    rating: 0
+    rating: 0,
+    profileViews: 0,
+    joinDate: ''
   });
 
   useEffect(() => {
