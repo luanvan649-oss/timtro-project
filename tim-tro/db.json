@@ -390,6 +390,43 @@
       "contactPhone": "0913456789",
       "contactName": "Ông Hải",
       "slug": "mat-bang-kinh-doanh-trung-tam-can-tho-vi-tri-ep"
+    },
+    {
+      "id": "bca1",
+      "title": "Thế Anh ",
+      "description": "tìm ae cũng quê 36 ",
+      "budget": 3600000,
+      "location": "Hà Nội",
+      "district": "Thạch Thất",
+      "roomType": "double",
+      "genderPreference": "male",
+      "myGender": "male",
+      "school": "Đại Học FPT",
+      "major": "Công nghệ thông tin",
+      "year": "3",
+      "availableFrom": "2025-12-25",
+      "contactName": "Nguyễn Thế Anh",
+      "contactPhone": "0396786256",
+      "interests": [
+        "Đọc sách",
+        "Xem phim",
+        "Gym"
+      ],
+      "lifestyle": [
+        "Sạch sẽ",
+        "Yên tĩnh",
+        "Thân thiện",
+        "Không hút thuốc"
+      ],
+      "images": [
+        "blob:http://localhost:5173/0d6db7b9-6e99-4853-8172-7c0498b308fe"
+      ],
+      "userId": "3ef3",
+      "createdAt": "2025-12-02T03:15:34.730Z",
+      "updatedAt": "2025-12-02T03:15:34.734Z",
+      "status": "active",
+      "views": 0,
+      "likes": 0
     }
   ],
   "blogs": [
