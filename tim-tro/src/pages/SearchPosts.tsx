@@ -1,20 +1,18 @@
-import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom'; // Import useLocation
-import SearchFilter from '../components/SearchFilter';
-import Pagination from '../components/Pagination';
-import axios from 'axios';
-import { 
-  MapPin, 
-  DollarSign, 
-  Users, 
-  Calendar, 
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom"; // Import useLocation
+import SearchFilter from "../components/SearchFilter";
+import Pagination from "../components/Pagination";
+import api from "../api";
+import {
+  MapPin,
+  DollarSign,
+  Users,
+  Calendar,
   Star,
   Heart,
   Eye,
-  Search
-} from 'lucide-react';
-
-const API_BASE_URL = 'http://localhost:3001';
+  Search,
+} from "lucide-react";  
 
 interface Filters {
   district?: string;
@@ -29,9 +27,9 @@ interface Filters {
 
 function SearchPosts() {
   const location = useLocation(); // Initialize useLocation
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<Filters>({});
-  const [sortBy, setSortBy] = useState('newest');
+  const [sortBy, setSortBy] = useState("newest");
   const [currentPage, setCurrentPage] = useState(1);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -42,7 +40,7 @@ function SearchPosts() {
 
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
-    const q = queryParams.get('q');
+    const q = queryParams.get("q");
     if (q) {
       setSearchTerm(q);
     }
@@ -51,8 +49,9 @@ function SearchPosts() {
 
   const fetchPosts = async () => {
     setLoading(true);
-    
-    let queryParams: Record<string, any> = { // Define queryParams outside try block
+
+    let queryParams: Record<string, any> = {
+      // Define queryParams outside try block
       _page: currentPage,
       _limit: postsPerPage,
     };
@@ -84,34 +83,38 @@ function SearchPosts() {
         queryParams.area_lte = filters.areaMax;
       }
 
-      if (sortBy === 'newest' || sortBy === 'createdAt') {
-        queryParams._sort = 'createdAt';
-        queryParams._order = 'desc';
-      } else if (sortBy === 'price') {
-        queryParams._sort = 'price';
-        queryParams._order = 'asc';
-      } else if (sortBy === 'priceDesc') {
-        queryParams._sort = 'price';
-        queryParams._order = 'desc';
+      if (sortBy === "newest" || sortBy === "createdAt") {
+        queryParams._sort = "createdAt";
+        queryParams._order = "desc";
+      } else if (sortBy === "price") {
+        queryParams._sort = "price";
+        queryParams._order = "asc";
+      } else if (sortBy === "priceDesc") {
+        queryParams._sort = "price";
+        queryParams._order = "desc";
       }
 
-      console.log('Fetching posts with query:', queryParams); // Log the query for debugging
-      const response = await axios.get(`${API_BASE_URL}/posts`, { params: queryParams });
-      const totalCount = parseInt(response.headers['x-total-count'], 10);
+      console.log("Fetching posts with query:", queryParams); // Log the query for debugging
+      const response = await api.get("/posts", {
+        params: queryParams,
+      });
+      const totalCount = parseInt(response.headers["x-total-count"], 10);
 
       let fetchedPosts = response.data;
 
       if (filters.amenities && filters.amenities.length > 0) {
-        fetchedPosts = fetchedPosts.filter(post =>
-          filters.amenities.every(amenity => post.amenities?.includes(amenity))
+        fetchedPosts = fetchedPosts.filter((post) =>
+          filters.amenities.every((amenity) =>
+            post.amenities?.includes(amenity)
+          )
         );
       }
 
       setPosts(fetchedPosts);
       setTotalPosts(totalCount);
     } catch (error) {
-      console.error('Error fetching posts:', error);
-      console.log('Query parameters sent:', queryParams); // Log query parameters for debugging
+      console.error("Error fetching posts:", error);
+      console.log("Query parameters sent:", queryParams); // Log query parameters for debugging
       setPosts([]);
       setTotalPosts(0);
     } finally {
@@ -136,31 +139,31 @@ function SearchPosts() {
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const toggleFavorite = (postId) => {
-    setFavorites(prev => 
-      prev.includes(postId) 
-        ? prev.filter(id => id !== postId)
+    setFavorites((prev) =>
+      prev.includes(postId)
+        ? prev.filter((id) => id !== postId)
         : [...prev, postId]
     );
   };
 
   const formatPrice = (price) => {
-    return (price / 1000000).toFixed(1) + ' triệu';
+    return (price / 1000000).toFixed(1) + " triệu";
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('vi-VN');
+    return new Date(dateString).toLocaleDateString("vi-VN");
   };
 
   const getGenderLabel = (gender) => {
     const genders = {
-      'male': 'Nam',
-      'female': 'Nữ'
+      male: "Nam",
+      female: "Nữ",
     };
-    return genders[gender] || 'Không quan trọng';
+    return genders[gender] || "Không quan trọng";
   };
 
   return (
@@ -175,10 +178,10 @@ function SearchPosts() {
 
             <div className="space-y-6">
               {/* SearchFilter Component */}
-              <SearchFilter 
-                onSearch={handleSearch} 
-                onFilter={handleFilterChange} 
-                initialFilters={filters} 
+              <SearchFilter
+                onSearch={handleSearch}
+                onFilter={handleFilterChange}
+                initialFilters={filters}
               />
 
               {/* Sort Options */}
@@ -214,11 +217,14 @@ function SearchPosts() {
                   Tìm thấy {totalPosts} tin đăng
                 </p>
               </div>
-              
+
               {searchTerm && (
                 <div className="mt-4 sm:mt-0">
                   <span className="text-sm text-gray-500">
-                    Từ khóa: <span className="font-medium text-blue-600">"{searchTerm}"</span>
+                    Từ khóa:{" "}
+                    <span className="font-medium text-blue-600">
+                      "{searchTerm}"
+                    </span>
                   </span>
                 </div>
               )}
@@ -229,7 +235,10 @@ function SearchPosts() {
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(6)].map((_, index) => (
-                <div key={index} className="bg-white rounded-lg shadow-lg p-6 animate-pulse">
+                <div
+                  key={index}
+                  className="bg-white rounded-lg shadow-lg p-6 animate-pulse"
+                >
                   <div className="space-y-4">
                     <div className="h-48 bg-gray-200 rounded"></div>
                     <div className="space-y-2">
@@ -254,7 +263,7 @@ function SearchPosts() {
               </p>
               <button
                 onClick={() => {
-                  setSearchTerm('');
+                  setSearchTerm("");
                   setFilters({});
                   setCurrentPage(1);
                 }}
@@ -268,11 +277,14 @@ function SearchPosts() {
               {/* Posts Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {posts.map((post) => (
-                  <div key={post.id} className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+                  <div
+                    key={post.id}
+                    className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
+                  >
                     {/* Post Image */}
                     <div className="relative">
                       <img
-                        src={post.images?.[0] || '/placeholder-image.jpg'}
+                        src={post.images?.[0] || "/placeholder-image.jpg"}
                         alt={post.title}
                         className="w-full h-48 object-cover"
                       />
@@ -281,8 +293,8 @@ function SearchPosts() {
                           onClick={() => toggleFavorite(post.id)}
                           className={`p-2 rounded-full ${
                             favorites.includes(post.id)
-                              ? 'bg-red-500 text-white'
-                              : 'bg-white text-gray-600 hover:text-red-500'
+                              ? "bg-red-500 text-white"
+                              : "bg-white text-gray-600 hover:text-red-500"
                           } transition-colors`}
                         >
                           <Heart size={16} />
@@ -304,7 +316,10 @@ function SearchPosts() {
                     <div className="p-6">
                       <div className="flex items-start justify-between mb-3">
                         <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
-                          <Link to={`/post/${post.id}`} className="hover:text-blue-600">
+                          <Link
+                            to={`/post/${post.id}`}
+                            className="hover:text-blue-600"
+                          >
                             {post.title}
                           </Link>
                         </h3>
@@ -317,7 +332,9 @@ function SearchPosts() {
                       <div className="space-y-2 mb-4">
                         <div className="flex items-center text-gray-600">
                           <MapPin size={16} className="mr-2" />
-                          <span className="text-sm">{post.location || post.address}</span>
+                          <span className="text-sm">
+                            {post.location || post.address}
+                          </span>
                         </div>
                         <div className="flex items-center text-gray-600">
                           <DollarSign size={16} className="mr-2" />
@@ -327,11 +344,15 @@ function SearchPosts() {
                         </div>
                         <div className="flex items-center text-gray-600">
                           <Users size={16} className="mr-2" />
-                          <span className="text-sm">{getGenderLabel(post.genderPreference)}</span>
+                          <span className="text-sm">
+                            {getGenderLabel(post.genderPreference)}
+                          </span>
                         </div>
                         <div className="flex items-center text-gray-600">
                           <Calendar size={16} className="mr-2" />
-                          <span className="text-sm">{formatDate(post.createdAt)}</span>
+                          <span className="text-sm">
+                            {formatDate(post.createdAt)}
+                          </span>
                         </div>
                       </div>
 
@@ -339,7 +360,10 @@ function SearchPosts() {
                       {post.amenities && post.amenities.length > 0 && (
                         <div className="flex flex-wrap gap-2 mb-4">
                           {post.amenities.slice(0, 4).map((amenity, index) => (
-                            <span key={index} className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">
+                            <span
+                              key={index}
+                              className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs"
+                            >
                               {amenity}
                             </span>
                           ))}
@@ -375,7 +399,9 @@ function SearchPosts() {
                     currentPage={currentPage}
                     totalPages={Math.ceil(totalPosts / postsPerPage)}
                     onPageChange={handlePageChange}
-                    hasNextPage={currentPage < Math.ceil(totalPosts / postsPerPage)}
+                    hasNextPage={
+                      currentPage < Math.ceil(totalPosts / postsPerPage)
+                    }
                     hasPreviousPage={currentPage > 1}
                   />
                 </div>

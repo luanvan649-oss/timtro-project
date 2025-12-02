@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-
+import api from '../api';
 interface BlogItem {
   id: string;
   title: string;
@@ -18,6 +18,7 @@ const Blog = () => {
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
+      const response = await api.get('/blogs');
         // In a real application, this would be a fetch call to your API, e.g.,
         // const response = await fetch('http://localhost:3000/blogs');
         // const data = await response.json();
@@ -26,6 +27,7 @@ const Blog = () => {
         const mockData = {
           "blogs": [
             {
+              
               "id": "blog1",
               "title": "Bí quyết tìm phòng trọ ưng ý cho sinh viên FPT",
               "author": "FPTro Admin",
@@ -75,10 +77,10 @@ const Blog = () => {
             }
           ]
         };
-        setBlogs(mockData.blogs as BlogItem[]);
-      } catch (err) {
-        setError("Failed to fetch blog posts.");
-        console.error("Error fetching blogs:", err);
+          setBlogs(response.data);
+     } catch (err) {
+        setError('Không thể tải bài viết. Vui lòng thử lại sau.');
+        console.error('Error fetching blogs:', err);
       } finally {
         setLoading(false);
       }

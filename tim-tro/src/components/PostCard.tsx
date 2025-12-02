@@ -5,7 +5,7 @@ import ConnectionModal from './ConnectionModal';
 interface Post {
   id: string;
   title: string;
-  type: string;
+  type:  'room_listing' | 'roommate_finding';
   price?: number;
   budget?: number;
   area?: number;
@@ -35,47 +35,60 @@ interface CurrentUser {
   [key: string]: any;
 }
 
-const PostCard = ({ post }: { post: Post }) => {
-  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null); // Simulated currentUser
+interface PostCardProps {
+  post: Post;
+}
+const PostCard: React.FC<PostCardProps> = ({ post }) => {
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [showConnectionModal, setShowConnectionModal] = useState(false);
 
   useEffect(() => {
-    // Load current user from localStorage (simulating auth)
     const storedUser = localStorage.getItem('currentUser');
     if (storedUser) {
-      setCurrentUser(JSON.parse(storedUser));
+      try {
+        setCurrentUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error('Error parsing currentUser from localStorage:', error);
+      }
     }
   }, []);
+ const getCurrentUserId = () => {
+    return currentUser?.id || currentUser?.uid || '';
+  };
 
-  const formatPrice = (price: number | undefined, type: string) => {
+  const isOwnPost = currentUser && post.authorId === getCurrentUserId();
+
+    const formatPrice = (price: number | undefined, type: Post['type']) => {
     if (price === undefined || price === null) {
       return 'N/A';
     }
     if (type === 'room_listing') {
-      if (price >= 1000000) {
-        return `${(price / 1000000).toFixed(1)} triệu/tháng`;
+      if (price >= 1_000_000) {
+        return `${(price / 1_000_000).toFixed(1)} triệu/tháng`;
       }
       return `${price.toLocaleString()} đồng/tháng`;
     } else if (type === 'roommate_finding') {
-      if (price >= 1000000000) {
-        return `${(price / 1000000000).toFixed(1)} tỷ`;
+      if (price >= 1_000_000_000) {
+        return `${(price / 1_000_000_000).toFixed(1)} tỷ`;
       }
-      if (price >= 1000000) {
-        return `${(price / 1000000).toFixed(1)} triệu`;
+      if (price >= 1_000_000) {
+        return `${(price / 1_000_000).toFixed(1)} triệu`;
       }
       return `${price.toLocaleString()} đồng`;
     }
     return 'N/A';
   };
 
-  const formatDate = (dateString: string) => {
+    const formatDate = (dateString: string) => {
     const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return 'Không rõ thời gian';
+
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays === 1) {
       return 'Hôm nay';
     } else if (diffDays <= 7) {
@@ -85,26 +98,26 @@ const PostCard = ({ post }: { post: Post }) => {
     }
   };
 
-  const nextImage = () => {
+   const nextImage = () => {
     if (post.images && post.images.length > 1) {
-      setCurrentImageIndex((prev) => 
-        prev === (post.images?.length ?? 0) - 1 ? 0 : prev + 1
+      setCurrentImageIndex((prev) =>
+        prev === post.images!.length - 1 ? 0 : prev + 1
       );
     }
   };
 
-  const prevImage = () => {
+ const prevImage = () => {
     if (post.images && post.images.length > 1) {
-      setCurrentImageIndex((prev) => 
-        prev === 0 ? (post.images?.length ?? 1) - 1 : prev - 1
+      setCurrentImageIndex((prev) =>
+        prev === 0 ? post.images!.length - 1 : prev - 1
       );
     }
   };
 
-  const handleLike = (e: React.MouseEvent<HTMLButtonElement>) => {
+   const handleLike = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsLiked(!isLiked);
+    setIsLiked((prev) => !prev);
   };
 
   return (

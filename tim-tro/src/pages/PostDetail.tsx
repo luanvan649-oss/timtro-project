@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api'; // Đảm bảo bạn đã import API client của mình
 import ConnectionModal from '../components/ConnectionModal';
 import { 
   MapPin, 
@@ -22,8 +22,6 @@ import {
   X,
   UserPlus
 } from 'lucide-react';
-
-const API_BASE_URL = 'http://localhost:3001';
 
 function PostDetail() {
   const { id } = useParams();
@@ -51,9 +49,9 @@ function PostDetail() {
         return;
       }
       
-      const response = await axios.get(`${API_BASE_URL}/posts/${id}`);
+      const response = await api.get(`/posts/${id}`); // Sử dụng api.get thay vì axios.get
       const postData = response.data;
-      console.log('Fetched post data:', postData); // Add this line for debugging
+      console.log('Fetched post data:', postData);
       
       if (!postData) {
         console.error('Post not found');
@@ -62,16 +60,8 @@ function PostDetail() {
       }
 
       setPost(postData);
-      console.log('Post type:', postData.type);
-      console.log('Post price:', postData.price);
-      console.log('Post budget:', postData.budget);
-      console.log('Post images:', postData.images);
-      console.log('Post description:', postData.description);
-      console.log('Post location:', postData.location);
-
-
       if (postData.userId) {
-        const authorResponse = await axios.get(`${API_BASE_URL}/users/${postData.userId}`);
+        const authorResponse = await api.get(`/users/${postData.userId}`); // Sử dụng api.get thay vì axios.get
         setAuthorInfo(authorResponse.data);
       }
       
@@ -87,11 +77,11 @@ function PostDetail() {
     fetchPost();
   }, [id, navigate, fetchPost]);
 
-  // Thêm hàm fetchConnectionStatus
+  // Thêm hàm fetchConnectionStatus phần kiểm tra trạng thái kết nối:
   const fetchConnectionStatus = useCallback(async () => {
     if (currentUser && authorInfo) {
       try {
-        const response = await axios.get(`${API_BASE_URL}/connections/status/${currentUser.uid}/${authorInfo.id}`); // Cập nhật endpoint
+        const response = await api.get(`/connections/status/${currentUser.id}/${authorInfo.id}`); // Sử dụng api.get thay vì axios.get
         setIsConnected(response.data.isConnected);
       } catch (error) {
         console.error('Error checking connection status:', error);
@@ -137,7 +127,7 @@ function PostDetail() {
     }
   };
 
-
+  // Thay đổi trạng thái bài đăng
   const toggleFavorite = () => {
     setIsFavorite(!isFavorite);
   };
@@ -357,12 +347,6 @@ function PostDetail() {
                       <span className="text-gray-600">Loại phòng:</span>
                       <span className="font-medium">{post.roomType || 'N/A'}</span>
                     </div>
-                    {post.area && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Diện tích:</span>
-                        <span className="font-medium">{post.area} m²</span>
-                      </div>
-                    )}
                     <div className="flex justify-between">
                       <span className="text-gray-600">Giới tính mong muốn:</span>
                       <span className="font-medium">{post.genderPreference || 'N/A'}</span>
@@ -394,16 +378,6 @@ function PostDetail() {
                   </div>
                 </div>
             </div>
-            
-            {/* Apartment Utilities */}
-            {post.apartmentPrices && (
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-3">Tiện nghi & Chi phí</h3>
-                <div className="bg-blue-50 rounded-lg p-4">
-                  <p className="text-gray-700 whitespace-pre-wrap">{post.apartmentPrices}</p>
-                </div>
-              </div>
-            )}
             
             {/* Interests & Lifestyle */}
             <div className="mb-6">

@@ -1,9 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
-import axios from 'axios';
-
-const API_BASE_URL = 'http://localhost:3001';
+import api from '../api';  
 
 function Login() {
   const [formData, setFormData] = useState({
@@ -17,36 +15,36 @@ function Login() {
   
   const navigate = useNavigate();
 
-  const handleLogin = async (email, password) => {
-    try {
-      // Simulate API call for login
-      const response = await axios.get(`${API_BASE_URL}/users`, {
-        params: {
-          email: email,
-          password: password // In a real app, passwords should be hashed and compared server-side
-        }
-      });
-
-      if (response.data.length > 0) {
-        const user = response.data[0];
-        if (user.isBlocked) {
-          throw new Error('Account is blocked');
-        }
-        if (user.isActive === false) {
-          throw new Error('Account is inactive');
-        }
-        console.log('Login successful:', user);
-        // Store user info in localStorage or context for session management
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        return user;
-      } else {
-        throw new Error('Invalid credentials');
+const handleLogin = async (email, password) => {
+  try {
+    // Gọi API từ thư mục 'api'
+    const response = await api.get('/users', {
+      params: {
+        email: email,
+        password: password // In a real app, passwords should be hashed and compared server-side
       }
-    } catch (error) {
-      console.error('Login Error:', error);
-      throw error;
+    });
+
+   if (response.data.length > 0) {
+      const user = response.data[0];
+      if (user.isBlocked) {
+        throw new Error('Account is blocked');
+      }
+      if (user.isActive === false) {
+        throw new Error('Account is inactive');
+      }
+      console.log('Login successful:', user);
+      // Lưu thông tin người dùng vào localStorage hoặc context cho việc quản lý session
+      localStorage.setItem('currentUser', JSON.stringify(user));
+      return user;
+    } else {
+      throw new Error('Invalid credentials');
     }
-  };
+  } catch (error) {
+    console.error('Login Error:', error);
+    throw error;  // Đẩy lỗi để xử lý trong catch
+  }
+};
 
   const handleChange = (e) => {
     setFormData({
@@ -74,51 +72,51 @@ function Login() {
     return true;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  if (!validateForm()) {
+    return;
+  }
 
-    try {
-      setError('');
-      setLoading(true);
-      const user = await handleLogin(formData.email, formData.password);
-      
-      if (rememberMe) {
-        localStorage.setItem('rememberMe', 'true');
-      }
-      
-      console.log('User role:', user.role); // Add this line to log the user role
-      if (user.role === 'admin') {
-        navigate('/admin');
-      } else if (user.role === 'user') {
-        navigate('/');
-      }
-    } catch (err) {
-      console.error('Login error:', err);
-      
-      let errorMessage = 'Đăng nhập thất bại';
-      
-      if (err.message === 'Account is blocked') {
-        errorMessage = 'Tài khoản của bạn đã bị chặn. Vui lòng liên hệ quản trị viên.';
-      } else if (err.message === 'Account is inactive') {
-        errorMessage = 'Tài khoản này đã bị vô hiệu hóa.';
-      } else if (err.response && err.response.status === 401) {
-        errorMessage = 'Email hoặc mật khẩu không đúng';
-      } else if (err.message === 'Invalid credentials') {
-        errorMessage = 'Email hoặc mật khẩu không đúng';
-      } else if (err.response && err.response.status === 404) {
-        errorMessage = 'Tài khoản không tồn tại';
-      } else {
-        errorMessage = 'Đăng nhập thất bại. Vui lòng thử lại.';
-      }
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
+  try {
+    setError('');
+    setLoading(true);
+    const user = await handleLogin(formData.email, formData.password);
+    
+    if (rememberMe) {
+      localStorage.setItem('rememberMe', 'true');
     }
-  };
+    
+    if (user.role === 'admin') {
+      navigate('/admin');
+    } else if (user.role === 'user') {
+      navigate('/');
+    }
+  } catch (err) {
+    console.error('Login error:', err);
+    
+    let errorMessage = 'Đăng nhập thất bại';
+    
+    if (err.message === 'Account is blocked') {
+      errorMessage = 'Tài khoản của bạn đã bị chặn. Vui lòng liên hệ quản trị viên.';
+    } else if (err.message === 'Account is inactive') {
+      errorMessage = 'Tài khoản này đã bị vô hiệu hóa.';
+    } else if (err.response && err.response.status === 401) {
+      errorMessage = 'Email hoặc mật khẩu không đúng';
+    } else if (err.message === 'Invalid credentials') {
+      errorMessage = 'Email hoặc mật khẩu không đúng';
+    } else if (err.response && err.response.status === 404) {
+      errorMessage = 'Tài khoản không tồn tại';
+    } else {
+      errorMessage = 'Đăng nhập thất bại. Vui lòng thử lại.';
+    }
+    setError(errorMessage);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">

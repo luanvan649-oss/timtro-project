@@ -5,7 +5,7 @@ import BlogManagement from './BlogManagement'; // Import BlogManagement
 
 type AdminTab = 'userManagement' | 'postManagement' | 'blogManagement';
 
-const AdminDashboard = () => {
+const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<AdminTab>('userManagement'); // 'userManagement', 'postManagement', or 'blogManagement'
 
   const handleTabClick = (tab: AdminTab) => {

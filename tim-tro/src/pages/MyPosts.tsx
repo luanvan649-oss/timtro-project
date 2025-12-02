@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api';
 import {
   FileText,
   Plus,
@@ -15,7 +15,7 @@ import {
   MoreHorizontal
 } from 'lucide-react';
 
-const API_BASE_URL = 'http://localhost:3001';
+
 
 const MyPosts = ({ currentUser }) => {
   const navigate = useNavigate();
@@ -39,7 +39,7 @@ const MyPosts = ({ currentUser }) => {
     try {
       setLoading(true);
       console.log('Fetching posts for currentUser:', currentUser); // Add this line
-      const response = await axios.get(`${API_BASE_URL}/posts`, {
+      const response = await api.get('/posts', {
         params: {
           userId: currentUser.id,
         }
@@ -55,9 +55,9 @@ const MyPosts = ({ currentUser }) => {
     }
   };
 
-  const handleDeletePost = async (postId) => {
+   const handleDeletePost = async (postId) => {
     try {
-      await axios.delete(`${API_BASE_URL}/posts/${postId}`);
+      await api.delete(`/posts/${postId}`);
       setPosts(posts.filter(post => post.id !== postId));
       setShowDeleteModal(false);
       setPostToDelete(null);

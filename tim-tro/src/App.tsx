@@ -25,14 +25,14 @@ import Blog from './pages/Blog'; // Import Blog component
 import BlogDetail from './pages/BlogDetail'; // Import BlogDetail component
 import './App.css';
 import { SocketProvider } from './context/SocketContext';
-import axios from 'axios'; // Import axios
+import api from './api';  // Import axios
 
-import { API_BASE_URL } from './config'; // Import API base URL from config
+
 
 function App() {
-  const [globalSearchTerm, setGlobalSearchTerm] = useState(''); // Global search term state
-  const [currentUser, setCurrentUser] = useState(null); // Current user state
-  const [profileData, setProfileData] = useState(null); // User profile data
+  const [globalSearchTerm, setGlobalSearchTerm] = useState<string>(''); 
+  const [currentUser, setCurrentUser] = useState<any | null>(null);
+  const [profileData, setProfileData] = useState<any | null>(null);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('currentUser');
@@ -40,21 +40,23 @@ function App() {
       const parsedUser = JSON.parse(storedUser);
       setCurrentUser(parsedUser);
       // Fetch profile data once currentUser is set
-      const fetchProfile = async () => {
+         const fetchProfile = async () => {
         try {
-          const response = await axios.get(`${API_BASE_URL}/users?email=${parsedUser.email}`);
+          // ✅ dùng api.get, không cần API_BASE_URL
+          const response = await api.get(`/users?email=${parsedUser.email}`);
           if (response.data.length > 0) {
             setProfileData(response.data[0]);
           }
         } catch (error) {
-          console.error('Error fetching profile data in App.jsx:', error);
+          console.error('Error fetching profile data in App.tsx:', error);
         }
       };
+
       fetchProfile();
     }
-  }, []); // Run once on mount
+  }, []);
 
-  const handleGlobalSearchSubmit = (term) => {
+  const handleGlobalSearchSubmit = (term: string) => {
     setGlobalSearchTerm(term);
   };
 
@@ -67,65 +69,65 @@ function App() {
             {/* Auth Routes - without Layout */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+          
+          {/* Admin Routes */}
+          <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+            <Route path="/admin" element={<Layout><AdminDashboard /></Layout>} />
+            <Route path="/admin/users" element={<Layout><UserManagement /></Layout>} />
+            <Route path="/admin/posts" element={<Layout><PostManagement /></Layout>} />
+            <Route path="/admin/blogs" element={<Layout><BlogManagement /></Layout>} />
+          </Route>
 
-            {/* Admin Routes */}
-            <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-              <Route path="/admin" element={<Layout><AdminDashboard /></Layout>} />
-              <Route path="/admin/users" element={<Layout><UserManagement /></Layout>} />
-              <Route path="/admin/posts" element={<Layout><PostManagement /></Layout>} />
-              <Route path="/admin/blogs" element={<Layout><BlogManagement /></Layout>} />
-            </Route>
+          {/* App Routes - with Layout */}
+          {/* Pass globalSearchTerm and handleGlobalSearchSubmit to Layout */}
+          <Route path="*" element={
+            <Layout
+              searchTermValue={globalSearchTerm}
+              onSearchSubmit={handleGlobalSearchSubmit}
+            >
+              <Routes>
+                {/* Pass globalSearchTerm and setGlobalSearchTerm to Home */}
+                <Route path="/" element={<Home globalSearchTerm={globalSearchTerm} setGlobalSearchTerm={setGlobalSearchTerm} />} />
+                <Route path="/create-post" element={<CreatePost />} />
+                {/* <Route path="/search-posts" element={<SearchPosts />} /> */}
+                <Route path="/post/:id" element={<PostDetail />} />
+                <Route
+                  path="/suggestions"
+                  element={<Suggestions 
+                    userLookingFor={profileData?.lookingFor} 
+                    userInterests={profileData?.interests}
+                    userMajor={profileData?.major}
+                    userYear={profileData?.year}
+                  />} 
+                />
+                <Route path="/connections" element={<Connections />} />
+                <Route path="/my-connections" element={<MyConnections />} />
+                <Route path="/ratings" element={<Ratings />} />
+                <Route path="/my-posts" element={<MyPosts currentUser={currentUser} />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/edit-post/:id" element={<EditPost />} />
+                
+                {/* Blog Routes */}
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/blog/:id" element={<BlogDetail />} />
 
-            {/* App Routes - with Layout */}
-            {/* Pass globalSearchTerm and handleGlobalSearchSubmit to Layout */}
-            <Route path="*" element={
-              <Layout
-                searchTermValue={globalSearchTerm}
-                onSearchSubmit={handleGlobalSearchSubmit}
-              >
-                <Routes>
-                  {/* Pass globalSearchTerm and setGlobalSearchTerm to Home */}
-                  <Route path="/" element={<Home globalSearchTerm={globalSearchTerm} setGlobalSearchTerm={setGlobalSearchTerm} />} />
-                  <Route path="/create-post" element={<CreatePost />} />
-                  {/* <Route path="/search-posts" element={<SearchPosts />} /> */}
-                  <Route path="/post/:id" element={<PostDetail />} />
-                  <Route
-                    path="/suggestions"
-                    element={<Suggestions
-                      userLookingFor={profileData?.lookingFor}
-                      userInterests={profileData?.interests}
-                      userMajor={profileData?.major}
-                      userYear={profileData?.year}
-                    />}
-                  />
-                  <Route path="/connections" element={<Connections />} />
-                  <Route path="/my-connections" element={<MyConnections />} />
-                  <Route path="/ratings" element={<Ratings />} />
-                  <Route path="/my-posts" element={<MyPosts currentUser={currentUser} />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/edit-post/:id" element={<EditPost />} />
-
-                  {/* Blog Routes */}
-                  <Route path="/blog" element={<Blog />} />
-                  <Route path="/blog/:id" element={<BlogDetail />} />
-
-                  {/* Category Routes */}
-                  <Route path="/nha-nguyen-can" element={<Home />} />
-                  <Route path="/can-ho-chung-cu" element={<Home />} />
-                  <Route path="/can-ho-mini" element={<Home />} />
-                  <Route path="/can-ho-dich-vu" element={<Home />} />
-                  <Route path="/mat-bang" element={<Home />} />
-                  <Route path="/bang-gia" element={<Home />} />
-
-                  {/* Location Routes */}
-                  <Route path="/ho-chi-minh" element={<Home />} />
-                  <Route path="/ha-noi" element={<Home />} />
-                  <Route path="/da-nang" element={<Home />} />
-                  <Route path="/saved" element={<Home />} />
-                </Routes>
-              </Layout>
-            } />
+                {/* Category Routes */}
+                <Route path="/nha-nguyen-can" element={<Home />} />
+                <Route path="/can-ho-chung-cu" element={<Home />} />
+                <Route path="/can-ho-mini" element={<Home />} />
+                <Route path="/can-ho-dich-vu" element={<Home />} />
+                <Route path="/mat-bang" element={<Home />} />
+                <Route path="/bang-gia" element={<Home />} />
+                
+                {/* Location Routes */}
+                <Route path="/ho-chi-minh" element={<Home />} />
+                <Route path="/ha-noi" element={<Home />} />
+                <Route path="/da-nang" element={<Home />} />
+                <Route path="/saved" element={<Home />} />
+              </Routes>
+            </Layout>
+          } />
           </Routes>
         </Router>
       </SocketProvider> {/* Close SocketProvider */}

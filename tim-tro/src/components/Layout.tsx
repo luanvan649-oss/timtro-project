@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, ReactNode, MouseEvent } from 'react';
+import React, { useState, useRef, useEffect, ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { User, LogOut, FileText, Settings, ChevronDown, UserPlus } from 'lucide-react';
 import NotificationDropdown from './NotificationDropdown';
@@ -43,12 +43,11 @@ const Layout = ({ children, searchTermValue, onSearchSubmit }: LayoutProps) => {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside as any);
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside as any);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
-
   const handleLogout = () => {
     localStorage.removeItem('currentUser'); // Clear user from localStorage
     setCurrentUser(null); // Clear user from state

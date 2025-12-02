@@ -1,11 +1,10 @@
-import { useState, useEffect, useRef, MouseEvent } from 'react';
-import { Bell, Check, X, UserPlus, MessageCircle, Heart } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Bell, Check, X, UserPlus, MessageCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import clsx from 'clsx';
-import axios from 'axios';
 import { useSocket } from '../hooks/useSocket';
+import api from '../api'; // ✅ Dùng api client
 
-const API_BASE_URL = 'http://localhost:3001';
 
 interface Notification {
   id: string;
@@ -13,7 +12,11 @@ interface Notification {
   relatedEntity?: { id: string };
   fromUser?: { fullName: string };
   toUser?: { fullName: string };
-  data?: { message?: string; toUser?: { fullName: string }; fromUser?: { fullName: string } };
+  data?: {
+    message?: string;
+    toUser?: { fullName: string };
+    fromUser?: { fullName: string };
+  };
   isRead: boolean;
   createdAt: string;
 }
@@ -41,55 +44,60 @@ function NotificationDropdown() {
 
     loadNotifications();
 
-    if (socket) {
-      // Listen for new notifications from the server
+   if (socket) {
       socket.on('newNotification', async (newNotification: Notification) => {
         console.log('New notification received:', newNotification);
         let processedNotification: Notification = { ...newNotification };
 
-        // Ensure fromUser is populated for connection_request types
-        if (processedNotification.type === 'connection_request' && processedNotification.relatedEntity?.id) {
-          // Only fetch if fromUser is not already present (e.g., from server-side enrichment)
+        // connection_request: đảm bảo có fromUser
+        if (
+          processedNotification.type === 'connection_request' &&
+          processedNotification.relatedEntity?.id
+        ) {
           if (!processedNotification.fromUser || !processedNotification.fromUser.fullName) {
             try {
-              const connectionRes = await axios.get(`${API_BASE_URL}/connections/${processedNotification.relatedEntity.id}`);
+              const connectionRes = await api.get(
+                `/connections/${processedNotification.relatedEntity.id}`,
+              );
               const connection = connectionRes.data;
               if (connection && connection.senderId) {
-                const senderRes = await axios.get(`${API_BASE_URL}/users/${connection.senderId}`);
-                processedNotification.fromUser = senderRes.data; // Attach sender info
+                const senderRes = await api.get(`/users/${connection.senderId}`);
+                processedNotification.fromUser = senderRes.data;
               }
             } catch (err) {
               console.error('Error fetching connection/sender for new notification:', err);
             }
           }
         }
-        // Ensure fromUser is populated for connection_accepted notifications (where fromUser is the acceptor)
-        else if (processedNotification.type === 'connection_accepted' && processedNotification.relatedEntity?.id) {
-            if (!processedNotification.fromUser || !processedNotification.fromUser.fullName) {
-                try {
-                    const connectionRes = await axios.get(`${API_BASE_URL}/connections/${processedNotification.relatedEntity.id}`);
-                    const connection = connectionRes.data;
-                    if (connection && connection.receiverId) { // FromUser in accepted notification is the receiver
-                        const receiverRes = await axios.get(`${API_BASE_URL}/users/${connection.receiverId}`);
-                        processedNotification.fromUser = receiverRes.data;
-                    }
-                } catch (err) {
-                    console.error('Error fetching receiver for accepted notification:', err);
-                }
+        // connection_accepted: fromUser là receiver
+        else if (
+          processedNotification.type === 'connection_accepted' &&
+          processedNotification.relatedEntity?.id
+        ) {
+          if (!processedNotification.fromUser || !processedNotification.fromUser.fullName) {
+            try {
+              const connectionRes = await api.get(
+                `/connections/${processedNotification.relatedEntity.id}`,
+              );
+              const connection = connectionRes.data;
+              if (connection && connection.receiverId) {
+                const receiverRes = await api.get(`/users/${connection.receiverId}`);
+                processedNotification.fromUser = receiverRes.data;
+              }
+            } catch (err) {
+              console.error('Error fetching receiver for accepted notification:', err);
             }
+          }
         }
-
-
-        setNotifications((prev) => {
-          // Prevent duplicates if notification is already there
+         setNotifications(prev => {
           if (prev.some(n => n.id === processedNotification.id)) return prev;
-          // Add new notification to the top
-          return [processedNotification, ...prev].sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          return [processedNotification, ...prev].sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+          );
         });
-        setUnreadCount(prev => prev + 1); // Increment unread count
+        setUnreadCount(prev => prev + 1);
       });
-
-      // Clean up socket listener
       return () => {
         socket.off('newNotification');
       };
@@ -100,27 +108,31 @@ function NotificationDropdown() {
     if (!currentUser?.id) return;
     
     setLoading(true);
-    try {
-      const response = await axios.get(`${API_BASE_URL}/notifications?userId=${currentUser.id}&_sort=createdAt&_order=desc`);
-      const fetchedNotifications = response.data;
-      
-      // Fetch sender info for connection requests if not already included
-      const notificationsWithSender = await Promise.all(fetchedNotifications.map(async (notif: Notification) => {
-        if (notif.type === 'connection_request' && notif.relatedEntity?.id) {
-          try {
-            const connectionRes = await axios.get(`${API_BASE_URL}/connections/${notif.relatedEntity.id}`);
-            const connection = connectionRes.data;
-            if (connection && connection.senderId) {
-              const senderRes = await axios.get(`${API_BASE_URL}/users/${connection.senderId}`);
-              notif.fromUser = senderRes.data; // Attach sender info
-            }
-          } catch (err) {
-            console.error('Error fetching connection/sender for notification:', err);
-          }
-        }
-        return notif;
-      }));
+   try {
+      const response = await api.get(
+        `/notifications?userId=${currentUser.id}&_sort=createdAt&_order=desc`,
+      );
+      const fetchedNotifications: Notification[] = response.data;
 
+      const notificationsWithSender = await Promise.all(
+        fetchedNotifications.map(async notif => {
+          if (notif.type === 'connection_request' && notif.relatedEntity?.id) {
+            try {
+              const connectionRes = await api.get(
+                `/connections/${notif.relatedEntity.id}`,
+              );
+              const connection = connectionRes.data;
+              if (connection && connection.senderId) {
+                const senderRes = await api.get(`/users/${connection.senderId}`);
+                notif.fromUser = senderRes.data;
+              }
+            } catch (err) {
+              console.error('Error fetching connection/sender for notification:', err);
+            }
+          }
+          return notif;
+        }),
+      );
       setNotifications(notificationsWithSender);
       setUnreadCount(notificationsWithSender.filter(n => !n.isRead).length);
     } catch (error) {
@@ -129,12 +141,11 @@ function NotificationDropdown() {
       setLoading(false);
     }
   };
-
-  const handleMarkAsRead = async (notificationId: string) => {
+ const handleMarkAsRead = async (notificationId: string) => {
     try {
-      await axios.patch(`${API_BASE_URL}/notifications/${notificationId}`, { isRead: true });
-      setNotifications(prev => 
-        prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n)
+      await api.patch(`/notifications/${notificationId}`, { isRead: true });
+      setNotifications(prev =>
+        prev.map(n => (n.id === notificationId ? { ...n, isRead: true } : n)),
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
@@ -142,11 +153,13 @@ function NotificationDropdown() {
     }
   };
 
-  const handleMarkAllAsRead = async () => {
+ const handleMarkAllAsRead = async () => {
     try {
       const unreadNotifications = notifications.filter(n => !n.isRead);
       await Promise.all(
-        unreadNotifications.map(n => axios.patch(`${API_BASE_URL}/notifications/${n.id}`, { isRead: true }))
+        unreadNotifications.map(n =>
+          api.patch(`/notifications/${n.id}`, { isRead: true }),
+        ),
       );
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
       setUnreadCount(0);
@@ -169,6 +182,7 @@ function NotificationDropdown() {
         return <MessageCircle size={16} className="text-gray-600" />;
     }
   };
+
 
   const getNotificationText = (notification: Notification) => {
     switch (notification.type) {
