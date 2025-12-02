@@ -30,6 +30,7 @@ interface PostForm {
   images: string[];
   contactPhone: string;
   status: string;
+  apartmentPrices: string;
 }
 
 const EditPost: React.FC = () => {
@@ -49,6 +50,7 @@ const EditPost: React.FC = () => {
     images: [],
     contactPhone: '',
     status: 'active',
+    apartmentPrices: '',
   });
 
   useEffect(() => {
@@ -75,6 +77,7 @@ const EditPost: React.FC = () => {
           images: fetchedPost.images || [],
           contactPhone: fetchedPost.contactPhone || '',
           status: fetchedPost.status || 'active',
+          apartmentPrices: (fetchedPost as any).apartmentPrices || '',
         });
       } catch (err) {
         setError('Không thể tải tin đăng. Vui lòng thử lại.');
@@ -279,6 +282,21 @@ const EditPost: React.FC = () => {
                 <option value="paused">Tạm dừng</option>
                 <option value="expired">Hết hạn</option>
               </select>
+            </div>
+
+            <div>
+              <label htmlFor="apartmentPrices" className="block text-sm font-medium text-gray-700 mb-1">
+                Tiền nghi (cách nhau bởi dấu phẩy)
+              </label>
+              <textarea
+                id="apartmentPrices"
+                name="apartmentPrices"
+                value={formData.apartmentPrices}
+                onChange={handleChange}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                placeholder="VD: Điện: 3000/kWh, Nước: 5000/m³, Internet: 100000/tháng"
+              ></textarea>
             </div>
 
             {/* Image upload section - simplified for now */}

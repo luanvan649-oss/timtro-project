@@ -77,6 +77,8 @@ const CreatePost = () => {
     interests: string[];
     lifestyle: string[];
     images: string[]; // store image URLs
+    area: string | number; // Diện tích (m²)
+    apartmentPrices: string; // Tiền nghi (cách nhau bởi dấu phẩy)
     createdAt?: string;
     updatedAt?: string;
     status?: string;
@@ -102,7 +104,9 @@ const CreatePost = () => {
     contactPhone: '',
     interests: [],
     lifestyle: [],
-    images: []
+    images: [],
+    area: '',
+    apartmentPrices: ''
   });
 
   const [loading, setLoading] = useState(false);
@@ -396,6 +400,20 @@ const CreatePost = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Diện tích (m²)
+                </label>
+                <input
+                  type="number"
+                  name="area"
+                  value={formData.area}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="VD: 25"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Loại phòng *
                 </label>
                 <select
@@ -411,6 +429,20 @@ const CreatePost = () => {
                   <option value="studio">Studio</option>
                   <option value="apartment">Căn hộ</option>
                 </select>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tiền nghi (cách nhau bởi dấu phẩy)
+                </label>
+                <textarea
+                  name="apartmentPrices"
+                  value={formData.apartmentPrices}
+                  onChange={handleInputChange}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="VD: Điện: 3000/kWh, Nước: 5000/m³, Internet: 100000/tháng"
+                />
               </div>
 
               <div className="md:col-span-2">
