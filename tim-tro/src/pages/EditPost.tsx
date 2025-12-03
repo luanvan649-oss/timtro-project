@@ -1,8 +1,9 @@
 import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import api from '../api';  // Import API configuration
 
-const API_BASE_URL = 'http://localhost:3001';
+
 
 interface Post {
   id?: string | number;
@@ -30,7 +31,6 @@ interface PostForm {
   images: string[];
   contactPhone: string;
   status: string;
-  apartmentPrices: string;
 }
 
 const EditPost: React.FC = () => {
@@ -50,42 +50,34 @@ const EditPost: React.FC = () => {
     images: [],
     contactPhone: '',
     status: 'active',
-    apartmentPrices: '',
   });
 
   useEffect(() => {
     const fetchPost = async () => {
-      try {
-        const response = await axios.get(`${API_BASE_URL}/posts/${id}`);
-        const fetchedPost: Post = response.data as Post;
-        // Assuming a fixed user for now as Firebase auth is removed
-        // You'll need to implement your own authentication system if needed
-        // if (fetchedPost.authorId !== user.uid) {
-        //   setError('Bạn không có quyền chỉnh sửa bài đăng này.');
-        //   setLoading(false);
-        //   return;
-        // }
-        setPost(fetchedPost);
-        setFormData({
-          title: fetchedPost.title || '',
-          description: fetchedPost.description || '',
-          price: String(fetchedPost.price ?? ''),
-          area: String(fetchedPost.area ?? ''),
-          location: fetchedPost.location || '',
-          district: fetchedPost.district || '',
-          city: fetchedPost.city || '',
-          images: fetchedPost.images || [],
-          contactPhone: fetchedPost.contactPhone || '',
-          status: fetchedPost.status || 'active',
-          apartmentPrices: (fetchedPost as any).apartmentPrices || '',
-        });
-      } catch (err) {
-        setError('Không thể tải tin đăng. Vui lòng thử lại.');
-        console.error('Error fetching post:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  try {
+    const response = await api.get(`/posts/${id}`);  // Thay axios bằng api
+    const fetchedPost: Post = response.data as Post;
+    setPost(fetchedPost);
+    setFormData({
+      title: fetchedPost.title || '',
+      description: fetchedPost.description || '',
+      price: String(fetchedPost.price ?? ''),
+      area: String(fetchedPost.area ?? ''),
+      location: fetchedPost.location || '',
+      district: fetchedPost.district || '',
+      city: fetchedPost.city || '',
+      images: fetchedPost.images || [],
+      contactPhone: fetchedPost.contactPhone || '',
+      status: fetchedPost.status || 'active',
+    });
+  } catch (err) {
+    setError('Không thể tải tin đăng. Vui lòng thử lại.');
+    console.error('Error fetching post:', err);
+  } finally {
+    setLoading(false);
+  }
+};
+
     fetchPost();
   }, [id, navigate]);
 
@@ -97,22 +89,23 @@ const EditPost: React.FC = () => {
   };
 
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    try {
-      setLoading(true);
-      await axios.put(`${API_BASE_URL}/posts/${id}`, {
-        ...formData,
-        updatedAt: new Date().toISOString(), // Add updatedAt timestamp
-      });
-      alert('Cập nhật tin đăng thành công!');
-      navigate('/my-posts');
-    } catch (err) {
-      setError('Không thể cập nhật tin đăng. Vui lòng thử lại.');
-      console.error('Error updating post:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  e.preventDefault();
+  try {
+    setLoading(true);
+    await api.put(`/posts/${id}`, {  // Thay axios bằng api
+      ...formData,
+      updatedAt: new Date().toISOString(), // Thêm timestamp cập nhật
+    });
+    alert('Cập nhật tin đăng thành công!');
+    navigate('/my-posts');
+  } catch (err) {
+    setError('Không thể cập nhật tin đăng. Vui lòng thử lại.');
+    console.error('Error updating post:', err);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   if (loading) {
     return (
@@ -282,21 +275,6 @@ const EditPost: React.FC = () => {
                 <option value="paused">Tạm dừng</option>
                 <option value="expired">Hết hạn</option>
               </select>
-            </div>
-
-            <div>
-              <label htmlFor="apartmentPrices" className="block text-sm font-medium text-gray-700 mb-1">
-                Tiền nghi (cách nhau bởi dấu phẩy)
-              </label>
-              <textarea
-                id="apartmentPrices"
-                name="apartmentPrices"
-                value={formData.apartmentPrices}
-                onChange={handleChange}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="VD: Điện: 3000/kWh, Nước: 5000/m³, Internet: 100000/tháng"
-              ></textarea>
             </div>
 
             {/* Image upload section - simplified for now */}

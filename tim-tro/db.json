@@ -40,14 +40,7 @@
       "views": 245,
       "likes": 12,
       "id": "1",
-      "type": "room_listing",
-      "city": "Hồ Chí Minh",
-      "status": "active",
-      "createdAt": "2025-12-01T00:00:00.000Z",
-      "updatedAt": "2025-12-01T00:00:00.000Z",
-      "contactPhone": "0918180057",
-      "contactName": "Anh Hiếu",
-      "slug": "phong-tro-moi-rat-ep-so-3731-uong-ly-thuong-kiet-quan-tan-binh-gan-ben-truong-h-bach-khoa"
+      "type": "room_listing"
     },
     {
       "title": "Cho thuê phòng trọ có ban công, máy lạnh, thang máy giá 2.5 - 2.7tr tại P15, Q Tân Bình",
@@ -87,14 +80,7 @@
       "views": 189,
       "likes": 8,
       "id": "2",
-      "type": "room_listing",
-      "city": "Hồ Chí Minh",
-      "status": "active",
-      "createdAt": "2025-12-01T00:00:00.000Z",
-      "updatedAt": "2025-12-01T00:00:00.000Z",
-      "contactPhone": "0908123456",
-      "contactName": "Chị Mai",
-      "slug": "cho-thue-phong-tro-co-ban-cong-may-lanh-thang-may-gia-25-27tr-tai-p15-q-tan-binh"
+      "type": "room_listing"
     },
     {
       "title": "CHO THUÊ PHÒNG TRỌ MỚI CHÍNH CHỦ, GIẢM GIÁ, QUẬN TÂN PHÚ - GẦN BÊN TRƯỜNG ĐH CÔNG NGHỆ THỰC PHẨM",
@@ -135,14 +121,7 @@
       "views": 156,
       "likes": 6,
       "id": "3",
-      "type": "room_listing",
-      "city": "Hồ Chí Minh",
-      "status": "active",
-      "createdAt": "2025-12-01T00:00:00.000Z",
-      "updatedAt": "2025-12-01T00:00:00.000Z",
-      "contactPhone": "0912345678",
-      "contactName": "Anh Tuấn",
-      "slug": "cho-thue-phong-tro-moi-chinh-chu-giam-gia-quan-tan-phu-gan-ben-truong-h-cong-nghe-thuc-pham"
+      "type": "room_listing"
     },
     {
       "title": "CĂN HỘ DUPLEX CỬA SỔ THOÁNG - FULL NỘI THẤT P.TÂN HƯNG Q.7 GẦN CRESENT MALL, LOTTE, RMIT, TDTU, Q1-4",
@@ -188,14 +167,7 @@
       "views": 312,
       "likes": 18,
       "id": "4",
-      "type": "room_listing",
-      "city": "Hồ Chí Minh",
-      "status": "active",
-      "createdAt": "2025-12-01T00:00:00.000Z",
-      "updatedAt": "2025-12-01T00:00:00.000Z",
-      "contactPhone": "0909876543",
-      "contactName": "Chị Linh",
-      "slug": "can-ho-duplex-cua-so-thoang-full-noi-that-ptan-hung-q7-gan-cresent-mall-lotte-rmit-tdtu-q1-4"
+      "type": "room_listing"
     },
     {
       "title": "Duplex bancon siêu đẹp 30m2 - 656 Quang Trung F11 Gò Vấp",
@@ -238,14 +210,7 @@
       "views": 198,
       "likes": 9,
       "id": "5",
-      "type": "room_listing",
-      "city": "Hồ Chí Minh",
-      "status": "active",
-      "createdAt": "2025-12-01T00:00:00.000Z",
-      "updatedAt": "2025-12-01T00:00:00.000Z",
-      "contactPhone": "0918765432",
-      "contactName": "Anh Đức",
-      "slug": "duplex-bancon-sieu-ep-30m2-656-quang-trung-f11-go-vap"
+      "type": "room_listing"
     },
     {
       "title": "Phòng trọ Hà Nội - Gần Đại học Bách Khoa, giá tốt sinh viên",
@@ -283,14 +248,7 @@
       "views": 123,
       "likes": 5,
       "id": "6",
-      "type": "room_listing",
-      "city": "Hà Nội",
-      "status": "active",
-      "createdAt": "2025-12-01T00:00:00.000Z",
-      "updatedAt": "2025-12-01T00:00:00.000Z",
-      "contactPhone": "0987654321",
-      "contactName": "Chị Hương",
-      "slug": "phong-tro-ha-noi-gan-ai-hoc-bach-khoa-gia-tot-sinh-vien"
+      "type": "room_listing"
     },
     {
       "title": "Nhà nguyên căn 2 tầng Đà Nẵng - Gần biển, full nội thất",
@@ -337,14 +295,7 @@
       "views": 456,
       "likes": 23,
       "id": "7",
-      "type": "room_listing",
-      "city": "Đà Nẵng",
-      "status": "active",
-      "createdAt": "2025-12-01T00:00:00.000Z",
-      "updatedAt": "2025-12-01T00:00:00.000Z",
-      "contactPhone": "0905432109",
-      "contactName": "Anh Nam",
-      "slug": "nha-nguyen-can-2-tang-a-nang-gan-bien-full-noi-that"
+      "type": "room_listing"
     },
     {
       "title": "Mặt bằng kinh doanh trung tâm Cần Thơ - Vị trí đẹp",
@@ -530,8 +481,7 @@
         "sinh viên",
         "FPT",
         "bí quyết"
-      ],
-      "slug": "bi-quyet-tim-phong-tro-ung-y-cho-sinh-vien-fpt"
+      ]
     },
     {
       "id": "blog2",
@@ -547,8 +497,7 @@
         "chi phí",
         "sinh hoạt",
         "ở trọ"
-      ],
-      "slug": "5-meo-tiet-kiem-chi-phi-sinh-hoat-khi-o-tro"
+      ]
     },
     {
       "id": "blog3",
@@ -748,6 +697,7 @@
       "role": "user",
       "isActive": true,
       "creationTime": "2025-12-02T07:00:01.264Z"
+      ]
     }
   ],
   "constants": {
@@ -931,192 +881,208 @@
       "An ninh 24/7"
     ]
   },
+  "users": [
+    {
+      "id": "user1",
+      "email": "demo@test.com",
+      "password": "123456",
+      "fullName": "Demo User",
+      "role": "admin",
+      "phone": "0901234567",
+      "avatar": "https://via.placeholder.com/150",
+      "createdAt": "2023-01-01T00:00:00.000Z",
+      "updatedAt": "2023-01-01T00:00:00.000Z",
+      "school": "Đại học FPT",
+      "major": "Công nghệ thông tin",
+      "year": "3",
+      "gender": "male",
+      "city": "Hồ Chí Minh",
+      "bio": "Sinh viên năng động, tìm bạn ghép trọ hòa đồng, sạch sẽ.",
+      "interests": [
+        "Đọc sách",
+        "Xem phim",
+        "Chơi game"
+      ],
+      "lookingFor": {
+        "gender": "any",
+        "ageRange": "18-25",
+        "budget": "2-3m",
+        "location": "Quận 1, Quận Bình Thạnh",
+        "lifestyle": [
+          "Sạch sẽ",
+          "Yên tĩnh"
+        ]
+      },
+      "verified": true,
+      "responseRate": 90,
+      "responseTime": "Trong 1 giờ",
+      "joinDate": "2023-01-01T00:00:00.000Z",
+      "isActive": true,
+      "creationTime": "2023-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "user2",
+      "email": "test@test.com",
+      "password": "123456",
+      "fullName": "Test User",
+      "role": "user",
+      "phone": "0908765432",
+      "avatar": "https://via.placeholder.com/150",
+      "createdAt": "2023-02-15T00:00:00.000Z",
+      "updatedAt": "2023-02-15T00:00:00.000Z",
+      "school": "Đại học Bách Khoa",
+      "major": "Kỹ thuật",
+      "year": "2",
+      "gender": "female",
+      "city": "Hà Nội",
+      "bio": "Sinh viên thân thiện, tìm bạn cùng phòng gần trường.",
+      "interests": [
+        "Nghe nhạc",
+        "Du lịch",
+        "Nấu ăn"
+      ],
+      "lookingFor": {
+        "gender": "female",
+        "ageRange": "19-24",
+        "budget": "1-2m",
+        "location": "Quận Hai Bà Trưng",
+        "lifestyle": [
+          "Thân thiện",
+          "Không hút thuốc"
+        ]
+      },
+      "verified": false,
+      "responseRate": 85,
+      "responseTime": "Trong 2 giờ",
+      "joinDate": "2023-02-15T00:00:00.000Z",
+      "isActive": true,
+      "creationTime": "2023-02-15T00:00:00.000Z"
+    },
+    {
+      "fullName": "Trần Hoàng Hải",
+      "email": "abc@gmail.com",
+      "phone": "0972773693",
+      "school": "",
+      "major": "",
+      "year": "",
+      "gender": "",
+      "city": "",
+      "bio": "",
+      "interests": [],
+      "lookingFor": {
+        "gender": "male",
+        "ageRange": "",
+        "budget": "2-3m",
+        "location": "Hà Nội",
+        "lifestyle": [
+          "Sạch sẽ",
+          "Không hút thuốc",
+          "Không uống rượu"
+        ]
+      },
+      "id": "74ad"
+    },
+    {
+      "id": "4fe5",
+      "fullName": "Trần Hoàng Hải",
+      "email": "acc@gmail.com",
+      "password": "123456",
+      "role": "admin",
+      "isActive": true,
+      "creationTime": "2025-07-17T03:58:55.610Z"
+    },
+    {
+      "id": "d814",
+      "email": "add@gmail.com",
+      "password": "123456",
+      "fullName": "Trần Hoàng Hải",
+      "phone": "0972773693",
+      "createdAt": "2025-07-17T11:45:55.735Z",
+      "updatedAt": "2025-07-17T11:45:55.735Z",
+      "role": "user"
+    },
+    {
+      "id": "e3f3",
+      "email": "ccc@gmail.com",
+      "password": "123456",
+      "fullName": "Trần Hoàng Hải",
+      "phone": "0972773693",
+      "createdAt": "2025-07-17T11:56:34.995Z",
+      "updatedAt": "2025-07-17T11:56:34.995Z",
+      "role": "user"
+    },
+    {
+      "id": "81ed",
+      "fullName": "Trần Hoàng Hải",
+      "email": "az@gmail.com",
+      "password": "123456",
+      "role": "admin",
+      "isActive": true,
+      "creationTime": "2025-07-17T12:46:24.260Z"
+    },
+    {
+      "id": "b976",
+      "email": "123@gmail.com",
+      "password": "123456",
+      "fullName": "Trần Hoàng Hải",
+      "phone": "0972773693",
+      "createdAt": "2025-07-21T15:10:51.854Z",
+      "updatedAt": "2025-07-21T15:10:51.854Z",
+      "role": "user",
+      "isActive": false,
+      "creationTime": "2025-07-21T15:10:51.854Z"
+    },
+    {
+      "id": "cdad",
+      "email": "nguyenngoclinh07032003@gmail.com",
+      "password": "1234567890",
+      "fullName": "Nguyễn Ngọc Linh",
+      "phone": "0962793637",
+      "createdAt": "2025-11-21T02:32:00.678Z",
+      "updatedAt": "2025-11-21T02:32:00.679Z",
+      "role": "user",
+      "isActive": true,
+      "creationTime": "2025-11-21T02:32:00.679Z"
+    },
+    {
+      "id": "6b9e",
+      "email": "laptqse183589@fpt.edu.vn",
+      "password": "1234567890",
+      "fullName": "Nguyễn Ngọc Linh",
+      "phone": "0962793637",
+      "createdAt": "2025-11-28T01:59:52.623Z",
+      "updatedAt": "2025-11-28T01:59:52.624Z",
+      "role": "user",
+      "isActive": true,
+      "creationTime": "2025-11-28T01:59:52.624Z"
+    },
+    {
+      "id": "532c",
+      "email": "minhsanghcvp@gmail.com",
+      "password": "231020004",
+      "fullName": "Đỗ Minh Sáng",
+      "phone": "0392591258",
+      "createdAt": "2025-11-28T06:54:16.383Z",
+      "updatedAt": "2025-11-28T06:54:16.383Z",
+      "role": "user",
+      "isActive": true,
+      "creationTime": "2025-11-28T06:54:16.383Z"
+    },
+    {
+      "id": "03b2",
+      "email": "minhsangvphc@gmail.com",
+      "password": "23102004",
+      "fullName": "Đỗ Minh Sáng",
+      "phone": "0392591258",
+      "createdAt": "2025-12-02T02:43:35.218Z",
+      "updatedAt": "2025-12-02T02:43:35.218Z",
+      "role": "user",
+      "isActive": true,
+      "creationTime": "2025-12-02T02:43:35.218Z"
+    }
+  ],
   "connections": [],
   "messages": [],
   "notifications": [],
-  "settings": [],
-  "tasks": [
-    {
-      "id": "task_login-sign-up",
-      "screenFunction": "Login, Sign up",
-      "description": "Include features such as account registration, allowing users to create an account to log in and access the system's functionalities.",
-      "inCharge": "Dat",
-      "status": "Done",
-      "startDate": "2025-11-17 00:00:00",
-      "endDate": "2025-11-24 00:00:00",
-      "updateDetails": "",
-      "problem": "",
-      "week": "Tuần 1",
-      "notes": [
-        "thiếu quên mật khẩu",
-        "Linh"
-      ]
-    },
-    {
-      "id": "task_home-user",
-      "screenFunction": "Home User",
-      "description": "The user interface page helps users understand and explore some basic features of the website, such as filters, search, and featured posts.",
-      "inCharge": "Sáng",
-      "status": "Done",
-      "startDate": "2025-11-17 00:00:00",
-      "endDate": "2025-11-26 00:00:00",
-      "updateDetails": "",
-      "problem": "",
-      "week": "Tuần 1",
-      "notes": [
-        "Lực, linh ,Luân"
-      ]
-    },
-    {
-      "id": "task_profile-update-profile",
-      "screenFunction": "Profile, Update Profile",
-      "description": "The screen displays information and edits the student's personal profile, including avatar, name, gender, school, major, desired area, budget, living habits",
-      "inCharge": "Huy",
-      "status": "Done",
-      "startDate": "2025-11-17 00:00:00",
-      "endDate": "2025-11-26 00:00:00",
-      "updateDetails": "",
-      "problem": "",
-      "week": "Tuần 1",
-      "notes": [
-        "Lực, Luân"
-      ]
-    },
-    {
-      "id": "task_view-list-posts",
-      "screenFunction": "View List Posts",
-      "description": "This screen displays a list of all available posts shared by users, including details such as room availability, location, rent, and roommate preferences. Users can browse and read these posts to find suitable accommodation or roommates.",
-      "inCharge": "Linh",
-      "status": "Doing",
-      "startDate": "2025-11-17 00:00:00",
-      "endDate": "2025-11-26 00:00:00",
-      "updateDetails": "",
-      "problem": "",
-      "week": "Tuần 2",
-      "notes": [
-        "Huy"
-      ]
-    },
-    {
-      "id": "task_create-post",
-      "screenFunction": "Create Post",
-      "description": "Allows students to create a post including personal preferences (such as gender, budget, lifestyle, school, major) and details about the available room (location, rent, amenities, photos) to find a compatible roommate for shared accommodation.",
-      "inCharge": "Sáng",
-      "status": "Doing",
-      "startDate": "2025-11-24 00:00:00",
-      "endDate": "2025-11-30 00:00:00",
-      "updateDetails": "",
-      "problem": "",
-      "week": "Tuần 2",
-      "notes": [
-        "tạo thêm diện tích",
-        "Đạt, Huy"
-      ]
-    },
-    {
-      "id": "task_search-filter-post",
-      "screenFunction": "Search, filter post",
-      "description": "This function allows students to search and view dormitory-sharing posts based on various criteria like keywords, area, major, school, gender, and price range. Users can see a summary and detailed view of each post to find suitable information.",
-      "inCharge": "Luân",
-      "status": "Doing",
-      "startDate": "2025-11-17 00:00:00",
-      "endDate": "2025-11-24 00:00:00",
-      "updateDetails": "",
-      "problem": "",
-      "week": "Tuần 2",
-      "notes": [
-        "hiển thị cho khách hàng",
-        "chưa filter theo tiện ích",
-        "Sáng, Đạt"
-      ]
-    },
-    {
-      "id": "task_suggestions-ai",
-      "screenFunction": "Suggestions AI",
-      "description": "When students post their accommodation needs, the AI system will analyze the data and automatically suggest other posts or user profiles with high similarities in criteria (area, price, gender, major, school). This helps both posters and seekers easily find suitable matches, increasing the success rate of pairings.",
-      "inCharge": "Lực",
-      "status": "Doing",
-      "startDate": "2025-11-17 00:00:00",
-      "endDate": "2025-11-30 00:00:00",
-      "updateDetails": "",
-      "problem": "",
-      "week": "Tuần 2",
-      "notes": [
-        "recommen các sp có liên quan đến phòng trọ, tìm trọ dựa vào giá tiền , nhà trọ cùng giá tiền(do khách hàng tự tìm kiếm)",
-        "all thành viên"
-      ]
-    },
-    {
-      "id": "task_send-request-connect-to-",
-      "screenFunction": "Send request connect to another user",
-      "description": "This function allows a user to send a connection request to another user. After the request is sent, the recipient will receive a notification and can choose to accept or decline it. This feature is essential for initiating potential roommate matches or social interactions on the platform.",
-      "inCharge": "Dat",
-      "status": "To Do",
-      "startDate": "2025-11-24 00:00:00",
-      "endDate": "2025-12-01 00:00:00",
-      "updateDetails": "",
-      "problem": "",
-      "week": "Tuần 3",
-      "notes": []
-    },
-    {
-      "id": "task_update-postsuser",
-      "screenFunction": "Update posts(User)",
-      "description": "Allows users to edit or update the content of their existing posts, such as changing information about room details, budget, or personal preferences. This ensures the posts remain accurate and up to date for other users searching for accommodation.",
-      "inCharge": "Lực",
-      "status": "To Do",
-      "startDate": "2025-11-24 00:00:00",
-      "endDate": "2025-11-30 00:00:00",
-      "updateDetails": "",
-      "problem": "",
-      "week": "Tuần 3",
-      "notes": []
-    },
-    {
-      "id": "task_manage-user",
-      "screenFunction": "Manage User",
-      "description": "Designed for Admins, this function helps control users by viewing account lists, locking or unlocking accounts (due to violations or necessity), and viewing detailed user profiles to ensure system safety and quality.",
-      "inCharge": "Luân",
-      "status": "To Do",
-      "startDate": "2025-11-24 00:00:00",
-      "endDate": "2025-12-03 00:00:00",
-      "updateDetails": "",
-      "problem": "",
-      "week": "Tuần 3",
-      "notes": []
-    },
-    {
-      "id": "task_manage-post",
-      "screenFunction": "Manage Post",
-      "description": "The screen helps administrators monitor and control all posts on the system. Administrators can browse, delete, hide or flag violating posts. The system supports searching and filtering posts by keyword, region, status and poster.",
-      "inCharge": "Huy",
-      "status": "To Do",
-      "startDate": "2025-11-24 00:00:00",
-      "endDate": "2025-12-03 00:00:00",
-      "updateDetails": "",
-      "problem": "",
-      "week": "Tuần 3",
-      "notes": []
-    },
-    {
-      "id": "task_manage-blog",
-      "screenFunction": "Manage Blog",
-      "description": "Enables administrators to review, approve, delete, or flag blog posts to maintain a safe and relevant community space.",
-      "inCharge": "Linh",
-      "status": "To Do",
-      "startDate": "2025-11-24 00:00:00",
-      "endDate": "2025-12-03 00:00:00",
-      "updateDetails": "tạo riêng 1 trang để hiển thị các bài blog khi admin đăng bài để người dùng có thể vào tương tác như 1 diễn đàn trao đổi",
-      "problem": "",
-      "week": "Tuần 3",
-      "notes": []
-    }
-  ],
-  "meta": {
-    "generatedAt": "2025-12-01T00:00:00.000Z",
-    "notes": [
-      "Đây là bản seed database đã được chuẩn hoá kiểu dữ liệu (price/area/deposit -> number), thêm createdAt/updatedAt/status/type/slug và chuẩn hoá contact.",
-      "Mật khẩu trong seed đang để dạng plain text giống bản gốc. Khi làm backend thật bạn nên hash password."
-    ]
-  }
+  "settings": []
 }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api'; // Đảm bảo bạn đã import API client của mình
 import ConnectionModal from '../components/ConnectionModal';
 import {
   MapPin,
@@ -22,8 +22,6 @@ import {
   X,
   UserPlus
 } from 'lucide-react';
-
-const API_BASE_URL = 'http://localhost:3001';
 
 function PostDetail() {
   const { id } = useParams();
@@ -62,16 +60,8 @@ function PostDetail() {
       }
 
       setPost(postData);
-      console.log('Post type:', postData.type);
-      console.log('Post price:', postData.price);
-      console.log('Post budget:', postData.budget);
-      console.log('Post images:', postData.images);
-      console.log('Post description:', postData.description);
-      console.log('Post location:', postData.location);
-
-
       if (postData.userId) {
-        const authorResponse = await axios.get(`${API_BASE_URL}/users/${postData.userId}`);
+        const authorResponse = await api.get(`/users/${postData.userId}`); // Sử dụng api.get thay vì axios.get
         setAuthorInfo(authorResponse.data);
       }
 
@@ -87,11 +77,11 @@ function PostDetail() {
     fetchPost();
   }, [id, navigate, fetchPost]);
 
-  // Thêm hàm fetchConnectionStatus
+  // Thêm hàm fetchConnectionStatus phần kiểm tra trạng thái kết nối:
   const fetchConnectionStatus = useCallback(async () => {
     if (currentUser && authorInfo) {
       try {
-        const response = await axios.get(`${API_BASE_URL}/connections/status/${currentUser.uid}/${authorInfo.id}`); // Cập nhật endpoint
+        const response = await api.get(`/connections/status/${currentUser.id}/${authorInfo.id}`); // Sử dụng api.get thay vì axios.get
         setIsConnected(response.data.isConnected);
       } catch (error) {
         console.error('Error checking connection status:', error);
@@ -137,7 +127,7 @@ function PostDetail() {
     }
   };
 
-
+  // Thay đổi trạng thái bài đăng
   const toggleFavorite = () => {
     setIsFavorite(!isFavorite);
   };

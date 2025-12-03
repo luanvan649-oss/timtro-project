@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+
 import { useSocket } from '../hooks/useSocket';
 import { 
   UserPlus, 
@@ -14,18 +14,17 @@ import {
   CheckCircle,
   AlertCircle
 } from 'lucide-react';
+import api from "../api";
 
-const API_BASE_URL = 'http://localhost:3001';
 
-function MyConnections() {
-  const [currentUser, setCurrentUser] = useState(null);
+const MyConnections = () => {
+  const [currentUser, setCurrentUser] = useState<any | null>(null);
   useEffect(() => {
     const storedUser = localStorage.getItem('currentUser');
     if (storedUser) {
       setCurrentUser(JSON.parse(storedUser));
     }
   }, []);
-
   const { socket } = useSocket();
   const [activeTab, setActiveTab] = useState('received');
   const [connections, setConnections] = useState([]); // This will hold all relevant connections
@@ -57,7 +56,6 @@ function MyConnections() {
       setConnections(prev => prev.map(conn => 
         conn.id === rejectedConnection.id ? { ...conn, status: 'rejected' } : conn
       ));
-      // For now, just re-fetch to ensure consistency
       fetchConnections();
     });
 
@@ -73,13 +71,11 @@ function MyConnections() {
       return;
     }
     setLoading(true);
-    try {
-      // Fetch full currentUser details to ensure fullName and avatar are available
-      const fullCurrentUserRes = await axios.get(`${API_BASE_URL}/users/${currentUser.id}`);
+     try {
+      const fullCurrentUserRes = await api.get(`/users/${currentUser.id}`);
       const fullCurrentUser = fullCurrentUserRes.data;
 
-      // Fetch all connections relevant to the current user
-      const response = await axios.get(`${API_BASE_URL}/connections?senderId=${currentUser.id}&receiverId=${currentUser.id}_or`);
+      const response = await api.get(`/connections?senderId=${currentUser.id}&receiverId=${currentUser.id}_or`);
       const allUserConnections = response.data;
 
       const processedConnections = await Promise.all(allUserConnections.map(async (conn) => {
@@ -91,58 +87,43 @@ function MyConnections() {
 
         try {
           if (otherUserId) {
-            try {
-              const userRes = await axios.get(`${API_BASE_URL}/users/${otherUserId}`);
-              otherUser = userRes.data;
-            } catch (userError) {
-              console.warn(`Error fetching user ${otherUserId} for connection ${conn.id}:`, userError.message);
-              otherUser = { id: otherUserId, fullName: 'Người dùng không xác định', avatar: 'https://via.placeholder.com/48', school: 'Không xác định', major: 'Không xác định', verified: false, status: 'offline' }; // Fallback
-            }
+            const userRes = await api.get(`/users/${otherUserId}`);
+            otherUser = userRes.data;
           } else {
-            console.warn(`Missing otherUserId for connection ${conn.id}. Skipping user fetch.`);
-            otherUser = { id: otherUserId, fullName: 'Người dùng không xác định', avatar: 'https://via.placeholder.com/48', school: 'Không xác định', major: 'Không xác định', verified: false, status: 'offline' }; // Fallback
+            otherUser = { id: otherUserId, fullName: 'Người dùng không xác định', avatar: 'https://via.placeholder.com/48', school: 'Không xác định', major: 'Không xác định', verified: false, status: 'offline' };
           }
 
           if (conn.postId) {
             try {
-              const postRes = await axios.get(`${API_BASE_URL}/posts/${conn.postId}`);
+              const postRes = await api.get(`/posts/${conn.postId}`);
               postData = postRes.data;
             } catch (postError) {
-              console.warn(`Error fetching post ${conn.postId} for connection ${conn.id}:`, postError.message);
-              postData = { id: conn.postId, title: 'Bài đăng không xác định', userId: '', images: [], address: '', price: 0 }; // Fallback
+              postData = { id: conn.postId, title: 'Bài đăng không xác định', userId: '', images: [], address: '', price: 0 };
             }
           } else {
-            console.warn(`Missing postId for connection ${conn.id}. Skipping post fetch.`);
-            postData = { id: conn.postId, title: 'Bài đăng không xác định', userId: '', images: [], address: '', price: 0 }; // Fallback
+            postData = { id: conn.postId, title: 'Bài đăng không xác định', userId: '', images: [], address: '', price: 0 };
           }
 
           return {
             ...conn,
-            fromUser: isSender ? fullCurrentUser : otherUser, // Use fullCurrentUser
-            toUser: isSender ? otherUser : fullCurrentUser,   // Use fullCurrentUser
+            fromUser: isSender ? fullCurrentUser : otherUser, 
+            toUser: isSender ? otherUser : fullCurrentUser,
             post: postData,
             type: isSender ? 'sent' : 'received'
           };
         } catch (error) {
-          console.error(`Error processing connection ${conn.id}:`, error);
-          if (error.response) {
-            console.error('Error response data:', error.response.data);
-            console.error('Error response status:', error.response.status);
-          }
-          // Return a partially processed connection or null to indicate an error
           return {
             ...conn,
-            fromUser: isSender ? fullCurrentUser : { id: otherUserId, fullName: 'Không xác định', avatar: 'https://via.placeholder.com/48', school: 'Không xác định', major: 'Không xác định', verified: false, status: 'offline' }, // Provide fallback user info
-            toUser: isSender ? { id: otherUserId, fullName: 'Không xác định', avatar: 'https://via.placeholder.com/48', school: 'Không xác định', major: 'Không xác định', verified: false, status: 'offline' } : fullCurrentUser,   // Provide fallback user info
-            post: { id: conn.postId, title: 'Bài đăng không xác định', userId: '', images: [], address: '', price: 0 }, // Provide fallback post info
+            fromUser: { id: otherUserId, fullName: 'Không xác định', avatar: 'https://via.placeholder.com/48', school: 'Không xác định', major: 'Không xác định', verified: false, status: 'offline' },
+            toUser: { id: otherUserId, fullName: 'Không xác định', avatar: 'https://via.placeholder.com/48', school: 'Không xác định', major: 'Không xác định', verified: false, status: 'offline' },
+            post: { id: conn.postId, title: 'Bài đăng không xác định', userId: '', images: [], address: '', price: 0 },
             type: isSender ? 'sent' : 'received',
-            error: true // Add an error flag
+            error: true
           };
         }
       }));
-      // Filter out connections that had critical errors if needed, or handle them in rendering
-      setConnections(processedConnections.filter(conn => !conn.error)); // Filter out errored connections
-      // Sort by createdAt for consistent display
+
+      setConnections(processedConnections.filter(conn => !conn.error));
       processedConnections.sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       setConnections(processedConnections);
 
@@ -155,19 +136,17 @@ function MyConnections() {
 
   const handleConnectionResponse = async (connectionId, response) => {
     try {
-      await axios.put(`${API_BASE_URL}/connections/${connectionId}`, { status: response === 'accept' ? 'accepted' : 'rejected' });
-      fetchConnections(); // Re-fetch to update the list
+      await api.put(`/connections/${connectionId}`, { status: response === 'accept' ? 'accepted' : 'rejected' });
+      fetchConnections();
     } catch (error) {
       console.error('Error responding to connection:', error);
       alert('Có lỗi xảy ra khi xử lý lời mời. Vui lòng thử lại.');
     }
   };
 
-  const handleCancelConnection = async (connectionId) => {
+   const handleCancelConnection = async (connectionId) => {
     try {
-      // For simplicity, we'll change status to 'cancelled' instead of deleting
-      // A real app might have a DELETE endpoint or specific cancellation logic
-      await axios.put(`${API_BASE_URL}/connections/${connectionId}`, { status: 'cancelled' });
+      await api.put(`/connections/${connectionId}`, { status: 'cancelled' });
       fetchConnections();
     } catch (error) {
       console.error('Error cancelling connection:', error);
