@@ -2,9 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import ConnectionModal from '../components/ConnectionModal';
-import { 
-  MapPin, 
-  DollarSign, 
+import {
+  MapPin,
+  DollarSign,
   Heart,
   Eye,
   Share2,
@@ -28,7 +28,7 @@ const API_BASE_URL = 'http://localhost:3001';
 function PostDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  
+
   const currentUser = useState(() => {
     const storedUser = localStorage.getItem('currentUser');
     return storedUser ? JSON.parse(storedUser) : null;
@@ -50,11 +50,11 @@ function PostDetail() {
         navigate('/');
         return;
       }
-      
+
       const response = await axios.get(`${API_BASE_URL}/posts/${id}`);
       const postData = response.data;
       console.log('Fetched post data:', postData); // Add this line for debugging
-      
+
       if (!postData) {
         console.error('Post not found');
         navigate('/');
@@ -74,7 +74,7 @@ function PostDetail() {
         const authorResponse = await axios.get(`${API_BASE_URL}/users/${postData.userId}`);
         setAuthorInfo(authorResponse.data);
       }
-      
+
     } catch (error) {
       console.error('Error fetching post or author:', error);
       navigate('/');
@@ -171,13 +171,13 @@ function PostDetail() {
   };
 
   const nextImage = () => {
-    setCurrentImageIndex((prev) => 
+    setCurrentImageIndex((prev) =>
       prev === post.images.length - 1 ? 0 : prev + 1
     );
   };
 
   const prevImage = () => {
-    setCurrentImageIndex((prev) => 
+    setCurrentImageIndex((prev) =>
       prev === 0 ? post.images.length - 1 : prev - 1
     );
   };
@@ -208,7 +208,7 @@ function PostDetail() {
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Không tìm thấy bài đăng</h2>
         <p className="text-gray-600 mb-4">Bài đăng có thể đã được xóa hoặc không tồn tại.</p>
         <button
-          onClick={() => navigate('/')} 
+          onClick={() => navigate('/')}
           className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700"
         >
           Quay lại trang chủ
@@ -228,26 +228,25 @@ function PostDetail() {
           <ArrowLeft size={20} className="mr-2" />
           Quay lại
         </button>
-        
+
         <div className="flex items-center space-x-4">
           <button
             onClick={toggleFavorite}
-            className={`p-2 rounded-full ${
-              isFavorite 
-                ? 'bg-red-500 text-white' 
+            className={`p-2 rounded-full ${isFavorite
+                ? 'bg-red-500 text-white'
                 : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-            }`}
+              }`}
           >
             <Heart size={20} fill={isFavorite ? 'currentColor' : 'none'} />
           </button>
-          
+
           <button
             onClick={handleShare}
             className="p-2 rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300"
           >
             <Share2 size={20} />
           </button>
-          
+
           <div className="flex items-center text-gray-500">
             <Eye size={16} className="mr-1" />
             <span>{post.views} lượt xem</span>
@@ -265,7 +264,7 @@ function PostDetail() {
               className="w-full h-96 object-cover rounded-lg cursor-pointer"
               onClick={() => setShowImageModal(true)}
             />
-            
+
             {post.images.length > 1 && (
               <>
                 <button
@@ -275,7 +274,7 @@ function PostDetail() {
                 >
                   <ChevronLeft size={20} />
                 </button>
-                
+
                 <button
                   onClick={nextImage}
                   className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70"
@@ -285,15 +284,14 @@ function PostDetail() {
                 </button>
               </>
             )}
-            
+
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
               {post.images.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentImageIndex(index)}
-                  className={`w-3 h-3 rounded-full ${
-                    index === currentImageIndex ? 'bg-white' : 'bg-white bg-opacity-50'
-                  }`}
+                  className={`w-3 h-3 rounded-full ${index === currentImageIndex ? 'bg-white' : 'bg-white bg-opacity-50'
+                    }`}
                   tabIndex={0}
                 />
               ))}
@@ -304,7 +302,7 @@ function PostDetail() {
             Không có hình ảnh
           </div>
         )}
-        
+
         {post.images && post.images.length > 1 && (
           <div className="flex space-x-2 mt-4 overflow-x-auto">
             {post.images.map((image, index) => (
@@ -312,9 +310,8 @@ function PostDetail() {
                 key={index}
                 src={image}
                 alt={`${post.title} ${index + 1}`}
-                className={`w-20 h-20 object-cover rounded-lg cursor-pointer ${
-                  index === currentImageIndex ? 'ring-2 ring-blue-500' : ''
-                }`}
+                className={`w-20 h-20 object-cover rounded-lg cursor-pointer ${index === currentImageIndex ? 'ring-2 ring-blue-500' : ''
+                  }`}
                 onClick={() => setCurrentImageIndex(index)}
                 tabIndex={0}
               />
@@ -329,7 +326,7 @@ function PostDetail() {
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h1 className="text-2xl font-bold text-gray-900 mb-2">{post.title}</h1>
             <p className="text-sm text-gray-500 mb-4">Ngày đăng: {formatDate(post.createdAt)}</p>
-            
+
             {/* Price, Location, Type */}
             <div className="flex items-center text-blue-600 mb-2">
               <span className="text-2xl font-bold">
@@ -342,59 +339,83 @@ function PostDetail() {
                 )}
               </span>
             </div>
-            
+
             <div className="prose max-w-none mb-6">
               <h3 className="text-lg font-semibold mb-2">Mô tả chi tiết</h3>
               <p className="text-gray-700 leading-relaxed">{post.description}</p>
             </div>
-            
+
             {/* Property Details / Roommate Details */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
-                  <h3 className="text-lg font-semibold mb-3">Thông tin tìm bạn ghép</h3>
-                  <div className="space-y-2">
+              <div>
+                <h3 className="text-lg font-semibold mb-3">
+                  {post.type === 'room_listing' ? 'Thông tin phòng' : 'Thông tin tìm bạn ghép'}
+                </h3>
+                <div className="space-y-2">
+                  {post.type === 'room_listing' && post.area && (
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Loại phòng:</span>
-                      <span className="font-medium">{post.roomType || 'N/A'}</span>
+                      <span className="text-gray-600">Diện tích:</span>
+                      <span className="font-medium">{post.area} m²</span>
                     </div>
-                    {post.area && (
+                  )}
+                  {post.type === 'room_listing' && post.category && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Loại hình:</span>
+                      <span className="font-medium">{post.category}</span>
+                    </div>
+                  )}
+                  {post.type === 'room_listing' && post.deposit && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Tiền cọc:</span>
+                      <span className="font-medium">{(post.deposit / 1000000).toFixed(1)} triệu</span>
+                    </div>
+                  )}
+                  {post.type === 'roommate_finding' && (
+                    <>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Diện tích:</span>
-                        <span className="font-medium">{post.area} m²</span>
+                        <span className="text-gray-600">Loại phòng:</span>
+                        <span className="font-medium">{post.roomType || 'N/A'}</span>
                       </div>
-                    )}
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Giới tính mong muốn:</span>
-                      <span className="font-medium">{post.genderPreference || 'N/A'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Trường:</span>
-                      <span className="font-medium">{post.school || 'N/A'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Ngành:</span>
-                      <span className="font-medium">{post.major || 'N/A'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Năm học:</span>
-                      <span className="font-medium">{post.year || 'N/A'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Có thể vào ở từ:</span>
-                      <span className="font-medium">{formatDate(post.availableFrom) || 'N/A'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Tên liên hệ:</span>
-                      <span className="font-medium">{post.contactName || 'N/A'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Số điện thoại:</span>
-                      <span className="font-medium">{post.contactPhone || 'N/A'}</span>
-                    </div>
+                      {post.area && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Diện tích:</span>
+                          <span className="font-medium">{post.area} m²</span>
+                        </div>
+                      )}
+                    </>
+                  )}
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Giới tính mong muốn:</span>
+                    <span className="font-medium">{post.genderPreference || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Trường:</span>
+                    <span className="font-medium">{post.school || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Ngành:</span>
+                    <span className="font-medium">{post.major || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Năm học:</span>
+                    <span className="font-medium">{post.year || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Có thể vào ở từ:</span>
+                    <span className="font-medium">{formatDate(post.availableFrom) || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Tên liên hệ:</span>
+                    <span className="font-medium">{post.contactName || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Số điện thoại:</span>
+                    <span className="font-medium">{post.contactPhone || 'N/A'}</span>
                   </div>
                 </div>
+              </div>
             </div>
-            
+
             {/* Apartment Utilities */}
             {post.apartmentPrices && (
               <div className="mb-6">
@@ -404,42 +425,57 @@ function PostDetail() {
                 </div>
               </div>
             )}
-            
+
+            {/* Amenities for room_listing */}
+            {post.type === 'room_listing' && post.amenities && post.amenities.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-3">Tiện ích</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {post.amenities.map((amenity, index) => (
+                    <div key={index} className="flex items-center space-x-2 text-gray-700">
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                      <span className="text-sm">{amenity}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Interests & Lifestyle */}
             <div className="mb-6">
-                <>
-                  <h3 className="text-lg font-semibold mb-3">Sở thích & Lối sống</h3>
-                  <div className="space-y-3">
-                    <div>
-                      <h4 className="font-medium text-gray-700 mb-1">Sở thích:</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {post.interests?.map(interest => (
-                          <span key={interest} className="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
-                            {interest}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-gray-700 mb-1">Lối sống:</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {post.lifestyle?.map(item => (
-                          <span key={item} className="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">
-                            {item}
-                          </span>
-                        ))}
-                      </div>
+              <>
+                <h3 className="text-lg font-semibold mb-3">Sở thích & Lối sống</h3>
+                <div className="space-y-3">
+                  <div>
+                    <h4 className="font-medium text-gray-700 mb-1">Sở thích:</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {post.interests?.map(interest => (
+                        <span key={interest} className="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
+                          {interest}
+                        </span>
+                      ))}
                     </div>
                   </div>
-                </>
+                  <div>
+                    <h4 className="font-medium text-gray-700 mb-1">Lối sống:</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {post.lifestyle?.map(item => (
+                        <span key={item} className="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </>
             </div>
-            
+
             {/* Rules (Removed as not in db.json) */}
-            
+
             {/* Nearby Places (Removed as not in db.json) */}
           </div>
         </div>
-        
+
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Contact Card */}
@@ -462,8 +498,8 @@ function PostDetail() {
                 </p>
               </div>
             </div>
-            
-            
+
+
             <div className="space-y-3">
               {currentUser && currentUser.id !== authorInfo?.id ? ( // Sửa từ .uid sang .id
                 <>
@@ -476,7 +512,7 @@ function PostDetail() {
                       <span>Gửi lời mời kết nối</span>
                     </button>
                   )}
-                  
+
                   <button
                     onClick={() => window.location.href = `tel:${authorInfo.phone}`}
                     className="w-full bg-green-600 text-white py-3 rounded-md hover:bg-green-700 flex items-center justify-center space-x-2"
@@ -490,7 +526,7 @@ function PostDetail() {
               )}
             </div>
           </div>
-          
+
           {/* Safety Tips */}
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <h3 className="font-semibold text-yellow-800 mb-2">Lưu ý an toàn</h3>
@@ -503,7 +539,7 @@ function PostDetail() {
           </div>
         </div>
       </div>
-      
+
       {/* Image Modal */}
       {showImageModal && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
@@ -514,13 +550,13 @@ function PostDetail() {
             >
               <X size={24} />
             </button>
-            
+
             <img
               src={post.images[currentImageIndex]}
               alt={post.title}
               className="w-full h-auto max-h-screen object-contain"
             />
-            
+
             {post.images.length > 1 && (
               <>
                 <button
@@ -530,7 +566,7 @@ function PostDetail() {
                 >
                   <ChevronLeft size={20} />
                 </button>
-                
+
                 <button
                   onClick={nextImage}
                   className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70"
@@ -540,15 +576,14 @@ function PostDetail() {
                 </button>
               </>
             )}
-            
+
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
               {post.images.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentImageIndex(index)}
-                  className={`w-3 h-3 rounded-full ${
-                    index === currentImageIndex ? 'bg-white' : 'bg-white bg-opacity-50'
-                  }`}
+                  className={`w-3 h-3 rounded-full ${index === currentImageIndex ? 'bg-white' : 'bg-white bg-opacity-50'
+                    }`}
                   tabIndex={0}
                 />
               ))}
@@ -556,7 +591,7 @@ function PostDetail() {
           </div>
         </div>
       )}
-      
+
       {/* Connection Modal */}
       {showConnectionModal && (
         <ConnectionModal
@@ -564,7 +599,7 @@ function PostDetail() {
           onClose={() => setShowConnectionModal(false)}
           post={post}
           targetUser={{
-            uid: authorInfo?.id, 
+            uid: authorInfo?.id,
             fullName: authorInfo?.fullName || '',
             avatar: authorInfo?.avatar || '',
             school: authorInfo?.school || '',
