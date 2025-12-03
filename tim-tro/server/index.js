@@ -6,8 +6,6 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import axios from 'axios'; // Import axios to talk to json-server
 
-import { PORT, SOCKET_PORT, JSON_SERVER_URL, CLIENT_URL } from './config.js';
-
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,7 +15,7 @@ const server = http.createServer(app);
 
 // Use CORS middleware
 app.use(cors({
-  origin: CLIENT_URL, // Updated to use config
+  origin: 'http://localhost:5173', // Updated to Vite's default client origin
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'] // Allow more methods for API
 }));
 
@@ -26,11 +24,13 @@ app.use(express.json());
 
 const io = new Server(server, {
   cors: {
-    origin: CLIENT_URL, // Updated to use config
+    origin: 'http://localhost:5173', // Updated to Vite's default client origin
     methods: ['GET', 'POST']
   }
 });
 
+const SOCKET_PORT = process.env.SOCKET_PORT || 3002;
+const JSON_SERVER_URL = 'http://localhost:3001'; // JSON Server runs on this port
 
 // Helper functions to read/write db.json are no longer needed for direct file access
 // They will be replaced by axios calls to JSON_SERVER_URL

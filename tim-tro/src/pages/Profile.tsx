@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Mail, Phone, School, MapPin, Edit, Save, X, Camera, Star, Heart, Home, CheckCircle, Upload, AlertCircle } from 'lucide-react';
-import axios from 'axios';
-const API_BASE_URL = 'http://localhost:3001';
+import api from '../api';  // Đảm bảo API client được import
+
 
 function Profile() {
   const navigate = useNavigate();
@@ -60,68 +60,69 @@ function Profile() {
   }, [currentUser]);
 
   const loadUserProfile = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get(`${API_BASE_URL}/users?email=${currentUser.email}`);
-      if (response.data.length > 0) {
-        const userData = response.data[0];
-        setProfileData({
-          fullName: userData.fullName || '',
-          email: userData.email || '',
-          phone: userData.phone || '',
-          school: userData.school || '',
-          major: userData.major || '',
-          year: userData.year || '',
-          gender: userData.gender || '',
-          city: userData.city || '',
-          bio: userData.bio || '',
-          interests: userData.interests || [],
-          lookingFor: userData.lookingFor || {
-            gender: '',
-            ageRange: '',
-            budget: '',
-            location: '',
-            lifestyle: []
-          }
-        });
-        // Initial stats load based on profile data if available
-        setUserStats(prev => ({
-          ...prev,
-          connectionsCount: userData.connectionsCount || 0,
-          rating: userData.rating || 4.5,
-          profileViews: userData.profileViews || 0,
-          joinDate: userData.createdAt || ''
-        }));
-      } else {
-        setMessage({ type: 'error', text: 'Không tìm thấy thông tin hồ sơ người dùng.' });
-      }
-    } catch (error) {
-      console.error('Error loading user profile:', error);
-      setMessage({ type: 'error', text: 'Không thể tải thông tin hồ sơ' });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadUserStats = async () => {
-    if (!currentUser) return;
-    try {
-      const postsResponse = await axios.get(`${API_BASE_URL}/posts?authorId=${currentUser.id}`);
-      const userPosts = postsResponse.data;
-
+  setLoading(true);
+  try {
+    const response = await api.get(`/users?email=${currentUser.email}`);  // Sử dụng api.get thay vì axios.get
+    if (response.data.length > 0) {
+      const userData = response.data[0];
+      setProfileData({
+        fullName: userData.fullName || '',
+        email: userData.email || '',
+        phone: userData.phone || '',
+        school: userData.school || '',
+        major: userData.major || '',
+        year: userData.year || '',
+        gender: userData.gender || '',
+        city: userData.city || '',
+        bio: userData.bio || '',
+        interests: userData.interests || [],
+        lookingFor: userData.lookingFor || {
+          gender: '',
+          ageRange: '',
+          budget: '',
+          location: '',
+          lifestyle: []
+        }
+      });
+      // Initial stats load based on profile data if available
       setUserStats(prev => ({
         ...prev,
-        postsCount: userPosts.length,
-        // For now, keep mock/default values if no real data is available
-        connectionsCount: prev.connectionsCount || 0, 
-        rating: prev.rating || 4.5,
-        profileViews: prev.profileViews || 0
+        connectionsCount: userData.connectionsCount || 0,
+        rating: userData.rating || 4.5,
+        profileViews: userData.profileViews || 0,
+        joinDate: userData.createdAt || ''
       }));
-    } catch (error) {
-      console.error('Error loading user stats:', error);
-      setMessage({ type: 'error', text: 'Không thể tải số liệu thống kê người dùng' });
+    } else {
+      setMessage({ type: 'error', text: 'Không tìm thấy thông tin hồ sơ người dùng.' });
     }
-  };
+  } catch (error) {
+    console.error('Error loading user profile:', error);
+    setMessage({ type: 'error', text: 'Không thể tải thông tin hồ sơ' });
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+const loadUserStats = async () => {
+  if (!currentUser) return;
+  try {
+    const postsResponse = await api.get(`/posts?authorId=${currentUser.id}`);  // Sử dụng api.get thay vì axios.get
+    const userPosts = postsResponse.data;
+
+    setUserStats(prev => ({
+      ...prev,
+      postsCount: userPosts.length,
+      connectionsCount: prev.connectionsCount || 0,
+      rating: prev.rating || 4.5,
+      profileViews: prev.profileViews || 0
+    }));
+  } catch (error) {
+    console.error('Error loading user stats:', error);
+    setMessage({ type: 'error', text: 'Không thể tải số liệu thống kê người dùng' });
+  }
+};
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -163,31 +164,32 @@ function Profile() {
     }));
   };
 
-  const handleSave = async () => {
-    setLoading(true);
-    try {
-      if (!currentUser || !currentUser.id) {
-        setMessage({ type: 'error', text: 'Người dùng chưa đăng nhập hoặc ID không hợp lệ.' });
-        return;
-      }
-
-      // Send updated profileData to the API
-      const response = await axios.put(`${API_BASE_URL}/users/${currentUser.id}`, profileData);
-      
-      // Update local storage and state with the new profile data
-      localStorage.setItem('currentUser', JSON.stringify(response.data));
-      setCurrentUser(response.data);
-      setProfileData(response.data); // Ensure profileData state reflects the saved data
-
-      setIsEditing(false);
-      setMessage({ type: 'success', text: 'Cập nhật hồ sơ thành công!' });
-    } catch (error) {
-      console.error('Failed to update profile:', error);
-      setMessage({ type: 'error', text: 'Cập nhật hồ sơ thất bại. Vui lòng thử lại.' });
-    } finally {
-      setLoading(false);
+ const handleSave = async () => {
+  setLoading(true);
+  try {
+    if (!currentUser || !currentUser.id) {
+      setMessage({ type: 'error', text: 'Người dùng chưa đăng nhập hoặc ID không hợp lệ.' });
+      return;
     }
-  };
+
+    // Gửi dữ liệu profileData đã chỉnh sửa đến API
+    const response = await api.put(`/users/${currentUser.id}`, profileData);  // Sử dụng api.put thay vì axios.put
+    
+    // Cập nhật lại localStorage và state với dữ liệu mới
+    localStorage.setItem('currentUser', JSON.stringify(response.data));
+    setCurrentUser(response.data);
+    setProfileData(response.data);  // Đảm bảo profileData được cập nhật với dữ liệu đã lưu
+
+    setIsEditing(false);
+    setMessage({ type: 'success', text: 'Cập nhật hồ sơ thành công!' });
+  } catch (error) {
+    console.error('Failed to update profile:', error);
+    setMessage({ type: 'error', text: 'Cập nhật hồ sơ thất bại. Vui lòng thử lại.' });
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const commonInterests = [
     'Đọc sách', 'Xem phim', 'Nghe nhạc', 'Du lịch', 'Thể thao', 'Nấu ăn',

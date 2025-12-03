@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api';  // Đảm bảo bạn đã import API client của mình
+
 import { Modal, ModalHeader, ModalTitle, ModalContent, ModalFooter } from '../components/ui/Modal';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -41,13 +42,14 @@ const PostManagement = () => {
   }, []);
 
   const fetchPosts = async () => {
-    try {
-      const response = await axios.get('http://localhost:3001/posts');
-      setPosts(response.data);
-    } catch (error) {
-      console.error('Error fetching posts:', error);
-    }
-  };
+  try {
+    const response = await api.get('http://localhost:3001/posts'); // Sử dụng api.get thay vì axios.get
+    setPosts(response.data);
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+  }
+};
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -109,27 +111,29 @@ const PostManagement = () => {
   };
 
   const handleUpdatePost = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.put(`http://localhost:3001/posts/${editingPost}`, formData);
-      setEditingPost(null);
-      setFormData({
-        title: '', description: '', price: 0, area: 0, location: '', district: '', category: '', images: [], amenities: [], utilities: [], deposit: 0, contact: { name: '', phone: '', email: '' }, address: '', userId: '', featured: false, rating: 0, views: 0, likes: 0
-      });
-      fetchPosts();
-    } catch (error) {
-      console.error('Error updating post:', error);
-    }
-  };
+  e.preventDefault();
+  try {
+    await api.put(`http://localhost:3001/posts/${editingPost}`, formData); // Sử dụng api.put thay vì axios.put
+    setEditingPost(null);
+    setFormData({
+      title: '', description: '', price: 0, area: 0, location: '', district: '', category: '', images: [], amenities: [], utilities: [], deposit: 0, contact: { name: '', phone: '', email: '' }, address: '', userId: '', featured: false, rating: 0, views: 0, likes: 0
+    });
+    fetchPosts();
+  } catch (error) {
+    console.error('Error updating post:', error);
+  }
+};
+
 
   const handleDeletePost = async (postId) => {
-    try {
-      await axios.delete(`http://localhost:3001/posts/${postId}`);
-      fetchPosts();
-    } catch (error) {
-      console.error('Error deleting post:', error);
-    }
-  };
+  try {
+    await api.delete(`http://localhost:3001/posts/${postId}`); // Sử dụng api.delete thay vì axios.delete
+    fetchPosts();
+  } catch (error) {
+    console.error('Error deleting post:', error);
+  }
+};
+
 
   const handleViewDetails = (post) => {
     setSelectedPost(post);

@@ -3,7 +3,7 @@ import { Trash2, Edit, PlusCircle } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
-
+import api from '../api'; 
 interface BlogItem {
   id: string;
   title: string;
@@ -44,11 +44,10 @@ const BlogManagement = () => {
     fetchBlogs();
   }, []);
 
-  const fetchBlogs = async () => {
+   const fetchBlogs = async () => {
     try {
-      const response = await fetch('http://localhost:3001/blogs');
-      const data = await response.json();
-      setBlogs(data as BlogItem[]);
+      const response = await api.get('/blogs'); // Thay fetch bằng api.get
+      setBlogs(response.data as BlogItem[]);
     } catch (error) {
       console.error('Error fetching blogs:', error);
     }
@@ -120,19 +119,11 @@ const BlogManagement = () => {
         : (typeof form.tags === 'string' ? form.tags.split(',').map((tag: string) => tag.trim()) : []),
     };
 
-    try {
+     try {
       if (currentBlog) {
-        await fetch(`http://localhost:3001/blogs/${currentBlog!.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(blogData),
-        });
+        await api.put(`/blogs/${currentBlog!.id}`, blogData);  // Sử dụng api.put thay vì fetch
       } else {
-        await fetch('http://localhost:3001/blogs', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...blogData, id: Date.now().toString() }), // Simple ID generation
-        });
+        await api.post('/blogs', { ...blogData, id: Date.now().toString() });  // Sử dụng api.post thay vì fetch
       }
       setIsModalOpen(false);
       fetchBlogs();

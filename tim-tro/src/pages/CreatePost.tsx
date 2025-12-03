@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api';  // Import API configuration
+
 import {
   User,
   MapPin,
@@ -46,8 +47,6 @@ const DISTRICTS = {
   ]
 };
 
-const API_BASE_URL = 'http://localhost:3001';
-
 const CreatePost = () => {
   const navigate = useNavigate();
   const { postId } = useParams();
@@ -77,8 +76,6 @@ const CreatePost = () => {
     interests: string[];
     lifestyle: string[];
     images: string[]; // store image URLs
-    area: string | number; // Diện tích (m²)
-    apartmentPrices: string; // Tiền nghi (cách nhau bởi dấu phẩy)
     createdAt?: string;
     updatedAt?: string;
     status?: string;
@@ -104,9 +101,7 @@ const CreatePost = () => {
     contactPhone: '',
     interests: [],
     lifestyle: [],
-    images: [],
-    area: '',
-    apartmentPrices: ''
+    images: []
   });
 
   const [loading, setLoading] = useState(false);
@@ -117,36 +112,29 @@ const CreatePost = () => {
   // Load post data if editing
   useEffect(() => {
     const fetchPost = async () => {
-      if (postId) {
-        setLoading(true);
-        try {
-          const response = await axios.get(`${API_BASE_URL}/posts/${postId}`);
-          const post = response.data;
-          // Assuming a fixed user for now as Firebase auth is removed
-          // You'll need to implement your own authentication system if needed
-          if (post) { // && post.authorId === 'some_user_id'
-            setFormData(post);
-          } else {
-            alert('Bài đăng không tồn tại hoặc bạn không có quyền chỉnh sửa.');
-            navigate('/my-posts');
-          }
-        } catch (err) {
-          alert('Không thể tải bài đăng để chỉnh sửa.');
-          navigate('/my-posts');
-          console.error('Error fetching post:', err);
-        } finally {
-          setLoading(false);
-        }
+  if (postId) {
+    setLoading(true);
+    try {
+      const response = await api.get(`/posts/${postId}`); // Thay axios bằng api
+      const post = response.data;
+      if (post) {
+        setFormData(post);
+      } else {
+        alert('Bài đăng không tồn tại hoặc bạn không có quyền chỉnh sửa.');
+        navigate('/my-posts');
       }
-    };
+    } catch (err) {
+      alert('Không thể tải bài đăng để chỉnh sửa.');
+      navigate('/my-posts');
+      console.error('Error fetching post:', err);
+    } finally {
+      setLoading(false);
+    }
+  }
+};
+
     fetchPost();
   }, [navigate, postId]);
-
-  // Remove currentUser check for now, as Firebase auth is removed
-  // You'll need to implement your own authentication system if needed
-  // if (!currentUser) {
-  //   return null;
-  // }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const target = e.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
@@ -227,78 +215,77 @@ const CreatePost = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+  e.preventDefault();
+  setLoading(true);
+  setError('');
 
-    // Validate required fields
-    if (!formData.title.trim()) {
-      setError('Vui lòng nhập tiêu đề bài đăng');
-      setLoading(false);
-      return;
-    }
-    if (!formData.description.trim()) {
-      setError('Vui lòng nhập mô tả');
-      setLoading(false);
-      return;
-    }
-    if (!formData.budget) {
-      setError('Vui lòng nhập ngân sách');
-      setLoading(false);
-      return;
-    }
-    if (!formData.contactName.trim()) {
-      setError('Vui lòng nhập tên liên hệ');
-      setLoading(false);
-      return;
-    }
-    if (!formData.contactPhone.trim()) {
-      setError('Vui lòng nhập số điện thoại');
-      setLoading(false);
-      return;
-    }
-    if (!formData.location) {
-      setError('Vui lòng chọn tỉnh/thành phố');
-      setLoading(false);
-      return;
-    }
-    if (!formData.district) {
-      setError('Vui lòng chọn quận/huyện');
-      setLoading(false);
-      return;
-    }
+  // Validate required fields
+  if (!formData.title.trim()) {
+    setError('Vui lòng nhập tiêu đề bài đăng');
+    setLoading(false);
+    return;
+  }
+  if (!formData.description.trim()) {
+    setError('Vui lòng nhập mô tả');
+    setLoading(false);
+    return;
+  }
+  if (!formData.budget) {
+    setError('Vui lòng nhập ngân sách');
+    setLoading(false);
+    return;
+  }
+  if (!formData.contactName.trim()) {
+    setError('Vui lòng nhập tên liên hệ');
+    setLoading(false);
+    return;
+  }
+  if (!formData.contactPhone.trim()) {
+    setError('Vui lòng nhập số điện thoại');
+    setLoading(false);
+    return;
+  }
+  if (!formData.location) {
+    setError('Vui lòng chọn tỉnh/thành phố');
+    setLoading(false);
+    return;
+  }
+  if (!formData.district) {
+    setError('Vui lòng chọn quận/huyện');
+    setLoading(false);
+    return;
+  }
 
-    try {
-        const postData = {
-        ...formData,
-        location: formData.location || '',
-        district: formData.district || '',
-          budget: parseInt(String(formData.budget) || '0'),
-        userId: currentUser ? currentUser.id : 'anonymous', // Add userId
-        // authorName: formData.contactName || (currentUser ? currentUser.displayName : 'Anonymous'),
-        // authorPhone: formData.contactPhone,
-        createdAt: formData.createdAt || new Date().toISOString(), // Preserve createdAt if editing
-        updatedAt: new Date().toISOString(),
-        status: formData.status || 'active',
-        views: formData.views || 0,
-        likes: formData.likes || 0,
-      };
+  try {
+    const postData = {
+      ...formData,
+      location: formData.location || '',
+      district: formData.district || '',
+      budget: parseInt(String(formData.budget) || '0'),
+      userId: currentUser ? currentUser.id : 'anonymous',
+      createdAt: formData.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      status: formData.status || 'active',
+      views: formData.views || 0,
+      likes: formData.likes || 0,
+    };
 
-        if (postId) {
-        await axios.put(`${API_BASE_URL}/posts/${postId}`, postData as any);
-        alert('Cập nhật bài đăng thành công!');
-      } else {
-        await axios.post(`${API_BASE_URL}/posts`, postData as any);
-        alert('Đăng bài thành công!');
-      }
-      navigate('/my-posts');
-    } catch(err) {
-      setError('Có lỗi xảy ra khi lưu bài đăng.');
-      console.error('Error saving post:', err);
-    } finally {
-      setLoading(false);
+    if (postId) {
+      await api.put(`/posts/${postId}`, postData);  // Sử dụng api.put thay vì axios.put
+      alert('Cập nhật bài đăng thành công!');
+    } else {
+      await api.post(`/posts`, postData);  // Sử dụng api.post thay vì axios.post
+      alert('Đăng bài thành công!');
     }
-  };
+    navigate('/my-posts');
+  } catch (err) {
+    setError('Có lỗi xảy ra khi lưu bài đăng.');
+    console.error('Error saving post:', err);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const commonInterests = [
     'Đọc sách', 'Xem phim', 'Nghe nhạc', 'Du lịch', 'Thể thao', 'Nấu ăn',
@@ -400,20 +387,6 @@ const CreatePost = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Diện tích (m²)
-                </label>
-                <input
-                  type="number"
-                  name="area"
-                  value={formData.area}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="VD: 25"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Loại phòng *
                 </label>
                 <select
@@ -429,20 +402,6 @@ const CreatePost = () => {
                   <option value="studio">Studio</option>
                   <option value="apartment">Căn hộ</option>
                 </select>
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Tiền nghi (cách nhau bởi dấu phẩy)
-                </label>
-                <textarea
-                  name="apartmentPrices"
-                  value={formData.apartmentPrices}
-                  onChange={handleInputChange}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="VD: Điện: 3000/kWh, Nước: 5000/m³, Internet: 100000/tháng"
-                />
               </div>
 
               <div className="md:col-span-2">

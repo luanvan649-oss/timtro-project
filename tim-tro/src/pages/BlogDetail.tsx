@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api'; 
 import { ArrowLeft } from 'lucide-react';
 
 const API_BASE_URL = 'http://localhost:3001'; // Assuming your JSON server runs on port 3001
@@ -30,7 +30,7 @@ const BlogDetail = () => {
         return;
       }
       
-      const response = await axios.get(`${API_BASE_URL}/blogs/${id}`);
+      const response = await api.get(`${API_BASE_URL}/blogs/${id}`);
       const blogData = response.data;
       
       if (!blogData) {

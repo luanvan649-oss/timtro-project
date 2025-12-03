@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
@@ -21,14 +21,14 @@ const UserManagement = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get('http://localhost:3001/users');
+      const response = await api.get('http://localhost:3001/users'); 
       setUsers(response.data);
     } catch (error) {
       console.error('Error fetching users:', error);
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     // Coerce isActive select value to boolean
     const parsedValue = name === 'isActive' ? (value === 'true') : value;
@@ -54,14 +54,14 @@ const UserManagement = () => {
     return true;
   };
 
-  const handleCreateUser = async (e) => {
+  const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) {
       return;
     }
     try {
       const newUser = { ...formData, creationTime: new Date().toISOString() }; // Add creation time
-      await axios.post('http://localhost:3001/users', newUser);
+      await api.post('http://localhost:3001/users', newUser); // Use api.post instead of axios
       setFormData({
         fullName: '',
         email: '',
@@ -77,7 +77,7 @@ const UserManagement = () => {
     }
   };
 
-  const handleEditUser = (user) => {
+ const handleEditUser = (user: any) => {
     setEditingUser(user.id);
     setFormData({
       fullName: user.fullName,
@@ -88,13 +88,13 @@ const UserManagement = () => {
     });
   };
 
-  const handleUpdateUser = async (e) => {
+ const handleUpdateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) {
       return;
     }
     try {
-      await axios.put(`http://localhost:3001/users/${editingUser}`, formData);
+      await api.put(`http://localhost:3001/users/${editingUser}`, formData); // Use api.put instead of axios
       setEditingUser(null);
       setFormData({
         fullName: '',
@@ -111,12 +111,12 @@ const UserManagement = () => {
     }
   };
 
-  const handleToggleActive = async (userId, currentStatus) => {
+ const handleToggleActive = async (userId: string, currentStatus: boolean) => {
     try {
       const userToUpdate = users.find(user => user.id === userId);
       if (userToUpdate) {
         const updatedUser = { ...userToUpdate, isActive: !currentStatus };
-        await axios.put(`http://localhost:3001/users/${userId}`, updatedUser);
+        await api.put(`http://localhost:3001/users/${userId}`, updatedUser); // Use api.put instead of axios
         fetchUsers();
       }
     } catch (error) {
@@ -124,12 +124,14 @@ const UserManagement = () => {
     }
   };
 
-  const handleResetPassword = (userId) => {
+
+ const handleResetPassword = (userId: string) => {
     console.log('Đặt lại mật khẩu cho user:', userId);
     // In a real application, this would involve a backend call to reset the password
   };
 
-  return (
+
+   return (
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-6">Quản lý người dùng</h1>
 

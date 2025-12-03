@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom';
 import PostCard from '../components/PostCard';
 import SearchFilter from '../components/SearchFilter';
 import Pagination from '../components/Pagination';
-import axios from 'axios';
+
 import ChatWindow from '../components/ChatWindow';
+import api from '../api';  // Import API configuration
 
 const LOCATIONS = [
   "Hồ Chí Minh",
@@ -14,7 +15,6 @@ const LOCATIONS = [
   "Quy Nhơn"
 ];
 
-const API_BASE_URL = 'http://localhost:3001';
 
 interface Post {
   id?: string | number;
@@ -59,100 +59,96 @@ const Home: React.FC<HomeProps> = ({ globalSearchTerm = '', setGlobalSearchTerm 
   const [sortBy, setSortBy] = useState<string>('createdAt');
   const [totalPosts, setTotalPosts] = useState<number>(0);
 
-  const loadPosts = useCallback(async () => {
-    try {
-      setLoading(true);
-      console.log('Loading posts with filters:', filters, 'search:', globalSearchTerm); // Use globalSearchTerm
+ const loadPosts = useCallback(async () => {
+  try {
+    setLoading(true);
+    console.log('Loading posts with filters:', filters, 'search:', globalSearchTerm);
 
-      const queryParams: Record<string, any> = {
-        _page: currentPage,
-        _limit: 10000, // Fetch a large number of posts for client-side filtering
-      };
+    const queryParams: Record<string, any> = {
+      _page: currentPage,
+      _limit: 10000, // Fetch a large number of posts for client-side filtering
+    };
 
-      // Use title_like for specific title search as requested for the header search
-      // No longer sending title_like directly to json-server for primary search, will filter client-side
-      // if (globalSearchTerm.trim()) { 
-      //   queryParams.title_like = globalSearchTerm.trim();
-      // }
-
-      if (filters.location) {
-        queryParams.location = filters.location;
-      }
-      if (filters.district) {
-        queryParams.district = filters.district;
-      }
-      if (filters.category) {
-        queryParams.category = filters.category;
-      }
-
-      // Filter by price range
-      if (filters.priceMin !== undefined) {
-        queryParams.price_gte = filters.priceMin;
-      }
-      if (filters.priceMax !== undefined) {
-        queryParams.price_lte = filters.priceMax;
-      }
-
-      if (filters.areaMin !== undefined) {
-        queryParams.area_gte = filters.areaMin;
-      }
-      if (filters.areaMax !== undefined) {
-        queryParams.area_lte = filters.areaMax;
-      }
-
-      // Sorting logic for json-server
-      if (sortBy === 'newest' || sortBy === 'createdAt') {
-        queryParams._sort = 'createdAt';
-        queryParams._order = 'desc';
-      } else if (sortBy === 'price') {
-        queryParams._sort = 'price';
-        queryParams._order = 'asc';
-      } else if (sortBy === 'priceDesc') {
-        queryParams._sort = 'price';
-        queryParams._order = 'desc';
-      }
-      // Note: 'hasVideo' sorting might need custom logic or be removed if not directly supported by json-server
-
-      console.log('Fetching posts with query:', queryParams); // Log the query for debugging
-      const response = await axios.get(`${API_BASE_URL}/posts`, { params: queryParams });
-      let fetchedPosts: Post[] = response.data as Post[];
-
-      // Client-side filtering based on globalSearchTerm (by title)
-      if (globalSearchTerm && globalSearchTerm.trim()) {
-        const lowerCaseSearchTerm = globalSearchTerm.trim().toLowerCase();
-        fetchedPosts = fetchedPosts.filter(post => 
-          post.title && String(post.title).toLowerCase().includes(lowerCaseSearchTerm)
-        );
-      }
-
-      // Client-side filtering for amenities if json-server doesn't support it directly
-      if (filters.amenities && filters.amenities.length > 0) {
-        fetchedPosts = fetchedPosts.filter(post =>
-          filters.amenities?.every(amenity => post.amenities?.includes(amenity))
-        );
-      }
-
-      // Calculate total count after client-side filtering
-      const filteredTotalCount = fetchedPosts.length;
-      
-      // Implement pagination client-side
-      const startIndex = (currentPage - 1) * 20;
-      const endIndex = startIndex + 20;
-      const paginatedPosts = fetchedPosts.slice(startIndex, endIndex);
-
-      setPosts(paginatedPosts);
-      setTotalPages(Math.ceil(filteredTotalCount / 20));
-      setTotalPosts(filteredTotalCount);
-    } catch (err) {
-      setError('Có lỗi xảy ra khi tải dữ liệu');
-      console.error('Error loading posts:', err);
-      setPosts([]);
-      setTotalPages(1);
-      setTotalPosts(0);
-    } finally {
-      setLoading(false);
+    // Các bộ lọc
+    if (filters.location) {
+      queryParams.location = filters.location;
     }
-  }, [filters, currentPage, sortBy, globalSearchTerm]); // Removed searchTerm, added globalSearchTerm
+    if (filters.district) {
+      queryParams.district = filters.district;
+    }
+    if (filters.category) {
+      queryParams.category = filters.category;
+    }
+
+    if (filters.priceMin !== undefined) {
+      queryParams.price_gte = filters.priceMin;
+    }
+    if (filters.priceMax !== undefined) {
+      queryParams.price_lte = filters.priceMax;
+    }
+    if (filters.areaMin !== undefined) {
+      queryParams.area_gte = filters.areaMin;
+    }
+    if (filters.areaMax !== undefined) {
+      queryParams.area_lte = filters.areaMax;
+    }
+
+    // Logic sắp xếp
+    if (sortBy === 'newest' || sortBy === 'createdAt') {
+      queryParams._sort = 'createdAt';
+      queryParams._order = 'desc';
+    } else if (sortBy === 'price') {
+      queryParams._sort = 'price';
+      queryParams._order = 'asc';
+    } else if (sortBy === 'priceDesc') {
+      queryParams._sort = 'price';
+      queryParams._order = 'desc';
+    }
+
+    console.log('Fetching posts with query:', queryParams);
+
+    // Sử dụng api.get thay vì axios.get
+    const response = await api.get('/posts', { params: queryParams });
+
+    let fetchedPosts: Post[] = response.data as Post[];
+
+    // Client-side filtering based on globalSearchTerm (by title)
+    if (globalSearchTerm && globalSearchTerm.trim()) {
+      const lowerCaseSearchTerm = globalSearchTerm.trim().toLowerCase();
+      fetchedPosts = fetchedPosts.filter(post =>
+        post.title && String(post.title).toLowerCase().includes(lowerCaseSearchTerm)
+      );
+    }
+
+    // Client-side filtering for amenities
+    if (filters.amenities && filters.amenities.length > 0) {
+      fetchedPosts = fetchedPosts.filter(post =>
+        filters.amenities?.every(amenity => post.amenities?.includes(amenity))
+      );
+    }
+
+    // Calculate total count after client-side filtering
+    const filteredTotalCount = fetchedPosts.length;
+
+    // Implement pagination client-side
+    const startIndex = (currentPage - 1) * 20;
+    const endIndex = startIndex + 20;
+    const paginatedPosts = fetchedPosts.slice(startIndex, endIndex);
+
+    setPosts(paginatedPosts);
+    setTotalPages(Math.ceil(filteredTotalCount / 20));
+    setTotalPosts(filteredTotalCount);
+  } catch (err) {
+    setError('Có lỗi xảy ra khi tải dữ liệu');
+    console.error('Error loading posts:', err);
+    setPosts([]);
+    setTotalPages(1);
+    setTotalPosts(0);
+  } finally {
+    setLoading(false);
+  }
+}, [filters, currentPage, sortBy, globalSearchTerm]);
+
 
   useEffect(() => {
     console.log('Home component: loading posts due to dependency change...');

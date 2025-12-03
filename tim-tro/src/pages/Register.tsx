@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api';
 import {
   Mail,
   Lock,
@@ -10,7 +10,7 @@ import {
   Phone
 } from 'lucide-react';
 
-const API_BASE_URL = 'http://localhost:3001';
+
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -39,7 +39,7 @@ function Register() {
     }
   };
 
-  const validateForm = () => {
+ const validateForm = () => {
     const { email, password, fullName, confirmPassword, agreeTerms } = formData;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const passwordRegex = /^.{6,}$/;
@@ -53,7 +53,7 @@ function Register() {
       return false;
     }
     if (!passwordRegex.test(password)) {
-      setError('Mật khẩu không hợp lệ. Mật khẩu phải có ít nhất 6 ký tự, bao gồm ít nhất một chữ hoa, một chữ thường và một số.');
+      setError('Mật khẩu không hợp lệ. Mật khẩu phải có ít nhất 6 ký tự.');
       return false;
     }
     if (password !== confirmPassword) {
@@ -79,7 +79,7 @@ function Register() {
       setLoading(true);
       
       // Check if user already exists
-      const existingUsers = await axios.get(`${API_BASE_URL}/users`, {
+      const existingUsers = await api.get('/users', {
         params: { email: formData.email }
       });
 
@@ -100,10 +100,9 @@ function Register() {
         role: 'user', // Automatically assign 'user' role
         isActive: true, // Assuming new users are active by default
         creationTime: new Date().toISOString() // Add creation time
-        // Add other default profile fields if necessary
       };
       
-      await axios.post(`${API_BASE_URL}/users`, newUser);
+      await api.post('/users', newUser);
       
       // Use error state for success message temporarily
       setError('Đăng ký thành công! Vui lòng đăng nhập.'); 
@@ -115,10 +114,8 @@ function Register() {
       console.error('Registration error:', err);
       
       let errorMessage = 'Đăng ký thất bại. Vui lòng thử lại.';
-      if (axios.isAxiosError(err) && err.response) {
+      if (err.response) {
         errorMessage = `Lỗi từ server: ${err.response.status} - ${err.response.statusText}`;
-      } else if (axios.isAxiosError(err) && !err.response) {
-        errorMessage = 'Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet hoặc json-server đang chạy.';
       }
       
       setError(errorMessage);

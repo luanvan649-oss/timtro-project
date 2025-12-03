@@ -13,7 +13,7 @@ import {
   Users,
   Calendar
 } from 'lucide-react';
-
+import api from "../api";
 function Ratings() {
   // currentUser sẽ cần được cung cấp thông qua một cơ chế khác
   // Tạm thời để trống hoặc gán giá trị mặc định để tránh lỗi
@@ -155,21 +155,23 @@ function Ratings() {
   const fetchRatings = async () => {
     setLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      setReceivedRatings(mockReceivedRatings);
-      setGivenRatings(mockGivenRatings);
-      setPendingRatings(mockPendingRatings);
+     try {
+      const response = await api.get("/ratings"); // API call to fetch ratings
+      const ratingsData = response.data;
+      
+      // Process ratings data as needed
+      setReceivedRatings(ratingsData.received);
+      setGivenRatings(ratingsData.given);
+      setPendingRatings(ratingsData.pending);
       
       // Calculate stats
-      const totalRatings = mockReceivedRatings.length;
+      const totalRatings = ratingsData.received.length;
       const averageRating = totalRatings > 0 
-        ? mockReceivedRatings.reduce((sum, r) => sum + r.rating, 0) / totalRatings 
+        ? ratingsData.received.reduce((sum, r) => sum + r.rating, 0) / totalRatings 
         : 0;
       const recommendationRate = totalRatings > 0 
-        ? (mockReceivedRatings.filter(r => r.recommend).length / totalRatings) * 100 
+        ? (ratingsData.received.filter(r => r.recommend).length / totalRatings) * 100 
         : 0;
-      
       // Calculate category averages
       const categoryAverages = {};
       if (totalRatings > 0) {
@@ -186,8 +188,11 @@ function Ratings() {
         categoryAverages
       });
       
+     } catch (error) {
+      console.error("Error fetching ratings:", error);
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   const handleSubmitRating = async (ratingData) => {
@@ -209,6 +214,11 @@ function Ratings() {
     
     setShowRatingModal(false);
     setSelectedRoommate(null);
+     try {
+      await api.post("/ratings", ratingData); // Submit rating via API
+    } catch (error) {
+      console.error("Error submitting rating:", error);
+    }
   };
 
   const formatDate = (dateString) => {

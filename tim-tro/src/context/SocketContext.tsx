@@ -7,11 +7,9 @@ interface SocketProviderProps {
   currentUser?: { id?: string } | null;
 }
 
-import { SOCKET_URL } from '../config';
-
 export const SocketProvider: React.FC<SocketProviderProps> = ({ children, currentUser }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
-  const SOCKET_SERVER_URL = SOCKET_URL;
+  const SOCKET_SERVER_URL = 'http://localhost:3002';
 
   useEffect(() => {
     const newSocket = io(SOCKET_SERVER_URL, {

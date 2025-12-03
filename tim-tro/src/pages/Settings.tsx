@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Settings as SettingsIcon, Bell, Lock, User, Globe, Mail } from 'lucide-react';
-import axios from 'axios';
+import api from '../api';
 
 const API_BASE_URL = 'http://localhost:3001';
 
@@ -33,7 +33,7 @@ const Settings = () => {
       if (storedUser) {
         const user = JSON.parse(storedUser);
         try {
-          const response = await axios.get(`${API_BASE_URL}/settings/${user.id}`);
+           const response = await api.get(`${API_BASE_URL}/settings/${user.id}`); // Thay axios bằng api.get
           setSettings(response.data);
         } catch (error) {
           console.error('Error loading settings:', error);
@@ -45,7 +45,7 @@ const Settings = () => {
             language: 'vi',
             theme: 'light'
           };
-          await axios.post(`${API_BASE_URL}/settings`, defaultSettings);
+          await api.post(`${API_BASE_URL}/settings`, defaultSettings);
           setSettings(defaultSettings);
         }
       }
@@ -53,7 +53,7 @@ const Settings = () => {
     fetchSettings();
   }, []);
 
-  const handleNotificationChange = (type, value) => {
+  const handleNotificationChange = (type: string, value: boolean) => {
     setSettings(prev => ({
       ...prev,
       notifications: {
@@ -63,7 +63,7 @@ const Settings = () => {
     }));
   };
 
-  const handlePrivacyChange = (type, value) => {
+  const handlePrivacyChange = (type: string, value: boolean) => {
     setSettings(prev => ({
       ...prev,
       privacy: {
@@ -80,7 +80,7 @@ const Settings = () => {
     }
     try {
       // Save settings to db.json
-      await axios.put(`${API_BASE_URL}/settings/${currentUser.id}`, settings);
+      await api.put(`${API_BASE_URL}/settings/${currentUser.id}`, settings); // Thay axios bằng api.put
       alert('Cài đặt đã được lưu!');
     } catch (error) {
       console.error('Error saving settings:', error);
