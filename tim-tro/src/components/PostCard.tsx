@@ -25,6 +25,7 @@ interface Post {
   school?: string;
   major?: string;
   year?: string;
+  amenities?: string[];
 }
 
 interface CurrentUser {
@@ -101,7 +102,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
    const nextImage = () => {
     if (post.images && post.images.length > 1) {
       setCurrentImageIndex((prev) =>
-        prev === post.images!.length - 1 ? 0 : prev + 1
+        prev === (post.images?.length ?? 0) - 1 ? 0 : prev + 1
       );
     }
   };
@@ -109,7 +110,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
  const prevImage = () => {
     if (post.images && post.images.length > 1) {
       setCurrentImageIndex((prev) =>
-        prev === 0 ? post.images!.length - 1 : prev - 1
+        prev === 0 ? (post.images?.length ?? 1) - 1 : prev - 1
       );
     }
   };
@@ -133,7 +134,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
                   alt={post.title}
                   className="w-full h-full object-cover"
                 />
-                
+
                 {/* Image Counter */}
                 {post.images.length > 1 && (
                   <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded flex items-center">
@@ -233,6 +234,24 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
             {post.description}
           </p>
 
+          {/* Amenities for room_listing */}
+          {post.type === 'room_listing' && post.amenities && post.amenities.length > 0 && (
+            <div className="mb-3">
+              <div className="flex flex-wrap gap-1">
+                {post.amenities.slice(0, 4).map((amenity, index) => (
+                  <span key={index} className="bg-blue-50 text-blue-700 text-xs px-2 py-1 rounded">
+                    {amenity}
+                  </span>
+                ))}
+                {post.amenities.length > 4 && (
+                  <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">
+                    +{post.amenities.length - 4}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Additional details for roommate_finding */}
           {post.type === 'roommate_finding' && (
             <div className="text-sm text-gray-600 mb-3">
@@ -261,7 +280,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
                 </div>
               </div>
             </div>
-            
+
             {/* Action Buttons */}
             <div className="flex items-center space-x-2">
               {/* Contact Button */}
@@ -271,7 +290,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
                 </svg>
                 {post.contactPhone || post.contact?.phone || '0123456789'}
               </button>
-              
+
               {/* Connection Button */}
               {currentUser && currentUser.uid !== post.authorId && (
                 <button
@@ -288,15 +307,14 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
                   Kết nối
                 </button>
               )}
-              
+
               {/* Save Button */}
               <button
                 onClick={handleLike}
-                className={`p-2 rounded border transition-colors ${
-                  isLiked 
-                    ? 'bg-red-50 border-red-200 text-red-600' 
-                    : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
-                }`}
+                className={`p-2 rounded border transition-colors ${isLiked
+                  ? 'bg-red-50 border-red-200 text-red-600'
+                  : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                  }`}
                 aria-label="Lưu tin này"
               >
                 <svg className="w-4 h-4" fill={isLiked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
@@ -307,7 +325,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
           </div>
         </div>
       </div>
-      
+
       {/* Connection Modal */}
       {showConnectionModal && (
         <ConnectionModal

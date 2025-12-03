@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import CreatePost from './pages/CreatePost';
+import CreateRoomListing from './pages/CreateRoomListing';
 import SearchPosts from './pages/SearchPosts';
 import PostDetail from './pages/PostDetail';
 import Suggestions from './pages/Suggestions';
@@ -78,39 +79,57 @@ function App() {
             <Route path="/admin/blogs" element={<Layout><BlogManagement /></Layout>} />
           </Route>
 
-          {/* App Routes - with Layout */}
-          {/* Pass globalSearchTerm and handleGlobalSearchSubmit to Layout */}
-          <Route path="*" element={
-            <Layout
-              searchTermValue={globalSearchTerm}
-              onSearchSubmit={handleGlobalSearchSubmit}
-            >
-              <Routes>
-                {/* Pass globalSearchTerm and setGlobalSearchTerm to Home */}
-                <Route path="/" element={<Home globalSearchTerm={globalSearchTerm} setGlobalSearchTerm={setGlobalSearchTerm} />} />
-                <Route path="/create-post" element={<CreatePost />} />
-                {/* <Route path="/search-posts" element={<SearchPosts />} /> */}
-                <Route path="/post/:id" element={<PostDetail />} />
-                <Route
-                  path="/suggestions"
-                  element={<Suggestions 
-                    userLookingFor={profileData?.lookingFor} 
-                    userInterests={profileData?.interests}
-                    userMajor={profileData?.major}
-                    userYear={profileData?.year}
-                  />} 
-                />
-                <Route path="/connections" element={<Connections />} />
-                <Route path="/my-connections" element={<MyConnections />} />
-                <Route path="/ratings" element={<Ratings />} />
-                <Route path="/my-posts" element={<MyPosts currentUser={currentUser} />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/edit-post/:id" element={<EditPost />} />
-                
-                {/* Blog Routes */}
-                <Route path="/blog" element={<Blog />} />
-                <Route path="/blog/:id" element={<BlogDetail />} />
+            {/* Admin Routes */}
+            <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+              <Route path="/admin" element={<Layout><AdminDashboard /></Layout>} />
+              <Route path="/admin/users" element={<Layout><UserManagement /></Layout>} />
+              <Route path="/admin/posts" element={<Layout><PostManagement /></Layout>} />
+              <Route path="/admin/blogs" element={<Layout><BlogManagement /></Layout>} />
+            </Route>
+
+            {/* App Routes - with Layout */}
+            {/* Pass globalSearchTerm and handleGlobalSearchSubmit to Layout */}
+            <Route path="*" element={
+              <Layout
+                searchTermValue={globalSearchTerm}
+                onSearchSubmit={handleGlobalSearchSubmit}
+              >
+                <Routes>
+                  {/* Pass globalSearchTerm and setGlobalSearchTerm to Home */}
+                  <Route path="/" element={<Home globalSearchTerm={globalSearchTerm} setGlobalSearchTerm={setGlobalSearchTerm} />} />
+                  <Route path="/create-post" element={<CreatePost />} />
+                  <Route path="/create-room-listing" element={<CreateRoomListing />} />
+                  <Route path="/edit-room-listing/:postId" element={<CreateRoomListing />} />
+                  {/* <Route path="/search-posts" element={<SearchPosts />} /> */}
+                  <Route path="/post/:id" element={<PostDetail />} />
+                  <Route
+                    path="/suggestions"
+                    element={<Suggestions
+                      userLookingFor={profileData?.lookingFor}
+                      userInterests={profileData?.interests}
+                      userMajor={profileData?.major}
+                      userYear={profileData?.year}
+                    />}
+                  />
+                  <Route path="/connections" element={<Connections />} />
+                  <Route path="/my-connections" element={<MyConnections />} />
+                  <Route path="/ratings" element={<Ratings />} />
+                  <Route path="/my-posts" element={<MyPosts currentUser={currentUser} />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/edit-post/:id" element={<EditPost />} />
+
+                  {/* Blog Routes */}
+                  <Route path="/blog" element={<Blog />} />
+                  <Route path="/blog/:id" element={<BlogDetail />} />
+
+                  {/* Category Routes */}
+                  <Route path="/nha-nguyen-can" element={<Home />} />
+                  <Route path="/can-ho-chung-cu" element={<Home />} />
+                  <Route path="/can-ho-mini" element={<Home />} />
+                  <Route path="/can-ho-dich-vu" element={<Home />} />
+                  <Route path="/mat-bang" element={<Home />} />
+                  <Route path="/bang-gia" element={<Home />} />
 
                 {/* Category Routes */}
                 <Route path="/nha-nguyen-can" element={<Home />} />
