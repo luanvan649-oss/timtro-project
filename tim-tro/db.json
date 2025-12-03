@@ -469,6 +469,50 @@
       "featured": false,
       "contactPhone": "0962793637",
       "contactName": "Nguyễn Ngọc Linh"
+    },
+    {
+      "id": "d53d",
+      "title": "linhaa",
+      "description": "kakakakka",
+      "price": 3000000,
+      "area": 50,
+      "location": "Hồ Chí Minh",
+      "district": "Quận 3",
+      "category": "Phòng trọ",
+      "images": [
+        "https://kientructrangkim.com/wp-content/uploads/2022/11/thiet-ke-noi-that-phong-tro-35.jpg"
+      ],
+      "amenities": [
+        "Máy lạnh"
+      ],
+      "utilities": [
+        "Điện",
+        "Nước",
+        "Internet"
+      ],
+      "deposit": 999999,
+      "contact": {
+        "name": "Nguyễn Ngọc Linh",
+        "phone": "0962793637",
+        "email": "linh@gmail.com"
+      },
+      "address": "Thach Thast",
+      "genderPreference": "Nam",
+      "school": "fpt",
+      "major": "công nghệ thông tin",
+      "year": "Năm 4",
+      "userId": "5f06",
+      "type": "room_listing",
+      "city": "Hồ Chí Minh",
+      "status": "active",
+      "createdAt": "2025-12-03T08:50:02.332Z",
+      "updatedAt": "2025-12-03T08:50:02.332Z",
+      "views": 0,
+      "likes": 0,
+      "rating": 0,
+      "featured": false,
+      "contactPhone": "0962793637",
+      "contactName": "Nguyễn Ngọc Linh"
     }
   ],
   "blogs": [
