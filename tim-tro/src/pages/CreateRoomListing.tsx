@@ -90,6 +90,10 @@ interface PostForm {
         email: string;
     };
     address: string;
+    genderPreference?: string;
+    school?: string;
+    major?: string;
+    year?: string;
     userId?: string;
     featured?: boolean;
     rating?: number;
@@ -130,7 +134,11 @@ const CreateRoomListing = () => {
             phone: '',
             email: ''
         },
-        address: ''
+        address: '',
+        genderPreference: '',
+        school: '',
+        major: '',
+        year: ''
     });
 
     const [loading, setLoading] = useState(false);
@@ -322,6 +330,82 @@ const CreateRoomListing = () => {
                                 {postId ? 'Chỉnh sửa bài đăng' : 'Đăng tin cho thuê phòng trọ'}
                             </h1>
                             <p className="text-gray-600">Điền đầy đủ thông tin để đăng tin cho thuê</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Roommate Preferences (Optional) */}
+                <div className="bg-white rounded-lg shadow-sm p-6">
+                    <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                        <Home className="w-5 h-5 mr-2" />
+                        Yêu cầu người thuê (Tùy chọn)
+                    </h2>
+                    <p className="text-sm text-gray-600 mb-4">Thông tin này giúp bạn tìm người thuê phù hợp hơn</p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Giới tính mong muốn
+                            </label>
+                            <select
+                                name="genderPreference"
+                                value={formData.genderPreference || ''}
+                                onChange={handleInputChange}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            >
+                                <option value="">Không yêu cầu</option>
+                                <option value="Nam">Nam</option>
+                                <option value="Nữ">Nữ</option>
+                                <option value="Khác">Khác</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Trường (nếu ưu tiên sinh viên)
+                            </label>
+                            <input
+                                type="text"
+                                name="school"
+                                value={formData.school || ''}
+                                onChange={handleInputChange}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="VD: ĐH Bách Khoa"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Ngành
+                            </label>
+                            <input
+                                type="text"
+                                name="major"
+                                value={formData.major || ''}
+                                onChange={handleInputChange}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="VD: Công nghệ thông tin"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Năm học
+                            </label>
+                            <select
+                                name="year"
+                                value={formData.year || ''}
+                                onChange={handleInputChange}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            >
+                                <option value="">Chọn năm học</option>
+                                <option value="Năm 1">Năm 1</option>
+                                <option value="Năm 2">Năm 2</option>
+                                <option value="Năm 3">Năm 3</option>
+                                <option value="Năm 4">Năm 4</option>
+                                <option value="Năm 5">Năm 5</option>
+                                <option value="Sau đại học">Sau đại học</option>
+                            </select>
                         </div>
                     </div>
                 </div>
