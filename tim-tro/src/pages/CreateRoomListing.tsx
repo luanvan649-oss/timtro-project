@@ -69,36 +69,6 @@ const AMENITIES_LIST = [
     "An ninh 24/7"
 ];
 
-const INTERESTS_LIST = [
-    "Thể thao",
-    "Âm nhạc",
-    "Du lịch",
-    "Đọc sách",
-    "Nấu ăn",
-    "Xem phim",
-    "Chơi game",
-    "Nhiếp ảnh",
-    "Vẽ tranh",
-    "Yoga",
-    "Gym",
-    "Học ngoại ngữ"
-];
-
-const LIFESTYLE_LIST = [
-    "Sống sạch sẽ",
-    "Yên tĩnh",
-    "Thân thiện",
-    "Không hút thuốc",
-    "Không uống rượu",
-    "Dậy sớm",
-    "Ngủ muộn",
-    "Thích nấu ăn",
-    "Thích giao lưu",
-    "Tập trung học tập",
-    "Thích thú cưng",
-    "Không thích thú cưng"
-];
-
 const API_BASE_URL = 'http://localhost:3001';
 
 interface PostForm {
@@ -124,8 +94,6 @@ interface PostForm {
     school?: string;
     major?: string;
     year?: string;
-    interests?: string[];
-    lifestyle?: string[];
     userId?: string;
     featured?: boolean;
     rating?: number;
@@ -170,9 +138,7 @@ const CreateRoomListing = () => {
         genderPreference: '',
         school: '',
         major: '',
-        year: '',
-        interests: [],
-        lifestyle: []
+        year: ''
     });
 
     const [loading, setLoading] = useState(false);
@@ -231,24 +197,6 @@ const CreateRoomListing = () => {
             amenities: prev.amenities.includes(amenity)
                 ? prev.amenities.filter(a => a !== amenity)
                 : [...prev.amenities, amenity]
-        }));
-    };
-
-    const toggleInterest = (interest: string) => {
-        setFormData(prev => ({
-            ...prev,
-            interests: prev.interests?.includes(interest)
-                ? prev.interests.filter(i => i !== interest)
-                : [...(prev.interests || []), interest]
-        }));
-    };
-
-    const toggleLifestyle = (lifestyle: string) => {
-        setFormData(prev => ({
-            ...prev,
-            lifestyle: prev.lifestyle?.includes(lifestyle)
-                ? prev.lifestyle.filter(l => l !== lifestyle)
-                : [...(prev.lifestyle || []), lifestyle]
         }));
     };
 
@@ -458,57 +406,6 @@ const CreateRoomListing = () => {
                                 <option value="Năm 5">Năm 5</option>
                                 <option value="Sau đại học">Sau đại học</option>
                             </select>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Interests & Lifestyle */}
-                <div className="bg-white rounded-lg shadow-sm p-6">
-                    <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                        <Home className="w-5 h-5 mr-2" />
-                        Sở thích & Lối sống (Tùy chọn)
-                    </h2>
-                    <p className="text-sm text-gray-600 mb-4">Thông tin này giúp tìm bạn cùng phòng phù hợp hơn</p>
-
-                    {/* Interests */}
-                    <div className="mb-6">
-                        <h3 className="text-md font-medium text-gray-700 mb-3">Sở thích:</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                            {INTERESTS_LIST.map(interest => (
-                                <label
-                                    key={interest}
-                                    className="flex items-center space-x-2 cursor-pointer p-2 rounded hover:bg-gray-50"
-                                >
-                                    <input
-                                        type="checkbox"
-                                        checked={formData.interests?.includes(interest) || false}
-                                        onChange={() => toggleInterest(interest)}
-                                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                    />
-                                    <span className="text-sm text-gray-700">{interest}</span>
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Lifestyle */}
-                    <div>
-                        <h3 className="text-md font-medium text-gray-700 mb-3">Lối sống:</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                            {LIFESTYLE_LIST.map(lifestyle => (
-                                <label
-                                    key={lifestyle}
-                                    className="flex items-center space-x-2 cursor-pointer p-2 rounded hover:bg-gray-50"
-                                >
-                                    <input
-                                        type="checkbox"
-                                        checked={formData.lifestyle?.includes(lifestyle) || false}
-                                        onChange={() => toggleLifestyle(lifestyle)}
-                                        className="rounded border-gray-300 text-green-600 focus:ring-green-500"
-                                    />
-                                    <span className="text-sm text-gray-700">{lifestyle}</span>
-                                </label>
-                            ))}
                         </div>
                     </div>
                 </div>
