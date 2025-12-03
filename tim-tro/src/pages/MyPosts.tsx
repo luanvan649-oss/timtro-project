@@ -207,8 +207,8 @@ const MyPosts = ({ currentUser }) => {
             <div className="p-8 text-center">
               <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600 mb-4">
-                {searchTerm || filterStatus !== 'all' 
-                  ? 'Không tìm thấy tin đăng nào phù hợp' 
+                {searchTerm || filterStatus !== 'all'
+                  ? 'Không tìm thấy tin đăng nào phù hợp'
                   : 'Bạn chưa có tin đăng nào'}
               </p>
               <Link
@@ -236,7 +236,7 @@ const MyPosts = ({ currentUser }) => {
                           {getStatusText(post.status)}
                         </span>
                       </div>
-                      
+
                       <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
                         <div className="flex items-center">
                           <MapPin className="w-4 h-4 mr-1" />
@@ -262,12 +262,12 @@ const MyPosts = ({ currentUser }) => {
                           {formatDate(post.createdAt)}
                         </div>
                       </div>
-                      
+
                       <p className="text-gray-600 text-sm line-clamp-2">
                         {post.description}
                       </p>
                     </div>
-                    
+
                     <div className="flex items-center gap-2 ml-4">
                       <Link
                         to={`/post/${post.id}`}
@@ -277,7 +277,7 @@ const MyPosts = ({ currentUser }) => {
                         <Eye className="w-4 h-4" />
                       </Link>
                       <Link
-                        to={`/edit-post/${post.id}`}
+                        to={post.type === 'room_listing' ? `/edit-room-listing/${post.id}` : `/edit-post/${post.id}`}
                         className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                         title="Chỉnh sửa"
                       >
@@ -307,7 +307,7 @@ const MyPosts = ({ currentUser }) => {
             <div className="bg-white rounded-lg p-6 max-w-md w-full">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Xác nhận xóa</h3>
               <p className="text-gray-600 mb-6">
-                Bạn có chắc chắn muốn xóa tin đăng "{postToDelete?.title}"? 
+                Bạn có chắc chắn muốn xóa tin đăng "{postToDelete?.title}"?
                 Hành động này không thể hoàn tác.
               </p>
               <div className="flex justify-end gap-3">

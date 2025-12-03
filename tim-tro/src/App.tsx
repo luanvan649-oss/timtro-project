@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import CreatePost from './pages/CreatePost';
+import CreateRoomListing from './pages/CreateRoomListing';
 import SearchPosts from './pages/SearchPosts';
 import PostDetail from './pages/PostDetail';
 import Suggestions from './pages/Suggestions';
@@ -87,6 +88,8 @@ function App() {
                   {/* Pass globalSearchTerm and setGlobalSearchTerm to Home */}
                   <Route path="/" element={<Home globalSearchTerm={globalSearchTerm} setGlobalSearchTerm={setGlobalSearchTerm} />} />
                   <Route path="/create-post" element={<CreatePost />} />
+                  <Route path="/create-room-listing" element={<CreateRoomListing />} />
+                  <Route path="/edit-room-listing/:postId" element={<CreateRoomListing />} />
                   {/* <Route path="/search-posts" element={<SearchPosts />} /> */}
                   <Route path="/post/:id" element={<PostDetail />} />
                   <Route
