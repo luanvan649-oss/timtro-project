@@ -124,17 +124,33 @@ function Login() {
       setLoading(true);
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
-      console.log("Google Login Success:", user);
 
       // Construct user data object similar to backend response
       const userData = {
         id: user.uid,
         email: user.email,
-        name: user.displayName,
-        photoURL: user.photoURL,
-        role: 'user', // Default role for social login
+        fullName: user.displayName,
+        phone: '',
+        avatar: user.photoURL || 'https://via.placeholder.com/150',
+        role: 'user',
+        school: '',
+        major: '',
+        year: '',
+        gender: '',
+        city: '',
+        bio: '',
+        interests: [],
+        lookingFor: {
+          gender: '',
+          ageRange: '',
+          budget: '',
+          location: '',
+          lifestyle: []
+        },
         isActive: true,
-        isBlocked: false
+        isBlocked: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       };
 
       localStorage.setItem('currentUser', JSON.stringify(userData));
@@ -157,7 +173,7 @@ function Login() {
       const userData = {
         id: user.uid,
         email: user.email,
-        name: user.displayName,
+        fullName: user.displayName,  // Changed from 'name' to 'fullName'
         photoURL: user.photoURL,
         role: 'user',
         isActive: true,
