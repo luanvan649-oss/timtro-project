@@ -8,7 +8,7 @@ function Profile() {
   const navigate = useNavigate();
   // We'll assume a user is "logged in" for now, as Firebase auth was removed.
   // In a real scenario, this would come from a global state or context.
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
     // Simulate getting current user from local storage or context
@@ -24,8 +24,8 @@ function Profile() {
   const [activeTab, setActiveTab] = useState('info');
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
-  const [profileData, setProfileData] = useState({
+  const [message, setMessage] = useState<{ type: string; text: string }>({ type: '', text: '' });
+  const [profileData, setProfileData] = useState<any>({
     fullName: '',
     email: '',
     phone: '',
@@ -44,7 +44,7 @@ function Profile() {
       lifestyle: []
     }
   });
-  const [userStats, setUserStats] = useState({
+  const [userStats, setUserStats] = useState<any>({
     postsCount: 0,
     connectionsCount: 0,
     rating: 0,
@@ -52,12 +52,19 @@ function Profile() {
     joinDate: ''
   });
 
+  const [hasLoadedProfile, setHasLoadedProfile] = useState(false);
+
+  // Reset load flag when user ID changes (new login)
   useEffect(() => {
-    if (currentUser) {
+    setHasLoadedProfile(false);
+  }, [currentUser?.id]);
+
+  useEffect(() => {
+    if (currentUser && !hasLoadedProfile) {
       loadUserProfile();
       loadUserStats();
     }
-  }, [currentUser]);
+  }, [currentUser, hasLoadedProfile]);
 
   const loadUserProfile = async () => {
     setLoading(true);
@@ -128,16 +135,16 @@ function Profile() {
   };
 
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target as HTMLInputElement;
     setProfileData(prev => ({
       ...prev,
       [name]: value
     }));
   };
 
-  const handleLookingForChange = (e) => {
-    const { name, value } = e.target;
+  const handleLookingForChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target as HTMLInputElement;
     setProfileData(prev => ({
       ...prev,
       lookingFor: {
@@ -147,7 +154,7 @@ function Profile() {
     }));
   };
 
-  const handleInterestToggle = (interest) => {
+  const handleInterestToggle = (interest: string) => {
     setProfileData(prev => ({
       ...prev,
       interests: prev.interests.includes(interest)
@@ -156,7 +163,7 @@ function Profile() {
     }));
   };
 
-  const handleLifestyleToggle = (lifestyle) => {
+  const handleLifestyleToggle = (lifestyle: string) => {
     setProfileData(prev => ({
       ...prev,
       lookingFor: {

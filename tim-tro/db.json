@@ -476,6 +476,51 @@
       "featured": false,
       "contactPhone": "0962793637",
       "contactName": "Nguyễn Ngọc Linh"
+    },
+    {
+      "id": "1174",
+      "title": "Đạt",
+      "description": "Đạt",
+      "price": 3000000,
+      "area": 25,
+      "location": "Hồ Chí Minh",
+      "district": "Quận 10",
+      "category": "Căn hộ chung cư",
+      "images": [
+        "https://ecogreen-saigon.vn/uploads/phong-tro-la-loai-hinh-nha-o-pho-bien-gia-re-tien-loi-cho-sinh-vien-va-nguoi-di-lam.png"
+      ],
+      "amenities": [
+        "Máy lạnh",
+        "Wifi"
+      ],
+      "utilities": [
+        "Điện",
+        "Nước",
+        "Internet"
+      ],
+      "deposit": 2000000,
+      "contact": {
+        "name": "Tran Dinh Dat",
+        "phone": "0339578143",
+        "email": "dattdhe186026@fpt.edu.vn"
+      },
+      "address": "HN",
+      "genderPreference": "Nữ",
+      "school": "Đại Học FPT",
+      "major": "Công Nghệ ",
+      "year": "Năm 2",
+      "userId": "bHKf0TkOP8g8nuuJgE0UsKAiPPW2",
+      "type": "room_listing",
+      "city": "Hồ Chí Minh",
+      "status": "active",
+      "createdAt": "2025-12-04T03:16:31.627Z",
+      "updatedAt": "2025-12-04T03:16:31.627Z",
+      "views": 0,
+      "likes": 0,
+      "rating": 0,
+      "featured": false,
+      "contactPhone": "0339578143",
+      "contactName": "Tran Dinh Dat"
     }
   ],
   "blogs": [
