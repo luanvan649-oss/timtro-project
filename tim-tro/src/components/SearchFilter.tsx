@@ -62,7 +62,7 @@ function SearchFilter({ onSearch, onFilter, initialFilters = {} }: { onSearch?: 
     "An ninh 24/7"
   ];
   const [searchTerm, setSearchTerm] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(true);
   const [filters, setFilters] = useState<Filters>({
     location: '',
     category: '',
@@ -157,7 +157,7 @@ function SearchFilter({ onSearch, onFilter, initialFilters = {} }: { onSearch?: 
     <div className="bg-white shadow-sm rounded-lg p-4 mb-6">
       {/* Search Bar */}
       <div className="flex gap-2 mb-4">
-        <div className="flex-1 relative">
+        {/* <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
             type="text"
@@ -171,14 +171,14 @@ function SearchFilter({ onSearch, onFilter, initialFilters = {} }: { onSearch?: 
             }}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
-        </div>
-        <button
+        </div> */}
+        {/* <button
           type="button"
           className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           onClick={() => onSearch?.(searchTerm)} // Still allow explicit search on button click
         >
           Tìm kiếm
-        </button>
+        </button> */}
         <button
           type="button"
           onClick={() => setShowFilters(!showFilters)}

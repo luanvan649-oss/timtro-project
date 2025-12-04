@@ -362,7 +362,7 @@ const Home: React.FC<HomeProps> = ({ globalSearchTerm = '', setGlobalSearchTerm 
             <ul className="space-y-2">
               <li>
                 <a href="#" className="text-sm text-gray-600 hover:text-gray-800 transition-colors block py-1">
-                  5 điều cần lưu ý khi thuê phòng trọ
+                  5 điều cần lưu ý khi thuê phòng trọ 
                 </a>
               </li>
               <li>
