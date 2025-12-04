@@ -760,6 +760,32 @@
       "role": "user",
       "isActive": true,
       "creationTime": "2025-12-02T02:43:35.218Z"
+    },
+    {
+      "id": "bHKf0TkOP8g8nuuJgE0UsKAiPPW2",
+      "email": "trandat0601dh@gmail.com",
+      "fullName": "Trần Đình Đạt",
+      "phone": "0396786256",
+      "avatar": "https://lh3.googleusercontent.com/a/ACg8ocKC_iL7b_gSXBYb_LvBUT1AF8hjG1Va8G5PPasmFIX-Ku2D8C_1=s96-c",
+      "role": "user",
+      "school": "",
+      "major": "Kinh tế",
+      "year": "",
+      "gender": "",
+      "city": "Thanh Hóa",
+      "bio": "",
+      "interests": [],
+      "lookingFor": {
+        "gender": "",
+        "ageRange": "",
+        "budget": "",
+        "location": "",
+        "lifestyle": []
+      },
+      "isActive": true,
+      "isBlocked": false,
+      "createdAt": "2025-12-04T09:30:52.006Z",
+      "updatedAt": "2025-12-04T17:11:02.443Z"
     }
   ],
   "constants": {
