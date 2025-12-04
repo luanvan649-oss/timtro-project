@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Brain, 
@@ -10,9 +10,45 @@ import {
   Eye,
   RefreshCw
 } from 'lucide-react';
-import { useMemo } from 'react'; 
+// Use Vite env variable if provided, fallback to localhost
+const API_URL = (import.meta as any)?.env?.VITE_API_URL || 'http://localhost:3001';
 
-function Suggestions({ userLookingFor, userInterests, userMajor, userYear }) {
+type Maybe<T> = T | null | undefined;
+
+interface Post {
+  id: string | number;
+  title?: string;
+  price?: number;
+  budget?: number;
+  location?: string;
+  district?: string;
+  address?: string;
+  genderPreference?: string;
+  lifestyle?: string[];
+  amenities?: string[];
+  interests?: string[];
+  major?: string;
+  year?: string | number;
+  images?: string[];
+  matchScore?: number;
+  primaryMatchCount?: number;
+}
+
+interface LookingFor {
+  budget?: string;
+  location?: string;
+  gender?: string;
+  lifestyle?: string[];
+}
+
+interface Props {
+  userLookingFor?: Maybe<LookingFor>;
+  userInterests?: Maybe<string[]>;
+  userMajor?: Maybe<string>;
+  userYear?: Maybe<string | number>;
+}
+
+function Suggestions({ userLookingFor, userInterests, userMajor, userYear }: Props) {
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -40,22 +76,14 @@ function Suggestions({ userLookingFor, userInterests, userMajor, userYear }) {
     };
   }, [userLookingFor, userInterests, userMajor, userYear]);
 
-  useEffect(() => {
-    console.log('Suggestions component received userLookingFor:', userLookingFor);
-    console.log('Suggestions component userPreferences:', userPreferences);
-    
-    // Always fetch suggestions regardless of criteria completeness
-    fetchSuggestions();
-  }, [userLookingFor, userInterests, userMajor, userYear]);
-
-  const fetchSuggestions = async () => {
+  // fetchSuggestions is stable via useCallback and accepts an optional AbortSignal
+  const fetchSuggestions = useCallback(async (signal?: AbortSignal) => {
     setLoading(true);
-    
     try {
-      const allPostsResponse = await fetch('http://localhost:3001/posts'); // Fetch from API
+      const allPostsResponse = await fetch(`${API_URL}/posts`, { signal });
       const allPostsFromDb = await allPostsResponse.json();
 
-      const allPosts = allPostsFromDb;
+      const allPosts: Post[] = allPostsFromDb;
       
       // Calculate match scores based on user preferences
       const postsWithScores = allPosts.map(post => {
@@ -71,8 +99,8 @@ function Suggestions({ userLookingFor, userInterests, userMajor, userYear }) {
             budgetScore = Math.max(0, 1 - (priceDifference / 5000000)); // Normalize to 0-1
             if (budgetScore > 0) primaryMatchCount++;
         }
-        matchScore += budgetScore * 0.25;
-        totalWeight += 0.25;
+        matchScore += budgetScore * .25;
+        totalWeight += .25;
 
         // Location match (Weight: 0.25)
         let locationScore = 0;
@@ -85,8 +113,8 @@ function Suggestions({ userLookingFor, userInterests, userMajor, userYear }) {
             }
             if (locationScore > 0) primaryMatchCount++;
         }
-        matchScore += locationScore * 0.25;
-        totalWeight += 0.25;
+        matchScore += locationScore * .25;
+        totalWeight += .25;
 
         // Gender compatibility (Weight: 0.15)
         let genderScore = 0;
@@ -101,13 +129,13 @@ function Suggestions({ userLookingFor, userInterests, userMajor, userYear }) {
         } else { // If user doesn't specify gender, it's a non-factor or neutral match
             genderScore = 0.5; // Neutral small weight if no preference
         }
-        matchScore += genderScore * 0.15;
-        totalWeight += 0.15;
+        matchScore += genderScore * .15;
+        totalWeight += .15;
 
         // Lifestyle compatibility (Weight: 0.15)
         let lifestyleScore = 0;
         if (userPreferences.desiredLifestyle && userPreferences.desiredLifestyle.length > 0) {
-            let postAttributesForLifestyle = [];
+            let postAttributesForLifestyle: string[] = [];
             // Map amenities/lifestyle from post to common lifestyle options
             if (post.lifestyle && Array.isArray(post.lifestyle)) {
                 postAttributesForLifestyle = post.lifestyle;
@@ -119,7 +147,7 @@ function Suggestions({ userLookingFor, userInterests, userMajor, userYear }) {
                     if (amenity.toLowerCase().includes('học tập nhiều')) return 'Học tập nhiều';
                     if (amenity.toLowerCase().includes('thích nấu ăn')) return 'Thích nấu ăn';
                     return null;
-                }).filter(Boolean);
+                }).filter(Boolean) as string[];
             }
 
             if (postAttributesForLifestyle.length > 0) {
@@ -130,8 +158,8 @@ function Suggestions({ userLookingFor, userInterests, userMajor, userYear }) {
                 if (lifestyleScore > 0) primaryMatchCount++;
             }
         }
-        matchScore += lifestyleScore * 0.15;
-        totalWeight += 0.15;
+            matchScore += lifestyleScore * .15;
+            totalWeight += .15;
 
         // Interests overlap (Weight: 0.10)
         let interestsScore = 0;
@@ -141,8 +169,8 @@ function Suggestions({ userLookingFor, userInterests, userMajor, userYear }) {
             );
             interestsScore = commonInterests.length / userPreferences.desiredInterests.length; // Normalize to 0-1
         }
-        matchScore += interestsScore * 0.10;
-        totalWeight += 0.10;
+        matchScore += interestsScore * .1;
+        totalWeight += .1;
 
         // Major compatibility (Weight: 0.05)
         let majorScore = 0;
@@ -151,8 +179,8 @@ function Suggestions({ userLookingFor, userInterests, userMajor, userYear }) {
                 majorScore = 1;
             }
         }
-        matchScore += majorScore * 0.05;
-        totalWeight += 0.05;
+        matchScore += majorScore * .05;
+        totalWeight += .05;
 
         // Year compatibility (Weight: 0.05)
         let yearScore = 0;
@@ -161,8 +189,8 @@ function Suggestions({ userLookingFor, userInterests, userMajor, userYear }) {
                 yearScore = 1;
             }
         }
-        matchScore += yearScore * 0.05;
-        totalWeight += 0.05;
+        matchScore += yearScore * .05;
+        totalWeight += .05;
 
         // Normalize final matchScore to be out of 100
         const finalMatchScore = (totalWeight > 0) ? (matchScore / totalWeight) * 100 : 0; // Avoid division by zero
@@ -171,22 +199,33 @@ function Suggestions({ userLookingFor, userInterests, userMajor, userYear }) {
           ...post,
           matchScore: Math.min(100, Math.max(0, finalMatchScore)),
           primaryMatchCount: primaryMatchCount // Include the new counter
-        };
+        } as Post;
       });
       
       // Sort by match score and filter based on new criteria
       const sortedSuggestions = postsWithScores
-        .filter(post => post.primaryMatchCount >= 2 || post.matchScore > 30) // New filter condition
-        .sort((a, b) => b.matchScore - a.matchScore);
+        .filter(post => (post.primaryMatchCount ?? 0) >= 2 || (post.matchScore ?? 0) > 30) // New filter condition
+        .sort((a, b) => (b.matchScore ?? 0) - (a.matchScore ?? 0));
       
       setSuggestions(sortedSuggestions);
     } catch (error) {
+      if ((error as any)?.name === 'AbortError') {
+        // aborted — ignore
+        return;
+      }
       console.error('Error fetching suggestions:', error);
       setSuggestions([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [userPreferences]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchSuggestions(controller.signal);
+    return () => controller.abort();
+  }, [fetchSuggestions]);
+
 
   const refreshSuggestions = async () => {
     setRefreshing(true);
@@ -254,7 +293,7 @@ function Suggestions({ userLookingFor, userInterests, userMajor, userYear }) {
     return hasAnyCorePreference;
   };
 
-  const filteredSuggestions = suggestions; 
+  const filteredSuggestions = useMemo(() => suggestions, [suggestions]); 
   return (
     <div className="py-6">
       <div className="mb-6 flex justify-end">
@@ -278,8 +317,8 @@ function Suggestions({ userLookingFor, userInterests, userMajor, userYear }) {
         </div>
       ) : loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(3)].map((_, index) => (
-            <div key={index} className="bg-white rounded-lg shadow-lg p-6 animate-pulse">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div key={`skeleton-${index}`} className="bg-white rounded-lg shadow-lg p-6 animate-pulse">
               <div className="space-y-4">
                 <div className="h-48 bg-gray-200 rounded"></div>
                 <div className="h-4 bg-gray-200 rounded w-3/4"></div>
