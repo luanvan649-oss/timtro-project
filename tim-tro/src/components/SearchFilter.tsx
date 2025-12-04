@@ -74,6 +74,33 @@ function SearchFilter({ onSearch, onFilter, initialFilters = {} }: { onSearch?: 
 
   const [tempFilters, setTempFilters] = useState<Filters>(filters);
 
+  // Helper: convert internal Filters shape to API-friendly payload
+  const convertFiltersToApi = (f: Partial<Filters>) => {
+    const apiFilters: Record<string, any> = {};
+    if (f.location) apiFilters.location = f.location;
+    if (f.category) apiFilters.category = f.category;
+
+    if (f.priceRange) {
+      const priceRange = PRICE_RANGES.find(p => p.label === f.priceRange);
+      if (priceRange) {
+        apiFilters.priceMin = priceRange.min;
+        apiFilters.priceMax = priceRange.max;
+      }
+    }
+
+    if (f.areaRange) {
+      const areaRange = AREA_RANGES.find(a => a.label === f.areaRange);
+      if (areaRange) {
+        apiFilters.areaMin = areaRange.min;
+        apiFilters.areaMax = areaRange.max;
+      }
+    }
+
+    if (f.amenities && f.amenities.length > 0) apiFilters.amenities = f.amenities;
+
+    return apiFilters;
+  };
+
   // Handle filter changes
   const handleFilterChange = <K extends keyof Filters>(key: K, value: Filters[K]) => {
     setTempFilters(prev => ({
@@ -94,42 +121,10 @@ function SearchFilter({ onSearch, onFilter, initialFilters = {} }: { onSearch?: 
 
   // Apply filters
   const applyFilters = () => {
+    // Commit temp filters to active filters, then send API payload
     setFilters(tempFilters);
-    
-    // Convert filter format for API
-    const apiFilters: Record<string, any> = {};
-    
-    if (tempFilters.location) {
-      apiFilters.location = tempFilters.location;
-    }
-    
-    if (tempFilters.category) {
-      apiFilters.category = tempFilters.category;
-    }
-    
-    if (tempFilters.priceRange) {
-      const priceRange = PRICE_RANGES.find(p => p.label === tempFilters.priceRange);
-      if (priceRange) {
-        apiFilters.priceMin = priceRange.min;
-        apiFilters.priceMax = priceRange.max;
-      }
-    }
-    
-    if (tempFilters.areaRange) {
-      const areaRange = AREA_RANGES.find(a => a.label === tempFilters.areaRange);
-      if (areaRange) {
-        apiFilters.areaMin = areaRange.min;
-        apiFilters.areaMax = areaRange.max;
-      }
-    }
-    
-    if (tempFilters.amenities.length > 0) {
-      apiFilters.amenities = tempFilters.amenities;
-    }
-    
-    if (onFilter) {
-      onFilter(apiFilters);
-    }
+    const apiPayload = convertFiltersToApi(tempFilters);
+    if (onFilter) onFilter(apiPayload);
     setShowFilters(false);
   };
 
@@ -210,11 +205,10 @@ function SearchFilter({ onSearch, onFilter, initialFilters = {} }: { onSearch?: 
               {filters.location}
               <button
                 onClick={() => {
-                  handleFilterChange('location', '');
-                  const newFilters: Partial<Filters> = { ...filters };
-                  delete newFilters.location;
-                  setFilters(newFilters as Filters);
-                  if (onFilter) onFilter(newFilters);
+                  const newFilters: Filters = { ...filters, location: '' };
+                  setFilters(newFilters);
+                  setTempFilters(newFilters);
+                  if (onFilter) onFilter(convertFiltersToApi(newFilters));
                 }}
                 className="ml-1 hover:text-blue-600"
               >
@@ -228,11 +222,10 @@ function SearchFilter({ onSearch, onFilter, initialFilters = {} }: { onSearch?: 
               {filters.category}
               <button
                 onClick={() => {
-                  handleFilterChange('category', '');
-                  const newFilters: Partial<Filters> = { ...filters };
-                  delete newFilters.category;
-                  setFilters(newFilters as Filters);
-                  if (onFilter) onFilter(newFilters);
+                  const newFilters: Filters = { ...filters, category: '' };
+                  setFilters(newFilters);
+                  setTempFilters(newFilters);
+                  if (onFilter) onFilter(convertFiltersToApi(newFilters));
                 }}
                 className="ml-1 hover:text-green-600"
               >
@@ -246,11 +239,10 @@ function SearchFilter({ onSearch, onFilter, initialFilters = {} }: { onSearch?: 
               {filters.priceRange}
               <button
                 onClick={() => {
-                  handleFilterChange('priceRange', '');
-                  const newFilters: Partial<Filters> = { ...filters };
-                  delete newFilters.priceRange;
-                  setFilters(newFilters as Filters);
-                  if (onFilter) onFilter(newFilters);
+                  const newFilters: Filters = { ...filters, priceRange: '' };
+                  setFilters(newFilters);
+                  setTempFilters(newFilters);
+                  if (onFilter) onFilter(convertFiltersToApi(newFilters));
                 }}
                 className="ml-1 hover:text-yellow-600"
               >
@@ -263,11 +255,10 @@ function SearchFilter({ onSearch, onFilter, initialFilters = {} }: { onSearch?: 
               {filters.areaRange}
               <button
                 onClick={() => {
-                  handleFilterChange('areaRange', '');
-                  const newFilters: Partial<Filters> = { ...filters };
-                  delete newFilters.areaRange;
-                  setFilters(newFilters as Filters);
-                  if (onFilter) onFilter(newFilters);
+                  const newFilters: Filters = { ...filters, areaRange: '' };
+                  setFilters(newFilters);
+                  setTempFilters(newFilters);
+                  if (onFilter) onFilter(convertFiltersToApi(newFilters));
                 }}
                 className="ml-1 hover:text-purple-600"
               >
@@ -281,9 +272,10 @@ function SearchFilter({ onSearch, onFilter, initialFilters = {} }: { onSearch?: 
               <button
                 onClick={() => {
                   const newAmenities = filters.amenities.filter(a => a !== amenity);
-                  const newFilters = { ...filters, amenities: newAmenities };
+                  const newFilters: Filters = { ...filters, amenities: newAmenities };
                   setFilters(newFilters);
-                  if (onFilter) onFilter(newFilters);
+                  setTempFilters(newFilters);
+                  if (onFilter) onFilter(convertFiltersToApi(newFilters));
                 }}
                 className="ml-1 hover:text-indigo-600"
               >
