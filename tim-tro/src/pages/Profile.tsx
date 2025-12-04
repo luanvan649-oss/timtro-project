@@ -8,7 +8,7 @@ function Profile() {
   const navigate = useNavigate();
   // We'll assume a user is "logged in" for now, as Firebase auth was removed.
   // In a real scenario, this would come from a global state or context.
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
     // Simulate getting current user from local storage or context
@@ -24,8 +24,8 @@ function Profile() {
   const [activeTab, setActiveTab] = useState('info');
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
-  const [profileData, setProfileData] = useState({
+  const [message, setMessage] = useState<{ type: string; text: string }>({ type: '', text: '' });
+  const [profileData, setProfileData] = useState<any>({
     fullName: '',
     email: '',
     phone: '',
@@ -44,25 +44,31 @@ function Profile() {
       lifestyle: []
     }
   });
-  const [userStats, setUserStats] = useState({
+  const [userStats, setUserStats] = useState<any>({
     postsCount: 0,
     connectionsCount: 0,
     rating: 0,
     profileViews: 0,
     joinDate: ''
   });
+  const [profileLoaded, setProfileLoaded] = useState(false);
 
   useEffect(() => {
-    if (currentUser) {
-      loadUserProfile();
+    if (currentUser && !profileLoaded) {
+      // Only load profile once per mount/login to avoid infinite re-render loops
+      loadUserProfile().then(() => {
+        setProfileLoaded(true);
+      }).catch(() => {
+        // keep profileLoaded as false so user can retry
+      });
       loadUserStats();
     }
-  }, [currentUser]);
+  }, [currentUser, profileLoaded]);
 
   const loadUserProfile = async () => {
     setLoading(true);
     try {
-      const response = await api.get(`/users?email=${currentUser.email}`);  // Sử dụng api.get thay vì axios.get
+      const response = await api.get(`/users?email=${encodeURIComponent(currentUser.email)}`);  // Sử dụng api.get thay vì axios.get
       if (response.data.length > 0) {
         const userData = response.data[0];
 
@@ -100,7 +106,7 @@ function Profile() {
         setMessage({ type: 'error', text: 'Không tìm thấy thông tin hồ sơ người dùng.' });
       }
     } catch (error) {
-      console.error('Error loading user profile:', error);
+      console.error('Error loading user profile:', (error as any).response?.data || (error as any).message || error);
       setMessage({ type: 'error', text: 'Không thể tải thông tin hồ sơ' });
     } finally {
       setLoading(false);
@@ -111,7 +117,7 @@ function Profile() {
   const loadUserStats = async () => {
     if (!currentUser) return;
     try {
-      const postsResponse = await api.get(`/posts?authorId=${currentUser.id}`);  // Sử dụng api.get thay vì axios.get
+      const postsResponse = await api.get(`/posts?userId=${encodeURIComponent(currentUser.id)}`);  // Sử dụng api.get thay vì axios.get
       const userPosts = postsResponse.data;
 
       setUserStats(prev => ({
@@ -122,22 +128,22 @@ function Profile() {
         profileViews: prev.profileViews || 0
       }));
     } catch (error) {
-      console.error('Error loading user stats:', error);
+      console.error('Error loading user stats:', (error as any).response?.data || (error as any).message || error);
       setMessage({ type: 'error', text: 'Không thể tải số liệu thống kê người dùng' });
     }
   };
 
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target as HTMLInputElement;
     setProfileData(prev => ({
       ...prev,
       [name]: value
     }));
   };
 
-  const handleLookingForChange = (e) => {
-    const { name, value } = e.target;
+  const handleLookingForChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target as HTMLInputElement;
     setProfileData(prev => ({
       ...prev,
       lookingFor: {
@@ -147,7 +153,7 @@ function Profile() {
     }));
   };
 
-  const handleInterestToggle = (interest) => {
+  const handleInterestToggle = (interest: string) => {
     setProfileData(prev => ({
       ...prev,
       interests: prev.interests.includes(interest)
@@ -156,7 +162,7 @@ function Profile() {
     }));
   };
 
-  const handleLifestyleToggle = (lifestyle) => {
+  const handleLifestyleToggle = (lifestyle: string) => {
     setProfileData(prev => ({
       ...prev,
       lookingFor: {
@@ -176,18 +182,42 @@ function Profile() {
         return;
       }
 
-      // Gửi dữ liệu profileData đã chỉnh sửa đến API
-      const response = await api.put(`/users/${currentUser.id}`, profileData);  // Sử dụng api.put thay vì axios.put
+      // Merge currentUser (may contain id and other fields) with profileData
+      const updatedUser = { ...currentUser, ...profileData };
 
-      // Cập nhật lại localStorage và state với dữ liệu mới
-      localStorage.setItem('currentUser', JSON.stringify(response.data));
-      setCurrentUser(response.data);
-      setProfileData(response.data);  // Đảm bảo profileData được cập nhật với dữ liệu đã lưu
+      // Gửi dữ liệu cập nhật đến API (PUT thường yêu cầu object đầy đủ)
+      const response = await api.put(`/users/${encodeURIComponent(currentUser.id)}`, updatedUser);
+
+      const savedUser = response.data;
+
+      // Cập nhật lại localStorage và state với dữ liệu mới (bảo đảm cấu trúc giống loadUserProfile)
+      localStorage.setItem('currentUser', JSON.stringify(savedUser));
+      setCurrentUser(prev => ({ ...prev, ...savedUser }));
+
+      setProfileData({
+        fullName: savedUser.fullName || '',
+        email: savedUser.email || '',
+        phone: savedUser.phone || '',
+        school: savedUser.school || '',
+        major: savedUser.major || '',
+        year: savedUser.year || '',
+        gender: savedUser.gender || '',
+        city: savedUser.city || '',
+        bio: savedUser.bio || '',
+        interests: savedUser.interests || [],
+        lookingFor: savedUser.lookingFor || {
+          gender: '',
+          ageRange: '',
+          budget: '',
+          location: '',
+          lifestyle: []
+        }
+      });
 
       setIsEditing(false);
       setMessage({ type: 'success', text: 'Cập nhật hồ sơ thành công!' });
     } catch (error) {
-      console.error('Failed to update profile:', error);
+      console.error('Failed to update profile:', (error as any).response?.data || (error as any).message || error);
       setMessage({ type: 'error', text: 'Cập nhật hồ sơ thất bại. Vui lòng thử lại.' });
     } finally {
       setLoading(false);
@@ -259,7 +289,7 @@ function Profile() {
                 <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center">
                   <User size={40} className="text-blue-600" />
                 </div>
-                <button className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700">
+                <button type="button" className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700">
                   <Camera size={16} />
                 </button>
               </div>
@@ -297,6 +327,7 @@ function Profile() {
             <div className="flex space-x-8 px-6">
               {tabs.map(tab => (
                 <button
+                  type="button"
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm ${activeTab === tab.id
@@ -318,6 +349,7 @@ function Profile() {
                 <div className="flex justify-between items-center">
                   <h2 className="text-xl font-semibold">Thông tin cá nhân</h2>
                   <button
+                    type="button"
                     onClick={() => setIsEditing(!isEditing)}
                     className="flex items-center space-x-2 text-blue-600 hover:text-blue-700"
                   >
@@ -460,6 +492,7 @@ function Profile() {
                     </div>
                     <div className="md:col-span-2">
                       <button
+                        type="button"
                         onClick={handleSave}
                         disabled={loading}
                         className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
@@ -589,6 +622,7 @@ function Profile() {
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                       {lifestyleOptions.map(option => (
                         <button
+                          type="button"
                           key={option}
                           onClick={() => handleLifestyleToggle(option)}
                           className={`p-2 text-sm rounded-md border ${profileData.lookingFor.lifestyle.includes(option)
@@ -604,6 +638,7 @@ function Profile() {
                 </div>
                 <div className="md:col-span-2">
                   <button
+                    type="button"
                     onClick={handleSave}
                     disabled={loading}
                     className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
@@ -622,6 +657,7 @@ function Profile() {
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                   {commonInterests.map(interest => (
                     <button
+                      type="button"
                       key={interest}
                       onClick={() => handleInterestToggle(interest)}
                       className={`p-3 text-sm rounded-lg border ${profileData.interests.includes(interest)
@@ -649,6 +685,17 @@ function Profile() {
                     </div>
                   </div>
                 )}
+                <div className="mt-4 md:col-span-2">
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    disabled={loading}
+                    className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    <Save size={20} />
+                    <span>{loading ? 'Đang lưu...' : 'Lưu thay đổi'}</span>
+                  </button>
+                </div>
               </div>
             )}
           </div>
