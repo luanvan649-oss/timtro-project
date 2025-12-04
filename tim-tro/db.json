@@ -343,129 +343,6 @@
       "slug": "mat-bang-kinh-doanh-trung-tam-can-tho-vi-tri-ep"
     },
     {
-      "id": "ca65",
-      "title": "linh",
-      "description": "có tủ lạnh",
-      "price": 4000000,
-      "area": 49,
-      "location": "Hà Nội",
-      "district": "Hoàn Kiếm",
-      "category": "Phòng trọ",
-      "images": [
-        "https://bandon.vn/uploads/thiet-ke-nha-tro-dep-2020-bandon-28.jpg"
-      ],
-      "amenities": [
-        "Máy lạnh"
-      ],
-      "utilities": [
-        "Điện",
-        "Nước",
-        "Internet"
-      ],
-      "deposit": 1000000,
-      "contact": {
-        "name": "Nguyễn Ngọc Linh",
-        "phone": "0962793637",
-        "email": "linh@gmail.com"
-      },
-      "address": "Thach Thast",
-      "userId": "5f06",
-      "type": "room_listing",
-      "city": "Hà Nội",
-      "status": "active",
-      "createdAt": "2025-12-03T02:13:14.306Z",
-      "updatedAt": "2025-12-03T07:48:54.889Z",
-      "views": 0,
-      "likes": 0,
-      "rating": 0,
-      "featured": false,
-      "contactPhone": "0962793637",
-      "contactName": "Nguyễn Ngọc Linh"
-    },
-    {
-      "id": "ab0a",
-      "title": "kjasbdfak",
-      "description": "có tủ lạnh và máy giặt",
-      "price": 3000000,
-      "area": 40,
-      "location": "Hà Nội",
-      "district": "Hoài Đức",
-      "category": "Phòng trọ",
-      "images": [],
-      "amenities": [
-        "Máy lạnh",
-        "Wifi"
-      ],
-      "utilities": [
-        "Điện",
-        "Nước",
-        "Internet"
-      ],
-      "deposit": 1000000,
-      "contact": {
-        "name": "Nguyễn Ngọc Linh",
-        "phone": "0962793637",
-        "email": "linh@gmail.com"
-      },
-      "address": "Thach Thast",
-      "userId": "5f06",
-      "type": "room_listing",
-      "city": "Hà Nội",
-      "status": "active",
-      "createdAt": "2025-12-03T07:48:32.371Z",
-      "updatedAt": "2025-12-03T07:48:32.371Z",
-      "views": 0,
-      "likes": 0,
-      "rating": 0,
-      "featured": false,
-      "contactPhone": "0962793637",
-      "contactName": "Nguyễn Ngọc Linh"
-    },
-    {
-      "id": "d53d",
-      "title": "linhaa",
-      "description": "kakakakka",
-      "price": 3000000,
-      "area": 50,
-      "location": "Hồ Chí Minh",
-      "district": "Quận 3",
-      "category": "Phòng trọ",
-      "images": [
-        "https://kientructrangkim.com/wp-content/uploads/2022/11/thiet-ke-noi-that-phong-tro-35.jpg"
-      ],
-      "amenities": [
-        "Máy lạnh"
-      ],
-      "utilities": [
-        "Điện",
-        "Nước",
-        "Internet"
-      ],
-      "deposit": 999999,
-      "contact": {
-        "name": "Nguyễn Ngọc Linh",
-        "phone": "0962793637",
-        "email": "linh@gmail.com"
-      },
-      "address": "Thach Thast",
-      "genderPreference": "Nam",
-      "school": "fpt",
-      "major": "công nghệ thông tin",
-      "year": "Năm 4",
-      "userId": "5f06",
-      "type": "room_listing",
-      "city": "Hồ Chí Minh",
-      "status": "active",
-      "createdAt": "2025-12-03T08:50:02.332Z",
-      "updatedAt": "2025-12-03T08:50:02.332Z",
-      "views": 0,
-      "likes": 0,
-      "rating": 0,
-      "featured": false,
-      "contactPhone": "0962793637",
-      "contactName": "Nguyễn Ngọc Linh"
-    },
-    {
       "id": "1174",
       "title": "Đạt",
       "description": "Đạt",
@@ -509,6 +386,96 @@
       "featured": false,
       "contactPhone": "0339578143",
       "contactName": "Tran Dinh Dat"
+    },
+    {
+      "id": "3f71",
+      "title": "linh đang test",
+      "description": "có tất cả nhưng thiếu em",
+      "price": 3000000,
+      "area": 49,
+      "location": "Hà Nội",
+      "district": "Tây Hồ",
+      "category": "Nhà nguyên căn",
+      "images": [
+        "https://bandon.vn/uploads/thiet-ke-nha-tro-dep-2020-bandon-28.jpg",
+        "https://kientructrangkim.com/wp-content/uploads/2022/11/thiet-ke-noi-that-phong-tro-35.jpg"
+      ],
+      "amenities": [
+        "Máy lạnh",
+        "Tủ lạnh"
+      ],
+      "utilities": [
+        "Điện",
+        "Nước",
+        "Internet"
+      ],
+      "deposit": 1000000,
+      "contact": {
+        "name": "Nguyễn Ngọc Linh",
+        "phone": "0962793637",
+        "email": "linh@gmail.com"
+      },
+      "address": "Thach Thast",
+      "genderPreference": "Nữ",
+      "school": "fpt",
+      "major": "ktpm",
+      "year": "Năm 1",
+      "userId": "5f06",
+      "type": "room_listing",
+      "city": "Hà Nội",
+      "status": "active",
+      "createdAt": "2025-12-04T07:58:11.083Z",
+      "updatedAt": "2025-12-04T07:58:11.083Z",
+      "views": 0,
+      "likes": 0,
+      "rating": 0,
+      "featured": false,
+      "contactPhone": "0962793637",
+      "contactName": "Nguyễn Ngọc Linh"
+    },
+    {
+      "id": "caf5",
+      "title": "kkk",
+      "description": "ko",
+      "price": 2999999,
+      "area": 49,
+      "location": "Hồ Chí Minh",
+      "district": "Quận 1",
+      "category": "Nhà nguyên căn",
+      "images": [
+        "https://kientructrangkim.com/wp-content/uploads/2022/11/thiet-ke-noi-that-phong-tro-35.jpg"
+      ],
+      "amenities": [
+        "Máy lạnh"
+      ],
+      "utilities": [
+        "Điện",
+        "Nước",
+        "Internet"
+      ],
+      "deposit": 1000000,
+      "contact": {
+        "name": "Nguyễn Ngọc Linh",
+        "phone": "0962793637",
+        "email": "linh@gmail.com"
+      },
+      "address": "Thach Thast",
+      "genderPreference": "Nam",
+      "school": "fpt",
+      "major": "ktpm",
+      "year": "Năm 1",
+      "userId": "5f06",
+      "type": "room_listing",
+      "city": "Hồ Chí Minh",
+      "status": "active",
+      "createdAt": "2025-12-04T08:55:48.200Z",
+      "updatedAt": "2025-12-04T08:55:48.200Z",
+      "views": 0,
+      "likes": 0,
+      "rating": 0,
+      "featured": false,
+      "contactPhone": "0962793637",
+      "contactName": "Nguyễn Ngọc Linh"
     }
   ],
   "blogs": [
@@ -570,6 +537,7 @@
       "fullName": "Demo User",
       "role": "admin",
       "phone": "0901234567",
+      "zalo": "0901234567",
       "avatar": "https://via.placeholder.com/150",
       "createdAt": "2023-01-01T00:00:00.000Z",
       "updatedAt": "2023-01-01T00:00:00.000Z",
@@ -608,6 +576,7 @@
       "fullName": "Test User",
       "role": "user",
       "phone": "0908765432",
+      "zalo": "0908765432",
       "avatar": "https://via.placeholder.com/150",
       "createdAt": "2023-02-15T00:00:00.000Z",
       "updatedAt": "2023-02-15T00:00:00.000Z",
@@ -946,5 +915,36 @@
   "connections": [],
   "messages": [],
   "notifications": [],
-  "settings": []
+  "settings": [
+    {
+      "id": "5f06",
+      "notifications": {
+        "email": true,
+        "push": true,
+        "sms": false
+      },
+      "privacy": {
+        "showPhone": false,
+        "showEmail": false,
+        "profileVisible": true
+      },
+      "language": "vi",
+      "theme": "light"
+    },
+    {
+      "id": "5f06",
+      "notifications": {
+        "email": true,
+        "push": true,
+        "sms": false
+      },
+      "privacy": {
+        "showPhone": false,
+        "showEmail": false,
+        "profileVisible": true
+      },
+      "language": "vi",
+      "theme": "light"
+    }
+  ]
 }

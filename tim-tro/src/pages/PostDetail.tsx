@@ -20,7 +20,8 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
-  UserPlus
+  UserPlus,
+  MessageCircle
 } from 'lucide-react';
 
 function PostDetail() {
@@ -385,34 +386,38 @@ function PostDetail() {
               </div>
             </div>
 
-            {/* Interests & Lifestyle */}
-            <div className="mb-6">
-              <>
+            {/* Interests & Lifestyle - Only for roommate_finding posts */}
+            {post.type === 'roommate_finding' && (post.interests?.length > 0 || post.lifestyle?.length > 0) && (
+              <div className="mb-6">
                 <h3 className="text-lg font-semibold mb-3">Sở thích & Lối sống</h3>
                 <div className="space-y-3">
-                  <div>
-                    <h4 className="font-medium text-gray-700 mb-1">Sở thích:</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {post.interests?.map(interest => (
-                        <span key={interest} className="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
-                          {interest}
-                        </span>
-                      ))}
+                  {post.interests?.length > 0 && (
+                    <div>
+                      <h4 className="font-medium text-gray-700 mb-1">Sở thích:</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {post.interests.map(interest => (
+                          <span key={interest} className="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
+                            {interest}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-gray-700 mb-1">Lối sống:</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {post.lifestyle?.map(item => (
-                        <span key={item} className="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">
-                          {item}
-                        </span>
-                      ))}
+                  )}
+                  {post.lifestyle?.length > 0 && (
+                    <div>
+                      <h4 className="font-medium text-gray-700 mb-1">Lối sống:</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {post.lifestyle.map(item => (
+                          <span key={item} className="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">
+                            {item}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
-              </>
-            </div>
+              </div>
+            )}
 
             {/* Rules (Removed as not in db.json) */}
 
@@ -454,6 +459,16 @@ function PostDetail() {
                     >
                       <UserPlus size={20} />
                       <span>Gửi lời mời kết nối</span>
+                    </button>
+                  )}
+
+                  {authorInfo?.zalo && (
+                    <button
+                      onClick={() => window.open(`https://zalo.me/${authorInfo.zalo}`, '_blank')}
+                      className="w-full bg-blue-500 text-white py-3 rounded-md hover:bg-blue-600 flex items-center justify-center space-x-2"
+                    >
+                      <MessageCircle size={20} />
+                      <span>Nhắn Zalo</span>
                     </button>
                   )}
 

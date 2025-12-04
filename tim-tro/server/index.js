@@ -5,6 +5,7 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import axios from 'axios'; // Import axios to talk to json-server
+import multer from 'multer'; // Import multer for file uploads
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -21,6 +22,36 @@ app.use(cors({
 
 // Middleware to parse JSON bodies
 app.use(express.json());
+
+// Serve static files from public/uploads
+app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
+
+// Setup multer storage for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, '../public/uploads'));
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|gif|webp/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Chỉ chấp nhận file ảnh (jpeg, jpg, png, gif, webp)'));
+    }
+  }
+});
 
 const io = new Server(server, {
   cors: {
@@ -82,13 +113,13 @@ io.on('connection', (socket) => {
       conversationId: conversationId,
       senderId: senderId,
       content: content,
-      timestamp: timestamp, 
+      timestamp: timestamp,
     };
     try {
       // Save message to json-server
       await axios.post(`${JSON_SERVER_URL}/messages`, newMessage);
       // Emit message to all clients in the conversation room, including the sender
-      io.to(conversationId).emit('receiveMessage', newMessage); 
+      io.to(conversationId).emit('receiveMessage', newMessage);
     } catch (error) {
       console.error('Error sending message via socket:', error.response?.data || error.message);
       socket.emit('sendMessageFailed', 'Failed to send message.');
@@ -109,7 +140,7 @@ io.on('connection', (socket) => {
       const existingConnections = await axios.get(`${JSON_SERVER_URL}/connections?senderId=${senderId}&receiverId=${receiverId}&postId=${postId}`);
       const existingConnection = existingConnections.data.find(
         conn => (conn.senderId === senderId && conn.receiverId === receiverId && conn.postId === postId) ||
-                (conn.senderId === receiverId && conn.receiverId === senderId && conn.postId === postId && conn.status === 'accepted')
+          (conn.senderId === receiverId && conn.receiverId === senderId && conn.postId === postId && conn.status === 'accepted')
       );
 
       if (existingConnection) {
@@ -136,14 +167,14 @@ io.on('connection', (socket) => {
         createdAt: new Date().toISOString(),
         rejectionCount: 0, // Initialize rejectionCount for new connections
       };
-      
+
       // Save new connection to json-server
       const savedConnection = await axios.post(`${JSON_SERVER_URL}/connections`, newConnection);
 
       // Create a notification for the receiver
       const senderUserRes = await axios.get(`${JSON_SERVER_URL}/users/${senderId}`);
       const senderUser = senderUserRes.data;
-      
+
       const notification = {
         id: Date.now().toString() + '-notify',
         userId: receiverId,
@@ -170,7 +201,7 @@ io.on('connection', (socket) => {
         io.to(receiverSocketId).emit('newConnectionRequest', savedConnection.data);
         io.to(receiverSocketId).emit('newNotification', notification);
       }
-      
+
       socket.emit('connectionRequestSent', savedConnection.data);
 
     } catch (error) {
@@ -209,9 +240,9 @@ io.on('connection', (socket) => {
       } else if (status === 'accepted' || status === 'cancelled') {
         // If status is accepted or cancelled, ensure rejectionCount is reset or not present
         // Only if it was previously set.
-      if (Object.prototype.hasOwnProperty.call(fullUpdatedConnection, 'rejectionCount')) {
-        delete fullUpdatedConnection.rejectionCount;
-      }
+        if (Object.prototype.hasOwnProperty.call(fullUpdatedConnection, 'rejectionCount')) {
+          delete fullUpdatedConnection.rejectionCount;
+        }
       }
 
       // Handle notifications and first message for accepted status
@@ -299,21 +330,41 @@ io.on('connection', (socket) => {
       socket.emit('updateConnectionStatusFailed', 'Failed to update connection status.');
     }
   });
+});
 
-  // New API endpoint to check connection status between two users
-  app.get('/connections/status/:userId1/:userId2', async (req, res) => {
-    const { userId1, userId2 } = req.params;
-    try {
-      const response1 = await axios.get(`${JSON_SERVER_URL}/connections?senderId=${userId1}&receiverId=${userId2}&status=accepted`);
-      const response2 = await axios.get(`${JSON_SERVER_URL}/connections?senderId=${userId2}&receiverId=${userId1}&status=accepted`);
-
-      const isConnected = response1.data.length > 0 || response2.data.length > 0;
-      res.json({ isConnected });
-    } catch (error) {
-      console.error('Error checking connection status:', error.response?.data || error.message);
-      res.status(500).json({ error: 'Failed to check connection status' });
+// Upload endpoint
+app.post('/api/upload', upload.single('image'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
     }
-  });
+
+    const fileUrl = `/uploads/${req.file.filename}`;
+    res.json({
+      success: true,
+      url: fileUrl,
+      filename: req.file.filename
+    });
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({ error: 'Upload failed' });
+  }
+});
+
+// API endpoint to check connection status between two users
+// CRITICAL: This MUST be outside the socket.on('connection') block!
+app.get('/connections/status/:userId1/:userId2', async (req, res) => {
+  const { userId1, userId2 } = req.params;
+  try {
+    const response1 = await axios.get(`${JSON_SERVER_URL}/connections?senderId=${userId1}&receiverId=${userId2}&status=accepted`);
+    const response2 = await axios.get(`${JSON_SERVER_URL}/connections?senderId=${userId2}&receiverId=${userId1}&status=accepted`);
+
+    const isConnected = response1.data.length > 0 || response2.data.length > 0;
+    res.json({ isConnected });
+  } catch (error) {
+    console.error('Error checking connection status:', error.response?.data || error.message);
+    res.status(500).json({ error: 'Failed to check connection status' });
+  }
 });
 
 server.listen(SOCKET_PORT, () => {
