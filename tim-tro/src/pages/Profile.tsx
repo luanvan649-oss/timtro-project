@@ -4,11 +4,14 @@ import { User, Mail, Phone, School, MapPin, Edit, Save, X, Camera, Star, Heart, 
 import api from '../api';  // Đảm bảo API client được import
 
 
+
+
 function Profile() {
   const navigate = useNavigate();
   // We'll assume a user is "logged in" for now, as Firebase auth was removed.
   // In a real scenario, this would come from a global state or context.
   const [currentUser, setCurrentUser] = useState<any>(null);
+
 
   useEffect(() => {
     // Simulate getting current user from local storage or context
@@ -20,6 +23,7 @@ function Profile() {
       navigate('/login');
     }
   }, [navigate]);
+
 
   const [activeTab, setActiveTab] = useState('info');
   const [isEditing, setIsEditing] = useState(false);
@@ -52,12 +56,15 @@ function Profile() {
     joinDate: ''
   });
 
+
   const [hasLoadedProfile, setHasLoadedProfile] = useState(false);
+
 
   // Reset load flag when user ID changes (new login)
   useEffect(() => {
     setHasLoadedProfile(false);
   }, [currentUser?.id]);
+
 
   useEffect(() => {
     if (currentUser && !hasLoadedProfile) {
@@ -66,15 +73,20 @@ function Profile() {
     }
   }, [currentUser, hasLoadedProfile]);
 
+
   const loadUserProfile = async () => {
     setLoading(true);
     try {
-      const response = await api.get(`/users?email=${currentUser.email}`);  // Sử dụng api.get thay vì axios.get
-      if (response.data.length > 0) {
-        const userData = response.data[0];
+      // Fetch by ID is more reliable than email
+      const response = await api.get(`/users/${currentUser.id}`);
+      if (response.data) {
+        const userData = response.data;
 
-        // Cập nhật currentUser với dữ liệu mới nhất từ server để đảm bảo có ID chính xác
-        setCurrentUser(prev => ({ ...prev, ...userData }));
+
+        // Update localStorage to keep it in sync
+        const storedUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        localStorage.setItem('currentUser', JSON.stringify({ ...storedUser, ...userData }));
+
 
         setProfileData({
           fullName: userData.fullName || '',
@@ -95,7 +107,6 @@ function Profile() {
             lifestyle: []
           }
         });
-        // Initial stats load based on profile data if available
         setUserStats(prev => ({
           ...prev,
           connectionsCount: userData.connectionsCount || 0,
@@ -103,23 +114,67 @@ function Profile() {
           profileViews: userData.profileViews || 0,
           joinDate: userData.createdAt || ''
         }));
+        setHasLoadedProfile(true);
       } else {
-        setMessage({ type: 'error', text: 'Không tìm thấy thông tin hồ sơ người dùng.' });
+        // User not found in db.json, use data from localStorage (for Google/Facebook login)
+        setProfileData({
+          fullName: currentUser.fullName || '',
+          email: currentUser.email || '',
+          phone: currentUser.phone || '',
+          school: currentUser.school || '',
+          major: currentUser.major || '',
+          year: currentUser.year || '',
+          gender: currentUser.gender || '',
+          city: currentUser.city || '',
+          bio: currentUser.bio || '',
+          interests: currentUser.interests || [],
+          lookingFor: currentUser.lookingFor || {
+            gender: '',
+            ageRange: '',
+            budget: '',
+            location: '',
+            lifestyle: []
+          }
+        });
+        setHasLoadedProfile(true);
       }
     } catch (error) {
-      console.error('Error loading user profile:', error);
-      setMessage({ type: 'error', text: 'Không thể tải thông tin hồ sơ' });
+      console.error('Error loading user profile:', (error as any).response?.data || (error as any).message || error);
+      // If API fails (404 or network error), use currentUser data from localStorage
+      setProfileData({
+        fullName: currentUser.fullName || '',
+        email: currentUser.email || '',
+        phone: currentUser.phone || '',
+        school: currentUser.school || '',
+        major: currentUser.major || '',
+        year: currentUser.year || '',
+        gender: currentUser.gender || '',
+        city: currentUser.city || '',
+        bio: currentUser.bio || '',
+        interests: currentUser.interests || [],
+        lookingFor: currentUser.lookingFor || {
+          gender: '',
+          ageRange: '',
+          budget: '',
+          location: '',
+          lifestyle: []
+        }
+      });
+      setHasLoadedProfile(true);
     } finally {
       setLoading(false);
     }
   };
 
 
+
+
   const loadUserStats = async () => {
     if (!currentUser) return;
     try {
-      const postsResponse = await api.get(`/posts?authorId=${currentUser.id}`);  // Sử dụng api.get thay vì axios.get
+      const postsResponse = await api.get(`/posts?userId=${encodeURIComponent(currentUser.id)}`);  // Sử dụng api.get thay vì axios.get
       const userPosts = postsResponse.data;
+
 
       setUserStats(prev => ({
         ...prev,
@@ -129,10 +184,12 @@ function Profile() {
         profileViews: prev.profileViews || 0
       }));
     } catch (error) {
-      console.error('Error loading user stats:', error);
+      console.error('Error loading user stats:', (error as any).response?.data || (error as any).message || error);
       setMessage({ type: 'error', text: 'Không thể tải số liệu thống kê người dùng' });
     }
   };
+
+
 
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -142,6 +199,7 @@ function Profile() {
       [name]: value
     }));
   };
+
 
   const handleLookingForChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target as HTMLInputElement;
@@ -154,6 +212,7 @@ function Profile() {
     }));
   };
 
+
   const handleInterestToggle = (interest: string) => {
     setProfileData(prev => ({
       ...prev,
@@ -162,6 +221,7 @@ function Profile() {
         : [...prev.interests, interest]
     }));
   };
+
 
   const handleLifestyleToggle = (lifestyle: string) => {
     setProfileData(prev => ({
@@ -175,21 +235,49 @@ function Profile() {
     }));
   };
 
+
   const handleSave = async () => {
     setLoading(true);
     try {
       if (!currentUser || !currentUser.id) {
+        console.error('Missing user ID:', currentUser);
         setMessage({ type: 'error', text: 'Người dùng chưa đăng nhập hoặc ID không hợp lệ.' });
         return;
       }
 
-      // Gửi dữ liệu profileData đã chỉnh sửa đến API
-      const response = await api.put(`/users/${currentUser.id}`, profileData);  // Sử dụng api.put thay vì axios.put
 
-      // Cập nhật lại localStorage và state với dữ liệu mới
-      localStorage.setItem('currentUser', JSON.stringify(response.data));
-      setCurrentUser(response.data);
-      setProfileData(response.data);  // Đảm bảo profileData được cập nhật với dữ liệu đã lưu
+      let response;
+      // Prepare complete user data for saving
+      const completeUserData = {
+        ...currentUser,
+        ...profileData,
+        updatedAt: new Date().toISOString()
+      };
+
+
+      try {
+        // Try to update existing user (PATCH)
+        response = await api.patch(`/users/${currentUser.id}`, completeUserData);
+      } catch (error: any) {
+        if (error.response?.status === 404) {
+          // User not in db.json, create new user (POST)
+          const newUserData = {
+            ...completeUserData,
+            createdAt: currentUser.createdAt || new Date().toISOString()
+          };
+          response = await api.post('/users', newUserData);
+        } else {
+          throw error; // Re-throw if not 404
+        }
+      }
+
+
+      // Update localStorage and state
+      const updatedUser = { ...currentUser, ...response.data };
+      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+      setCurrentUser(updatedUser);
+      setProfileData(prev => ({ ...prev, ...response.data }));
+
 
       setIsEditing(false);
       setMessage({ type: 'success', text: 'Cập nhật hồ sơ thành công!' });
@@ -202,21 +290,26 @@ function Profile() {
   };
 
 
+
+
   const commonInterests = [
     'Đọc sách', 'Xem phim', 'Nghe nhạc', 'Du lịch', 'Thể thao', 'Nấu ăn',
     'Chơi game', 'Nhiếp ảnh', 'Học ngoại ngữ', 'Yoga', 'Gym', 'Vẽ'
   ];
+
 
   const lifestyleOptions = [
     'Sạch sẽ', 'Yên tĩnh', 'Thân thiện', 'Không hút thuốc', 'Không uống rượu',
     'Dậy sớm', 'Đi ngủ muộn', 'Thích nấu ăn', 'Thích tiệc tùng', 'Học tập nhiều'
   ];
 
+
   const tabs = [
     { id: 'info', label: 'Thông tin cá nhân', icon: <User size={20} /> },
     { id: 'preferences', label: 'Tiêu chí tìm bạn', icon: <Heart size={20} /> },
     { id: 'interests', label: 'Sở thích', icon: <Star size={20} /> }
   ];
+
 
   if (!currentUser) {
     return (
@@ -229,6 +322,7 @@ function Profile() {
     );
   }
 
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -240,14 +334,15 @@ function Profile() {
     );
   }
 
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Message Alert */}
         {message.text && (
           <div className={`mb-6 p-4 rounded-md flex items-center ${message.type === 'success'
-              ? 'bg-green-50 border border-green-200 text-green-700'
-              : 'bg-red-50 border border-red-200 text-red-700'
+            ? 'bg-green-50 border border-green-200 text-green-700'
+            : 'bg-red-50 border border-red-200 text-red-700'
             }`}>
             {message.type === 'success' ? (
               <CheckCircle size={20} className="mr-2" />
@@ -258,6 +353,7 @@ function Profile() {
           </div>
         )}
 
+
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6">
@@ -266,7 +362,7 @@ function Profile() {
                 <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center">
                   <User size={40} className="text-blue-600" />
                 </div>
-                <button className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700">
+                <button type="button" className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700">
                   <Camera size={16} />
                 </button>
               </div>
@@ -276,6 +372,7 @@ function Profile() {
                 </h1>
                 <p className="text-blue-100">{profileData.email}</p>
                 <p className="text-blue-100">{profileData.school || 'Chưa cập nhật trường'}</p>
+
 
                 {/* Stats */}
                 <div className="grid grid-cols-3 gap-6 mt-6 pt-4 border-t border-blue-400">
@@ -299,16 +396,18 @@ function Profile() {
             </div>
           </div>
 
+
           {/* Tabs */}
           <div className="border-b border-gray-200">
             <div className="flex space-x-8 px-6">
               {tabs.map(tab => (
                 <button
+                  type="button"
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm ${activeTab === tab.id
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
                     }`}
                 >
                   {tab.icon}
@@ -318,6 +417,7 @@ function Profile() {
             </div>
           </div>
 
+
           {/* Tab Content */}
           <div className="p-6">
             {activeTab === 'info' && (
@@ -325,6 +425,7 @@ function Profile() {
                 <div className="flex justify-between items-center">
                   <h2 className="text-xl font-semibold">Thông tin cá nhân</h2>
                   <button
+                    type="button"
                     onClick={() => setIsEditing(!isEditing)}
                     className="flex items-center space-x-2 text-blue-600 hover:text-blue-700"
                   >
@@ -332,6 +433,7 @@ function Profile() {
                     <span>{isEditing ? 'Hủy' : 'Chỉnh sửa'}</span>
                   </button>
                 </div>
+
 
                 {isEditing ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -467,6 +569,7 @@ function Profile() {
                     </div>
                     <div className="md:col-span-2">
                       <button
+                        type="button"
                         onClick={handleSave}
                         disabled={loading}
                         className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
@@ -538,9 +641,11 @@ function Profile() {
               </div>
             )}
 
+
             {activeTab === 'preferences' && (
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold">Tiêu chí tìm bạn ghép trọ</h2>
+
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
@@ -596,11 +701,12 @@ function Profile() {
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                       {lifestyleOptions.map(option => (
                         <button
+                          type="button"
                           key={option}
                           onClick={() => handleLifestyleToggle(option)}
                           className={`p-2 text-sm rounded-md border ${profileData.lookingFor.lifestyle.includes(option)
-                              ? 'bg-blue-100 border-blue-300 text-blue-700'
-                              : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                            ? 'bg-blue-100 border-blue-300 text-blue-700'
+                            : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
                             }`}
                         >
                           {option}
@@ -611,6 +717,7 @@ function Profile() {
                 </div>
                 <div className="md:col-span-2">
                   <button
+                    type="button"
                     onClick={handleSave}
                     disabled={loading}
                     className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
@@ -622,24 +729,28 @@ function Profile() {
               </div>
             )}
 
+
             {activeTab === 'interests' && (
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold">Sở thích của bạn</h2>
 
+
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                   {commonInterests.map(interest => (
                     <button
+                      type="button"
                       key={interest}
                       onClick={() => handleInterestToggle(interest)}
                       className={`p-3 text-sm rounded-lg border ${profileData.interests.includes(interest)
-                          ? 'bg-blue-100 border-blue-300 text-blue-700'
-                          : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                        ? 'bg-blue-100 border-blue-300 text-blue-700'
+                        : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
                         }`}
                     >
                       {interest}
                     </button>
                   ))}
                 </div>
+
 
                 {profileData.interests.length > 0 && (
                   <div>
@@ -656,6 +767,17 @@ function Profile() {
                     </div>
                   </div>
                 )}
+                <div className="mt-4 md:col-span-2">
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    disabled={loading}
+                    className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    <Save size={20} />
+                    <span>{loading ? 'Đang lưu...' : 'Lưu thay đổi'}</span>
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -664,5 +786,6 @@ function Profile() {
     </div>
   );
 }
+
 
 export default Profile;
