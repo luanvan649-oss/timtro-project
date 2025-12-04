@@ -43,15 +43,17 @@ function PostDetail() {
 
   const fetchPost = useCallback(async () => {
     setLoading(true);
+    let postData = null;
+
     try {
       if (!id) {
         navigate('/');
         return;
       }
 
-      const response = await axios.get(`${API_BASE_URL}/posts/${id}`);
+      const response = await api.get(`/posts/${id}`); // Sử dụng api.get thay vì axios.get
       const postData = response.data;
-      console.log('Fetched post data:', postData); // Add this line for debugging
+      console.log('Fetched post data:', postData);
 
       if (!postData) {
         console.error('Post not found');
@@ -60,17 +62,24 @@ function PostDetail() {
       }
 
       setPost(postData);
-      if (postData.userId) {
+    } catch (error) {
+      console.error('Error fetching post:', error);
+      navigate('/');
+      return; // Stop execution if post fetch fails
+    }
+
+    // Separate try-catch for author fetching so it doesn't block the post from showing
+    if (postData && postData.userId) {
+      try {
         const authorResponse = await api.get(`/users/${postData.userId}`); // Sử dụng api.get thay vì axios.get
         setAuthorInfo(authorResponse.data);
+      } catch (error) {
+        console.error('Error fetching author info:', error);
+        // Do NOT navigate away if author info fails to load
       }
-
-    } catch (error) {
-      console.error('Error fetching post or author:', error);
-      navigate('/');
-    } finally {
-      setLoading(false);
     }
+
+    setLoading(false);
   }, [id, navigate]);
 
   useEffect(() => {
@@ -223,8 +232,8 @@ function PostDetail() {
           <button
             onClick={toggleFavorite}
             className={`p-2 rounded-full ${isFavorite
-                ? 'bg-red-500 text-white'
-                : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+              ? 'bg-red-500 text-white'
+              : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
               }`}
           >
             <Heart size={20} fill={isFavorite ? 'currentColor' : 'none'} />
@@ -338,42 +347,12 @@ function PostDetail() {
             {/* Property Details / Roommate Details */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
-                <h3 className="text-lg font-semibold mb-3">
-                  {post.type === 'room_listing' ? 'Thông tin phòng' : 'Thông tin tìm bạn ghép'}
-                </h3>
+                <h3 className="text-lg font-semibold mb-3">Thông tin tìm bạn ghép</h3>
                 <div className="space-y-2">
-                  {post.type === 'room_listing' && post.area && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Diện tích:</span>
-                      <span className="font-medium">{post.area} m²</span>
-                    </div>
-                  )}
-                  {post.type === 'room_listing' && post.category && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Loại hình:</span>
-                      <span className="font-medium">{post.category}</span>
-                    </div>
-                  )}
-                  {post.type === 'room_listing' && post.deposit && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Tiền cọc:</span>
-                      <span className="font-medium">{(post.deposit / 1000000).toFixed(1)} triệu</span>
-                    </div>
-                  )}
-                  {post.type === 'roommate_finding' && (
-                    <>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Loại phòng:</span>
-                        <span className="font-medium">{post.roomType || 'N/A'}</span>
-                      </div>
-                      {post.area && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Diện tích:</span>
-                          <span className="font-medium">{post.area} m²</span>
-                        </div>
-                      )}
-                    </>
-                  )}
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Loại phòng:</span>
+                    <span className="font-medium">{post.roomType || 'N/A'}</span>
+                  </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Giới tính mong muốn:</span>
                     <span className="font-medium">{post.genderPreference || 'N/A'}</span>
@@ -405,31 +384,6 @@ function PostDetail() {
                 </div>
               </div>
             </div>
-
-            {/* Apartment Utilities */}
-            {post.apartmentPrices && (
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-3">Tiện nghi & Chi phí</h3>
-                <div className="bg-blue-50 rounded-lg p-4">
-                  <p className="text-gray-700 whitespace-pre-wrap">{post.apartmentPrices}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Amenities for room_listing */}
-            {post.type === 'room_listing' && post.amenities && post.amenities.length > 0 && (
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-3">Tiện ích</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {post.amenities.map((amenity, index) => (
-                    <div key={index} className="flex items-center space-x-2 text-gray-700">
-                      <CheckCircle className="w-4 h-4 text-green-500" />
-                      <span className="text-sm">{amenity}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {/* Interests & Lifestyle */}
             <div className="mb-6">

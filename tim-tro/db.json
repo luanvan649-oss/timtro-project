@@ -464,6 +464,51 @@
       "featured": false,
       "contactPhone": "0962793637",
       "contactName": "Nguyễn Ngọc Linh"
+    },
+    {
+      "id": "1174",
+      "title": "Đạt",
+      "description": "Đạt",
+      "price": 3000000,
+      "area": 25,
+      "location": "Hồ Chí Minh",
+      "district": "Quận 10",
+      "category": "Căn hộ chung cư",
+      "images": [
+        "https://ecogreen-saigon.vn/uploads/phong-tro-la-loai-hinh-nha-o-pho-bien-gia-re-tien-loi-cho-sinh-vien-va-nguoi-di-lam.png"
+      ],
+      "amenities": [
+        "Máy lạnh",
+        "Wifi"
+      ],
+      "utilities": [
+        "Điện",
+        "Nước",
+        "Internet"
+      ],
+      "deposit": 2000000,
+      "contact": {
+        "name": "Tran Dinh Dat",
+        "phone": "0339578143",
+        "email": "dattdhe186026@fpt.edu.vn"
+      },
+      "address": "HN",
+      "genderPreference": "Nữ",
+      "school": "Đại Học FPT",
+      "major": "Công Nghệ ",
+      "year": "Năm 2",
+      "userId": "bHKf0TkOP8g8nuuJgE0UsKAiPPW2",
+      "type": "room_listing",
+      "city": "Hồ Chí Minh",
+      "status": "active",
+      "createdAt": "2025-12-04T03:16:31.627Z",
+      "updatedAt": "2025-12-04T03:16:31.627Z",
+      "views": 0,
+      "likes": 0,
+      "rating": 0,
+      "featured": false,
+      "contactPhone": "0339578143",
+      "contactName": "Tran Dinh Dat"
     }
   ],
   "blogs": [
@@ -517,369 +562,6 @@
       "slug": "lam-sao-e-hoa-nhap-voi-ban-cung-phong-moi"
     }
   ],
-  "users": [
-    {
-      "id": "user1",
-      "email": "demo@test.com",
-      "password": "123456",
-      "fullName": "Demo User",
-      "role": "admin",
-      "phone": "0901234567",
-      "avatar": "https://via.placeholder.com/150",
-      "createdAt": "2023-01-01T00:00:00.000Z",
-      "updatedAt": "2023-01-01T00:00:00.000Z",
-      "school": "Đại học FPT",
-      "major": "Công nghệ thông tin",
-      "year": "3",
-      "gender": "male",
-      "city": "Hồ Chí Minh",
-      "bio": "Sinh viên năng động, tìm bạn ghép trọ hòa đồng, sạch sẽ.",
-      "interests": [
-        "Đọc sách",
-        "Xem phim",
-        "Chơi game"
-      ],
-      "lookingFor": {
-        "gender": "any",
-        "ageRange": "18-25",
-        "budget": "2-3m",
-        "location": "Quận 1, Quận Bình Thạnh",
-        "lifestyle": [
-          "Sạch sẽ",
-          "Yên tĩnh"
-        ]
-      },
-      "verified": true,
-      "responseRate": 90,
-      "responseTime": "Trong 1 giờ",
-      "joinDate": "2023-01-01T00:00:00.000Z",
-      "isActive": true,
-      "creationTime": "2023-01-01T00:00:00.000Z"
-    },
-    {
-      "id": "user2",
-      "email": "test@test.com",
-      "password": "123456",
-      "fullName": "Test User",
-      "role": "user",
-      "phone": "0908765432",
-      "avatar": "https://via.placeholder.com/150",
-      "createdAt": "2023-02-15T00:00:00.000Z",
-      "updatedAt": "2023-02-15T00:00:00.000Z",
-      "school": "Đại học Bách Khoa",
-      "major": "Kỹ thuật",
-      "year": "2",
-      "gender": "female",
-      "city": "Hà Nội",
-      "bio": "Sinh viên thân thiện, tìm bạn cùng phòng gần trường.",
-      "interests": [
-        "Nghe nhạc",
-        "Du lịch",
-        "Nấu ăn"
-      ],
-      "lookingFor": {
-        "gender": "female",
-        "ageRange": "19-24",
-        "budget": "1-2m",
-        "location": "Quận Hai Bà Trưng",
-        "lifestyle": [
-          "Thân thiện",
-          "Không hút thuốc"
-        ]
-      },
-      "verified": false,
-      "responseRate": 85,
-      "responseTime": "Trong 2 giờ",
-      "joinDate": "2023-02-15T00:00:00.000Z",
-      "isActive": true,
-      "creationTime": "2023-02-15T00:00:00.000Z"
-    },
-    {
-      "fullName": "Trần Hoàng Hải",
-      "email": "abc@gmail.com",
-      "phone": "0972773693",
-      "school": "",
-      "major": "",
-      "year": "",
-      "gender": "",
-      "city": "",
-      "bio": "",
-      "interests": [],
-      "lookingFor": {
-        "gender": "male",
-        "ageRange": "",
-        "budget": "2-3m",
-        "location": "Hà Nội",
-        "lifestyle": [
-          "Sạch sẽ",
-          "Không hút thuốc",
-          "Không uống rượu"
-        ]
-      },
-      "id": "74ad",
-      "role": "user",
-      "avatar": "https://via.placeholder.com/150",
-      "isActive": true,
-      "verified": false,
-      "createdAt": "2025-12-01T00:00:00.000Z",
-      "updatedAt": "2025-12-01T00:00:00.000Z",
-      "responseRate": 0,
-      "responseTime": ""
-    },
-    {
-      "id": "81ed",
-      "fullName": "Trần Hoàng Hải",
-      "email": "az@gmail.com",
-      "password": "123456",
-      "role": "admin",
-      "isActive": true,
-      "creationTime": "2025-07-17T12:46:24.260Z",
-      "phone": "",
-      "avatar": "https://via.placeholder.com/150",
-      "verified": false,
-      "createdAt": "2025-07-17T12:46:24.260Z",
-      "updatedAt": "2025-07-17T12:46:24.260Z",
-      "school": "",
-      "major": "",
-      "year": "",
-      "gender": "",
-      "city": "",
-      "bio": "",
-      "interests": [],
-      "lookingFor": {},
-      "responseRate": 0,
-      "responseTime": ""
-    },
-    {
-      "id": "8a01",
-      "email": "minhsanghcvp@gmail.com",
-      "password": "23102004",
-      "fullName": "Đỗ Minh Sáng",
-      "phone": "0392591258",
-      "createdAt": "2025-11-29T08:48:46.734Z",
-      "updatedAt": "2025-11-29T08:48:46.734Z",
-      "role": "user",
-      "isActive": true,
-      "creationTime": "2025-11-29T08:48:46.734Z",
-      "avatar": "https://via.placeholder.com/150",
-      "verified": false,
-      "school": "",
-      "major": "",
-      "year": "",
-      "gender": "",
-      "city": "",
-      "bio": "",
-      "interests": [],
-      "lookingFor": {},
-      "responseRate": 0,
-      "responseTime": ""
-    },
-    {
-      "id": "3ef3",
-      "email": "tran@gmail.com",
-      "password": "123456",
-      "fullName": "datt123",
-      "phone": "233434394",
-      "createdAt": "2025-12-02T02:29:07.256Z",
-      "updatedAt": "2025-12-02T02:29:07.260Z",
-      "role": "user",
-      "isActive": true,
-      "creationTime": "2025-12-02T02:29:07.260Z"
-    },
-    {
-      "id": "5f06",
-      "email": "nguyenngoclinh070320033@gmail.com",
-      "password": "1234567890",
-      "fullName": "Nguyễn Ngọc Linh",
-      "phone": "0962793637",
-      "createdAt": "2025-12-02T07:00:01.264Z",
-      "updatedAt": "2025-12-02T07:00:01.264Z",
-      "role": "user",
-      "isActive": true,
-      "creationTime": "2025-12-02T07:00:01.264Z"
-    }
-  ],
-  "constants": {
-    "LOCATIONS": [
-      "Hồ Chí Minh",
-      "Hà Nội",
-      "Đà Nẵng",
-      "Cần Thơ",
-      "Quy Nhơn"
-    ],
-    "DISTRICTS": {
-      "Hồ Chí Minh": [
-        "Quận 1",
-        "Quận 2",
-        "Quận 3",
-        "Quận 4",
-        "Quận 5",
-        "Quận 6",
-        "Quận 7",
-        "Quận 8",
-        "Quận 9",
-        "Quận 10",
-        "Quận 11",
-        "Quận 12",
-        "Bình Thạnh",
-        "Phú Nhuận",
-        "Tân Bình",
-        "Tân Phú",
-        "Gò Vấp",
-        "Bình Tân",
-        "Thủ Đức",
-        "Bình Chánh",
-        "Nhà Bè",
-        "Hóc Môn",
-        "Củ Chi",
-        "Cần Giờ"
-      ],
-      "Hà Nội": [
-        "Ba Đình",
-        "Hoàn Kiếm",
-        "Tây Hồ",
-        "Long Biên",
-        "Cầu Giấy",
-        "Đống Đa",
-        "Hai Bà Trưng",
-        "Hoàng Mai",
-        "Thanh Xuân",
-        "Hà Đông",
-        "Nam Từ Liêm",
-        "Bắc Từ Liêm",
-        "Thanh Trì",
-        "Gia Lâm",
-        "Đông Anh",
-        "Sóc Sơn",
-        "Mê Linh",
-        "Sơn Tây",
-        "Ba Vì",
-        "Phúc Thọ",
-        "Đan Phượng",
-        "Hoài Đức",
-        "Quốc Oai",
-        "Thạch Thất",
-        "Chương Mỹ",
-        "Thanh Oai",
-        "Thường Tín",
-        "Phú Xuyên",
-        "Ứng Hòa",
-        "Mỹ Đức"
-      ],
-      "Đà Nẵng": [
-        "Hải Châu",
-        "Thanh Khê",
-        "Sơn Trà",
-        "Ngũ Hành Sơn",
-        "Liên Chiểu",
-        "Cẩm Lệ",
-        "Hòa Vang",
-        "Hoàng Sa"
-      ],
-      "Cần Thơ": [
-        "Ninh Kiều",
-        "Bình Thủy",
-        "Cái Răng",
-        "Ô Môn",
-        "Thốt Nốt",
-        "Phong Điền",
-        "Cờ Đỏ",
-        "Vĩnh Thạnh",
-        "Thới Lai"
-      ],
-      "Quy Nhơn": [
-        "Quy Nhơn",
-        "An Nhơn",
-        "Tuy Phước",
-        "Phù Cát",
-        "Phù Mỹ",
-        "Hoài Nhơn",
-        "Hoài Ân",
-        "Tây Sơn",
-        "Vân Canh",
-        "Vĩnh Thạnh",
-        "An Lão"
-      ]
-    },
-    "CATEGORIES": [
-      "Phòng trọ",
-      "Nhà nguyên căn",
-      "Căn hộ chung cư",
-      "Căn hộ mini",
-      "Căn hộ dịch vụ",
-      "Ở ghép",
-      "Mặt bằng"
-    ],
-    "PRICE_RANGES": [
-      {
-        "label": "Dưới 1 triệu",
-        "min": 0,
-        "max": 1000000
-      },
-      {
-        "label": "Từ 1 - 2 triệu",
-        "min": 1000000,
-        "max": 2000000
-      },
-      {
-        "label": "Từ 2 - 3 triệu",
-        "min": 2000000,
-        "max": 3000000
-      },
-      {
-        "label": "Từ 3 - 5 triệu",
-        "min": 3000000,
-        "max": 5000000
-      },
-      {
-        "label": "Từ 5 - 7 triệu",
-        "min": 5000000,
-        "max": 7000000
-      },
-      {
-        "label": "Trên 7 triệu",
-        "min": 7000000,
-        "max": 1.7976931348623157e+308
-      }
-    ],
-    "AREA_RANGES": [
-      {
-        "label": "Dưới 20 m²",
-        "min": 0,
-        "max": 20
-      },
-      {
-        "label": "Từ 20 - 30m²",
-        "min": 20,
-        "max": 30
-      },
-      {
-        "label": "Từ 30 - 50m²",
-        "min": 30,
-        "max": 50
-      },
-      {
-        "label": "Trên 50m²",
-        "min": 50,
-        "max": 1.7976931348623157e+308
-      }
-    ],
-    "AMENITIES_LIST": [
-      "Máy lạnh",
-      "Wifi",
-      "Giường",
-      "Tủ quần áo",
-      "Bàn học",
-      "Tủ lạnh",
-      "Máy giặt",
-      "Bếp",
-      "Ban công",
-      "Thang máy",
-      "Sân vườn",
-      "Bãi đậu xe",
-      "An ninh 24/7"
-    ]
-  },
   "users": [
     {
       "id": "user1",
@@ -1080,6 +762,187 @@
       "creationTime": "2025-12-02T02:43:35.218Z"
     }
   ],
+  "constants": {
+    "LOCATIONS": [
+      "Hồ Chí Minh",
+      "Hà Nội",
+      "Đà Nẵng",
+      "Cần Thơ",
+      "Quy Nhơn"
+    ],
+    "DISTRICTS": {
+      "Hồ Chí Minh": [
+        "Quận 1",
+        "Quận 2",
+        "Quận 3",
+        "Quận 4",
+        "Quận 5",
+        "Quận 6",
+        "Quận 7",
+        "Quận 8",
+        "Quận 9",
+        "Quận 10",
+        "Quận 11",
+        "Quận 12",
+        "Bình Thạnh",
+        "Phú Nhuận",
+        "Tân Bình",
+        "Tân Phú",
+        "Gò Vấp",
+        "Bình Tân",
+        "Thủ Đức",
+        "Bình Chánh",
+        "Nhà Bè",
+        "Hóc Môn",
+        "Củ Chi",
+        "Cần Giờ"
+      ],
+      "Hà Nội": [
+        "Ba Đình",
+        "Hoàn Kiếm",
+        "Tây Hồ",
+        "Long Biên",
+        "Cầu Giấy",
+        "Đống Đa",
+        "Hai Bà Trưng",
+        "Hoàng Mai",
+        "Thanh Xuân",
+        "Hà Đông",
+        "Nam Từ Liêm",
+        "Bắc Từ Liêm",
+        "Thanh Trì",
+        "Gia Lâm",
+        "Đông Anh",
+        "Sóc Sơn",
+        "Mê Linh",
+        "Sơn Tây",
+        "Ba Vì",
+        "Phúc Thọ",
+        "Đan Phượng",
+        "Hoài Đức",
+        "Quốc Oai",
+        "Thạch Thất",
+        "Chương Mỹ",
+        "Thanh Oai",
+        "Thường Tín",
+        "Phú Xuyên",
+        "Ứng Hòa",
+        "Mỹ Đức"
+      ],
+      "Đà Nẵng": [
+        "Hải Châu",
+        "Thanh Khê",
+        "Sơn Trà",
+        "Ngũ Hành Sơn",
+        "Liên Chiểu",
+        "Cẩm Lệ",
+        "Hòa Vang",
+        "Hoàng Sa"
+      ],
+      "Cần Thơ": [
+        "Ninh Kiều",
+        "Bình Thủy",
+        "Cái Răng",
+        "Ô Môn",
+        "Thốt Nốt",
+        "Phong Điền",
+        "Cờ Đỏ",
+        "Vĩnh Thạnh",
+        "Thới Lai"
+      ],
+      "Quy Nhơn": [
+        "Quy Nhơn",
+        "An Nhơn",
+        "Tuy Phước",
+        "Phù Cát",
+        "Phù Mỹ",
+        "Hoài Nhơn",
+        "Hoài Ân",
+        "Tây Sơn",
+        "Vân Canh",
+        "Vĩnh Thạnh",
+        "An Lão"
+      ]
+    },
+    "CATEGORIES": [
+      "Phòng trọ",
+      "Nhà nguyên căn",
+      "Căn hộ chung cư",
+      "Căn hộ mini",
+      "Căn hộ dịch vụ",
+      "Ở ghép",
+      "Mặt bằng"
+    ],
+    "PRICE_RANGES": [
+      {
+        "label": "Dưới 1 triệu",
+        "min": 0,
+        "max": 1000000
+      },
+      {
+        "label": "Từ 1 - 2 triệu",
+        "min": 1000000,
+        "max": 2000000
+      },
+      {
+        "label": "Từ 2 - 3 triệu",
+        "min": 2000000,
+        "max": 3000000
+      },
+      {
+        "label": "Từ 3 - 5 triệu",
+        "min": 3000000,
+        "max": 5000000
+      },
+      {
+        "label": "Từ 5 - 7 triệu",
+        "min": 5000000,
+        "max": 7000000
+      },
+      {
+        "label": "Trên 7 triệu",
+        "min": 7000000,
+        "max": 1.7976931348623157e+308
+      }
+    ],
+    "AREA_RANGES": [
+      {
+        "label": "Dưới 20 m²",
+        "min": 0,
+        "max": 20
+      },
+      {
+        "label": "Từ 20 - 30m²",
+        "min": 20,
+        "max": 30
+      },
+      {
+        "label": "Từ 30 - 50m²",
+        "min": 30,
+        "max": 50
+      },
+      {
+        "label": "Trên 50m²",
+        "min": 50,
+        "max": 1.7976931348623157e+308
+      }
+    ],
+    "AMENITIES_LIST": [
+      "Máy lạnh",
+      "Wifi",
+      "Giường",
+      "Tủ quần áo",
+      "Bàn học",
+      "Tủ lạnh",
+      "Máy giặt",
+      "Bếp",
+      "Ban công",
+      "Thang máy",
+      "Sân vườn",
+      "Bãi đậu xe",
+      "An ninh 24/7"
+    ]
+  },
   "connections": [],
   "messages": [],
   "notifications": [],
