@@ -51,7 +51,7 @@ const CreatePost = () => {
   const navigate = useNavigate();
   const { postId } = useParams();
 
-  type CurrentUser = { id: string; [key: string]: any } | null;
+  type CurrentUser = { id: string;[key: string]: any } | null;
   const currentUser = useState<CurrentUser>(() => {
     const storedUser = localStorage.getItem('currentUser');
     return storedUser ? (JSON.parse(storedUser) as CurrentUser) : null;
@@ -112,26 +112,26 @@ const CreatePost = () => {
   // Load post data if editing
   useEffect(() => {
     const fetchPost = async () => {
-  if (postId) {
-    setLoading(true);
-    try {
-      const response = await api.get(`/posts/${postId}`); // Thay axios bằng api
-      const post = response.data;
-      if (post) {
-        setFormData(post);
-      } else {
-        alert('Bài đăng không tồn tại hoặc bạn không có quyền chỉnh sửa.');
-        navigate('/my-posts');
+      if (postId) {
+        setLoading(true);
+        try {
+          const response = await api.get(`/posts/${postId}`); // Thay axios bằng api
+          const post = response.data;
+          if (post) {
+            setFormData(post);
+          } else {
+            alert('Bài đăng không tồn tại hoặc bạn không có quyền chỉnh sửa.');
+            navigate('/my-posts');
+          }
+        } catch (err) {
+          alert('Không thể tải bài đăng để chỉnh sửa.');
+          navigate('/my-posts');
+          console.error('Error fetching post:', err);
+        } finally {
+          setLoading(false);
+        }
       }
-    } catch (err) {
-      alert('Không thể tải bài đăng để chỉnh sửa.');
-      navigate('/my-posts');
-      console.error('Error fetching post:', err);
-    } finally {
-      setLoading(false);
-    }
-  }
-};
+    };
 
     fetchPost();
   }, [navigate, postId]);
@@ -156,23 +156,39 @@ const CreatePost = () => {
   };
 
   const handleImageFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    // For json-server, we'll just store the file names or mock URLs
-    // Real image upload would require a separate backend service
     const filesList = e.target.files;
     const files = filesList ? Array.from(filesList) : [];
     if (files.length === 0) return;
 
     setIsLoading(true);
     setError('');
+
     try {
-      const newImageUrls = files.map((file: File) => URL.createObjectURL(file)); // Create temporary URLs for immediate display
+      // Upload each file to server
+      const uploadPromises = files.map(async (file: File) => {
+        const formData = new FormData();
+        formData.append('image', file);
+
+        const response = await api.post('/api/upload', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+
+        // Return full URL to uploaded image
+        return `http://localhost:3002${response.data.url}`;
+      });
+
+      const uploadedUrls = await Promise.all(uploadPromises);
+
       setFormData(prev => ({
         ...prev,
-        images: [...prev.images, ...newImageUrls]
+        images: [...prev.images, ...uploadedUrls]
       } as PostForm));
+
     } catch (err) {
-      setError('Lỗi tải ảnh lên.');
-      console.error('Error creating image URL:', err);
+      setError('Lỗi tải ảnh lên. Vui lòng thử lại.');
+      console.error('Error uploading image:', err);
     } finally {
       setIsLoading(false);
     }
@@ -215,76 +231,76 @@ const CreatePost = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  setLoading(true);
-  setError('');
+    e.preventDefault();
+    setLoading(true);
+    setError('');
 
-  // Validate required fields
-  if (!formData.title.trim()) {
-    setError('Vui lòng nhập tiêu đề bài đăng');
-    setLoading(false);
-    return;
-  }
-  if (!formData.description.trim()) {
-    setError('Vui lòng nhập mô tả');
-    setLoading(false);
-    return;
-  }
-  if (!formData.budget) {
-    setError('Vui lòng nhập ngân sách');
-    setLoading(false);
-    return;
-  }
-  if (!formData.contactName.trim()) {
-    setError('Vui lòng nhập tên liên hệ');
-    setLoading(false);
-    return;
-  }
-  if (!formData.contactPhone.trim()) {
-    setError('Vui lòng nhập số điện thoại');
-    setLoading(false);
-    return;
-  }
-  if (!formData.location) {
-    setError('Vui lòng chọn tỉnh/thành phố');
-    setLoading(false);
-    return;
-  }
-  if (!formData.district) {
-    setError('Vui lòng chọn quận/huyện');
-    setLoading(false);
-    return;
-  }
-
-  try {
-    const postData = {
-      ...formData,
-      location: formData.location || '',
-      district: formData.district || '',
-      budget: parseInt(String(formData.budget) || '0'),
-      userId: currentUser ? currentUser.id : 'anonymous',
-      createdAt: formData.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      status: formData.status || 'active',
-      views: formData.views || 0,
-      likes: formData.likes || 0,
-    };
-
-    if (postId) {
-      await api.put(`/posts/${postId}`, postData);  // Sử dụng api.put thay vì axios.put
-      alert('Cập nhật bài đăng thành công!');
-    } else {
-      await api.post(`/posts`, postData);  // Sử dụng api.post thay vì axios.post
-      alert('Đăng bài thành công!');
+    // Validate required fields
+    if (!formData.title.trim()) {
+      setError('Vui lòng nhập tiêu đề bài đăng');
+      setLoading(false);
+      return;
     }
-    navigate('/my-posts');
-  } catch (err) {
-    setError('Có lỗi xảy ra khi lưu bài đăng.');
-    console.error('Error saving post:', err);
-  } finally {
-    setLoading(false);
-  }
-};
+    if (!formData.description.trim()) {
+      setError('Vui lòng nhập mô tả');
+      setLoading(false);
+      return;
+    }
+    if (!formData.budget) {
+      setError('Vui lòng nhập ngân sách');
+      setLoading(false);
+      return;
+    }
+    if (!formData.contactName.trim()) {
+      setError('Vui lòng nhập tên liên hệ');
+      setLoading(false);
+      return;
+    }
+    if (!formData.contactPhone.trim()) {
+      setError('Vui lòng nhập số điện thoại');
+      setLoading(false);
+      return;
+    }
+    if (!formData.location) {
+      setError('Vui lòng chọn tỉnh/thành phố');
+      setLoading(false);
+      return;
+    }
+    if (!formData.district) {
+      setError('Vui lòng chọn quận/huyện');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const postData = {
+        ...formData,
+        location: formData.location || '',
+        district: formData.district || '',
+        budget: parseInt(String(formData.budget) || '0'),
+        userId: currentUser ? currentUser.id : 'anonymous',
+        createdAt: formData.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        status: formData.status || 'active',
+        views: formData.views || 0,
+        likes: formData.likes || 0,
+      };
+
+      if (postId) {
+        await api.put(`/posts/${postId}`, postData);  // Sử dụng api.put thay vì axios.put
+        alert('Cập nhật bài đăng thành công!');
+      } else {
+        await api.post(`/posts`, postData);  // Sử dụng api.post thay vì axios.post
+        alert('Đăng bài thành công!');
+      }
+      navigate('/my-posts');
+    } catch (err) {
+      setError('Có lỗi xảy ra khi lưu bài đăng.');
+      console.error('Error saving post:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
   const commonInterests = [
@@ -318,7 +334,7 @@ const CreatePost = () => {
               <User className="w-5 h-5 mr-2" />
               Thông tin cơ bản
             </h2>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -427,7 +443,7 @@ const CreatePost = () => {
               <MapPin className="w-5 h-5 mr-2" />
               Vị trí & Học tập
             </h2>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Tỉnh/Thành phố</label>
@@ -455,7 +471,7 @@ const CreatePost = () => {
                   disabled={!formData.location}
                 >
                   <option value="">Chọn quận/huyện</option>
-                          {(DISTRICTS as Record<string, string[]>)[formData.location]?.map((d: string) => (
+                  {(DISTRICTS as Record<string, string[]>)[formData.location]?.map((d: string) => (
                     <option key={d} value={d}>{d}</option>
                   ))}
                 </select>
@@ -542,18 +558,17 @@ const CreatePost = () => {
               <Heart className="w-5 h-5 mr-2" />
               Sở thích
             </h2>
-            
+
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {commonInterests.map(interest => (
                 <button
                   key={interest}
                   type="button"
                   onClick={() => handleArrayToggle('interests', interest)}
-                  className={`p-3 text-sm rounded-lg border transition-colors ${
-                    formData.interests.includes(interest)
+                  className={`p-3 text-sm rounded-lg border transition-colors ${formData.interests.includes(interest)
                       ? 'bg-blue-100 border-blue-300 text-blue-700'
                       : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
-                  }`}
+                    }`}
                 >
                   {interest}
                 </button>
@@ -567,18 +582,17 @@ const CreatePost = () => {
               <Home className="w-5 h-5 mr-2" />
               Lối sống
             </h2>
-            
+
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {lifestyleOptions.map(option => (
                 <button
                   key={option}
                   type="button"
                   onClick={() => handleArrayToggle('lifestyle', option)}
-                  className={`p-3 text-sm rounded-lg border transition-colors ${
-                    formData.lifestyle.includes(option)
+                  className={`p-3 text-sm rounded-lg border transition-colors ${formData.lifestyle.includes(option)
                       ? 'bg-green-100 border-green-300 text-green-700'
                       : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
-                  }`}
+                    }`}
                 >
                   {option}
                 </button>
@@ -592,7 +606,7 @@ const CreatePost = () => {
               <Phone className="w-5 h-5 mr-2" />
               Thông tin liên hệ
             </h2>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -629,7 +643,7 @@ const CreatePost = () => {
           {/* Images */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h2 className="text-lg font-semibold text-gray-800 mb-4">Hình ảnh</h2>
-            
+
             <div className="mb-4">
               <label htmlFor="image-url" className="block text-sm font-medium text-gray-700 mb-2">
                 Thêm ảnh từ URL
