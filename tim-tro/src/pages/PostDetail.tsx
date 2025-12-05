@@ -42,6 +42,10 @@ function PostDetail() {
   const [authorInfo, setAuthorInfo] = useState(null);
   const [isConnected, setIsConnected] = useState(false); // Thêm state isConnected
 
+  // Fallback contact phone: prefer author profile phone, then post.contactPhone or post.contact.phone
+  const contactPhone = (authorInfo && (authorInfo.phone || authorInfo.contactPhone)) ||
+    (post && (post.contactPhone || post.contact?.phone || post.contact?.contactPhone)) || null;
+
   const fetchPost = useCallback(async () => {
     setLoading(true);
     let postData = null;
@@ -125,7 +129,7 @@ function PostDetail() {
       try {
         await navigator.share({
           title: post.title,
-          text: `${post.title} - ${post.type === 'room_listing' ? formatPrice(post.price, post.type) : formatPrice(post.budget, post.type)}`,
+          text: `${post.title} - ${post.type === 'room_listing' ? formatPrice(post.price, post.type) : formatPrice(post.budget, post.type, post.isFree)}`,
           url: window.location.href
         });
       } catch (error) {
@@ -142,7 +146,26 @@ function PostDetail() {
     setIsFavorite(!isFavorite);
   };
 
-  const formatPrice = (value, type) => {
+  const getZaloHref = (phone) => {
+    if (!phone) return null;
+    // Keep only digits
+    let digits = String(phone).replace(/\D/g, '');
+    // If local Vietnamese number starting with 0 and length 10, convert to country code 84
+    if (digits.length === 10 && digits.startsWith('0')) {
+      digits = '84' + digits.slice(1);
+    }
+    // If already starts with country code (e.g., 84...), leave as-is
+    // Prefer Zalo Web chat URL
+    const webHref = `https://chat.zalo.me/?phone=${digits}`;
+    // Fallback to zalo.me if needed
+    const fallback = `https://zalo.me/${digits}`;
+    return { webHref, fallback };
+  };
+
+  const formatPrice = (value, type, isFree = false) => {
+    if (isFree) {
+      return 'Miễn phí';
+    }
     if (value === undefined || value === null) {
       return 'N/A';
     }
@@ -330,7 +353,7 @@ function PostDetail() {
             {/* Price, Location, Type */}
             <div className="flex items-center text-blue-600 mb-2">
               <span className="text-2xl font-bold">
-                ${post.type === 'room_listing' ? formatPrice(post.price, post.type) : formatPrice(post.budget, post.type)}
+                ${post.type === 'room_listing' ? formatPrice(post.price, post.type) : formatPrice(post.budget, post.type, post.isFree)}
               </span>
               <span className="text-gray-600 ml-6 text-base">
                 {post.district}, {post.location}
@@ -473,12 +496,61 @@ function PostDetail() {
                   )}
 
                   <button
-                    onClick={() => window.location.href = `tel:${authorInfo.phone}`}
+                    type="button"
+                    onClick={() => window.location.href = `tel:${contactPhone}`}
                     className="w-full bg-green-600 text-white py-3 rounded-md hover:bg-green-700 flex items-center justify-center space-x-2"
                   >
                     <Phone size={20} />
                     <span>Gọi điện</span>
                   </button>
+                  {/* Zalo Web button - opens chat.zalo.me in a new tab */}
+                  {contactPhone && (
+                    <div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const urls = getZaloHref(contactPhone);
+                          if (urls && urls.webHref) window.open(urls.webHref, '_blank');
+                          else alert('Số điện thoại không hợp lệ để mở Zalo Web.');
+                        }}
+                        className="w-full bg-blue-500 text-white py-3 rounded-md hover:bg-blue-600 flex items-center justify-center space-x-2"
+                      >
+                        <MessageCircle size={20} />
+                        <span>Mở Zalo Web</span>
+                      </button>
+
+                      <div className="mt-2 text-sm text-center">
+                        <p>Nếu Zalo Web không mở được, thử liên kết thay thế:</p>
+                        <div className="flex items-center justify-center space-x-2 mt-1">
+                          <a
+                            href={getZaloHref(contactPhone).fallback}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-blue-600 underline"
+                          >
+                            Mở Zalo.me
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const urls = getZaloHref(contactPhone);
+                              const toCopy = (urls && urls.webHref) || (urls && urls.fallback) || '';
+                              if (toCopy) {
+                                navigator.clipboard.writeText(toCopy).then(() => {
+                                  alert('Đã sao chép liên kết Zalo vào clipboard');
+                                }).catch(() => {
+                                  alert('Không thể sao chép liên kết');
+                                });
+                              }
+                            }}
+                            className="px-2 py-1 bg-gray-100 rounded border text-sm"
+                          >
+                            Sao chép liên kết
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </>
               ) : (
                 <p className="text-center text-gray-500">Đây là bài đăng của bạn.</p>

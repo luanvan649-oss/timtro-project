@@ -62,6 +62,7 @@ const CreatePost = () => {
     title: string;
     description: string;
     budget: string | number;
+    isFree?: boolean;
     location: string;
     district: string;
     roomType: string;
@@ -88,6 +89,7 @@ const CreatePost = () => {
     title: '',
     description: '',
     budget: '',
+    isFree: false,
     location: '',
     district: '',
     roomType: 'double',
@@ -246,8 +248,8 @@ const CreatePost = () => {
       setLoading(false);
       return;
     }
-    if (!formData.budget) {
-      setError('Vui lòng nhập ngân sách');
+    if (!formData.isFree && !formData.budget) {
+      setError('Vui lòng nhập ngân sách hoặc chọn miễn phí');
       setLoading(false);
       return;
     }
@@ -277,7 +279,8 @@ const CreatePost = () => {
         ...formData,
         location: formData.location || '',
         district: formData.district || '',
-        budget: parseInt(String(formData.budget) || '0'),
+        budget: formData.isFree ? 0 : parseInt(String(formData.budget) || '0'),
+        isFree: formData.isFree || false,
         userId: currentUser ? currentUser.id : 'anonymous',
         createdAt: formData.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -390,15 +393,34 @@ const CreatePost = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Ngân sách (VNĐ/tháng) *
                 </label>
-                <input
-                  type="number"
-                  name="budget"
-                  value={formData.budget}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="VD: 3000000"
-                  required
-                />
+                <div className="flex gap-3 mb-3">
+                  <input
+                    type="number"
+                    name="budget"
+                    value={formData.budget}
+                    onChange={handleInputChange}
+                    disabled={formData.isFree}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    placeholder="VD: 3000000"
+                    required={!formData.isFree}
+                  />
+                </div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="isFree"
+                    checked={formData.isFree || false}
+                    onChange={(e) => {
+                      setFormData({
+                        ...formData,
+                        isFree: e.target.checked,
+                        budget: e.target.checked ? '' : formData.budget
+                      });
+                    }}
+                    className="rounded focus:ring-2 focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">Miễn phí</span>
+                </label>
               </div>
 
               <div>
@@ -642,9 +664,10 @@ const CreatePost = () => {
 
           {/* Images */}
           <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Hình ảnh</h2>
+            <h2 className="text-lg font-semibold text-gray-800 mb-6">Hình ảnh</h2>
 
-            <div className="mb-4">
+            {/* Add Image from URL */}
+            <div className="mb-6">
               <label htmlFor="image-url" className="block text-sm font-medium text-gray-700 mb-2">
                 Thêm ảnh từ URL
               </label>
@@ -668,7 +691,8 @@ const CreatePost = () => {
               </div>
             </div>
 
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+            {/* Upload File Section */}
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center hover:border-blue-400 transition-colors bg-gray-50">
               <input
                 type="file"
                 multiple
@@ -681,32 +705,37 @@ const CreatePost = () => {
                 htmlFor="image-file-upload"
                 className="cursor-pointer flex flex-col items-center"
               >
-                <svg className="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                <svg className="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
-                <span className="text-gray-600">Hoặc nhấp để chọn hình ảnh từ máy tính</span>
-                <span className="text-sm text-gray-500 mt-1">PNG, JPG, GIF up to 10MB</span>
+                <span className="text-gray-600 font-medium text-base">Hoặc nhấp để chọn hình ảnh từ máy tính</span>
+                <span className="text-sm text-gray-500 mt-2">PNG, JPG, GIF up to 10MB</span>
               </label>
             </div>
 
+            {/* Selected Images */}
             {formData.images.length > 0 && (
-              <div className="mt-4">
-                <h3 className="text-sm font-medium text-gray-700 mb-2">Hình ảnh đã chọn:</h3>
-                <div className="flex flex-wrap gap-2">
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <h3 className="text-sm font-medium text-gray-700 mb-4">Hình ảnh đã chọn ({formData.images.length}):</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                   {formData.images.map((image, index) => (
-                    <div key={index} className="relative w-24 h-24 rounded-lg overflow-hidden border border-gray-300">
-                      <img
-                        src={image}
-                        alt={`Hình ảnh ${index + 1}`}
-                        className="w-full h-full object-cover"
-                      />
+                    <div key={index} className="relative group">
+                      <div className="w-full aspect-square rounded-lg overflow-hidden border border-gray-300 bg-gray-100">
+                        <img
+                          src={image}
+                          alt={`Hình ảnh ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
                       <button
                         type="button"
                         onClick={() => removeImage(index)}
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1.5 hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
+                        title="Xóa hình ảnh"
                       >
                         <X className="w-4 h-4" />
                       </button>
+                      <span className="text-xs text-gray-500 mt-1 block text-center">Ảnh {index + 1}</span>
                     </div>
                   ))}
                 </div>

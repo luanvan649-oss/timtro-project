@@ -525,45 +525,44 @@
   ],
   "blogs": [
     {
-      "id": "blog1",
       "title": "Bí quyết tìm phòng trọ ưng ý cho sinh viên FPT",
       "author": "FPTro Admin",
       "date": "2025-07-17",
       "content": "Việc tìm kiếm một căn phòng trọ phù hợp là một trong những ưu tiên hàng đầu của sinh viên khi bắt đầu cuộc sống tự lập. Đặc biệt đối với sinh viên FPT, việc tìm phòng trọ gần trường, thuận tiện di chuyển và đảm bảo an ninh là vô cùng quan trọng. Bài viết này sẽ chia sẻ những bí quyết giúp bạn tìm được căn phòng ưng ý nhất.",
       "images": [
-        "https://images.unsplash.com/photo-1549517045-bc93de0e06ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+        "https://bandon.vn/uploads/thiet-ke-nha-tro-dep-2020-bandon-28.jpg"
       ],
       "tags": [
         "phòng trọ",
         "sinh viên",
         "FPT",
         "bí quyết"
-      ]
+      ],
+      "id": "blog1"
     },
     {
-      "id": "blog2",
       "title": "5 mẹo tiết kiệm chi phí sinh hoạt khi ở trọ",
       "author": "FPTro Admin",
       "date": "2025-07-10",
       "content": "Cuộc sống sinh viên xa nhà luôn đi kèm với nhiều khoản chi phí. Làm thế nào để quản lý tài chính hiệu quả và tiết kiệm chi phí sinh hoạt khi ở trọ? Dưới đây là 5 mẹo nhỏ mà bạn có thể áp dụng ngay hôm nay.",
       "images": [
-        "https://images.unsplash.com/photo-1593062095908-1647f3a8b276?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+        "https://img.iproperty.com.my/angel/750x1000-fit/wp-content/uploads/sites/7/2023/12/nha-tro-gac-lung-5.jpg"
       ],
       "tags": [
         "tiết kiệm",
         "chi phí",
         "sinh hoạt",
         "ở trọ"
-      ]
+      ],
+      "id": "blog2"
     },
     {
-      "id": "blog3",
       "title": "Làm sao để hòa nhập với bạn cùng phòng mới?",
       "author": "FPTro Admin",
       "date": "2025-07-01",
       "content": "Việc có bạn cùng phòng có thể mang lại nhiều lợi ích nhưng cũng tiềm ẩn những mâu thuẫn nếu không biết cách hòa nhập. Bài viết này sẽ giúp bạn xây dựng mối quan hệ tốt đẹp với bạn cùng phòng, tạo nên một không gian sống thoải mái và vui vẻ.",
       "images": [
-        "https://images.unsplash.com/photo-1521742918805-f933b0064d30?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+        "https://thietkethicongnhadep.net/wp-content/uploads/2023/09/mau-phong-tro-dep-mau-phong-tro-co-gac-lung-485x600-1.jpg"
       ],
       "tags": [
         "bạn cùng phòng",
@@ -571,7 +570,7 @@
         "sinh hoạt",
         "kinh nghiệm"
       ],
-      "slug": "lam-sao-e-hoa-nhap-voi-ban-cung-phong-moi"
+      "id": "blog3"
     }
   ],
   "users": [
@@ -618,7 +617,7 @@
       "id": "user2",
       "email": "test@test.com",
       "password": "123456",
-      "fullName": "Test User",
+      "fullName": "Test User3",
       "role": "user",
       "phone": "0908765432",
       "zalo": "0908765432",
@@ -626,7 +625,7 @@
       "createdAt": "2023-02-15T00:00:00.000Z",
       "updatedAt": "2023-02-15T00:00:00.000Z",
       "school": "Đại học Bách Khoa",
-      "major": "Kỹ thuật",
+      "major": "Ngoại ngữ",
       "year": "2",
       "gender": "female",
       "city": "Hà Nội",
@@ -634,16 +633,18 @@
       "interests": [
         "Nghe nhạc",
         "Du lịch",
-        "Nấu ăn"
+        "Nấu ăn",
+        "Yoga"
       ],
       "lookingFor": {
         "gender": "female",
         "ageRange": "19-24",
-        "budget": "1-2m",
+        "budget": "3-4m",
         "location": "Quận Hai Bà Trưng",
         "lifestyle": [
           "Thân thiện",
-          "Không hút thuốc"
+          "Không hút thuốc",
+          "Không uống rượu"
         ]
       },
       "verified": false,
