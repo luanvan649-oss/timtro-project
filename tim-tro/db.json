@@ -698,14 +698,11 @@
       "role": "user"
     },
     {
-      "id": "e3f3",
+      "fullName": "Trần Hoàng Hải",
       "email": "ccc@gmail.com",
       "password": "123456",
-      "fullName": "Trần Hoàng Hải",
-      "phone": "0972773693",
-      "createdAt": "2025-07-17T11:56:34.995Z",
-      "updatedAt": "2025-07-17T11:56:34.995Z",
-      "role": "user"
+      "role": "admin",
+      "id": "e3f3"
     },
     {
       "id": "81ed",
@@ -737,20 +734,16 @@
       "createdAt": "2025-11-21T02:32:00.678Z",
       "updatedAt": "2025-11-21T02:32:00.679Z",
       "role": "user",
-      "isActive": true,
+      "isActive": false,
       "creationTime": "2025-11-21T02:32:00.679Z"
     },
     {
-      "id": "6b9e",
+      "fullName": "Nguyễn Ngọc Lin",
       "email": "laptqse183589@fpt.edu.vn",
       "password": "1234567890",
-      "fullName": "Nguyễn Ngọc Linh",
-      "phone": "0962793637",
-      "createdAt": "2025-11-28T01:59:52.623Z",
-      "updatedAt": "2025-11-28T01:59:52.624Z",
       "role": "user",
       "isActive": true,
-      "creationTime": "2025-11-28T01:59:52.624Z"
+      "id": "6b9e"
     },
     {
       "id": "532c",
@@ -767,7 +760,7 @@
     {
       "id": "03b2",
       "email": "minhsangvphc@gmail.com",
-      "password": "23102004",
+      "password": "123456",
       "fullName": "Đỗ Minh Sáng",
       "phone": "0392591258",
       "createdAt": "2025-12-02T02:43:35.218Z",
