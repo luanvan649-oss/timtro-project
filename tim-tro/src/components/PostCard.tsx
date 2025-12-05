@@ -8,6 +8,7 @@ interface Post {
   type:  'room_listing' | 'roommate_finding';
   price?: number;
   budget?: number;
+  isFree?: boolean;
   area?: number;
   location: string;
   district?: string;
@@ -61,7 +62,10 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
 
   const isOwnPost = currentUser && post.authorId === getCurrentUserId();
 
-    const formatPrice = (price: number | undefined, type: Post['type']) => {
+    const formatPrice = (price: number | undefined, type: Post['type'], isFree: boolean | undefined = false) => {
+    if (isFree) {
+      return 'Miễn phí';
+    }
     if (price === undefined || price === null) {
       return 'N/A';
     }
@@ -216,7 +220,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
           {post.type === 'roommate_finding' && (
             <div className="mb-2 flex items-center text-sm">
               <span className="text-green-600 font-semibold text-lg">
-                {formatPrice(post.budget, post.type)}
+                {formatPrice(post.budget, post.type, post.isFree)}
               </span>
               <span className="mx-2 text-gray-400">•</span>
               <span className="text-gray-600">
