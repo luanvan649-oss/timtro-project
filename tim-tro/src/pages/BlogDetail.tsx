@@ -116,9 +116,93 @@ const BlogDetail = () => {
         />
       )}
 
-      <div className="prose max-w-none text-gray-800 leading-relaxed mb-6">
-        <p>{blog.content}</p>
-      </div>
+      <div 
+        className="prose max-w-none text-gray-800 leading-relaxed mb-6 blog-content"
+        dangerouslySetInnerHTML={{ __html: blog.content }}
+      />
+      <style>{`
+        .blog-content h1 {
+          font-size: 2.25rem;
+          font-weight: 700;
+          margin-top: 1.5rem;
+          margin-bottom: 1rem;
+          line-height: 1.2;
+          color: #111827;
+        }
+        .blog-content h2 {
+          font-size: 1.875rem;
+          font-weight: 700;
+          margin-top: 1.5rem;
+          margin-bottom: 1rem;
+          line-height: 1.3;
+          color: #111827;
+        }
+        .blog-content h3 {
+          font-size: 1.5rem;
+          font-weight: 600;
+          margin-top: 1.25rem;
+          margin-bottom: 0.75rem;
+          line-height: 1.4;
+          color: #111827;
+        }
+        .blog-content p {
+          margin-top: 1rem;
+          margin-bottom: 1rem;
+          line-height: 1.75;
+        }
+        .blog-content ul, .blog-content ol {
+          margin-top: 1rem;
+          margin-bottom: 1rem;
+          padding-left: 1.5rem;
+        }
+        .blog-content ul {
+          list-style-type: disc;
+        }
+        .blog-content ol {
+          list-style-type: decimal;
+        }
+        .blog-content li {
+          margin-top: 0.5rem;
+          margin-bottom: 0.5rem;
+        }
+        .blog-content li p {
+          margin: 0;
+        }
+        .blog-content blockquote {
+          border-left: 4px solid #3b82f6;
+          padding-left: 1rem;
+          margin-top: 1.5rem;
+          margin-bottom: 1.5rem;
+          font-style: italic;
+          color: #4b5563;
+        }
+        .blog-content blockquote p {
+          margin: 0.5rem 0;
+        }
+        .blog-content strong {
+          font-weight: 700;
+        }
+        .blog-content em {
+          font-style: italic;
+        }
+        .blog-content u {
+          text-decoration: underline;
+        }
+        .blog-content a {
+          color: #2563eb;
+          text-decoration: underline;
+        }
+        .blog-content a:hover {
+          color: #1d4ed8;
+        }
+        .blog-content img {
+          max-width: 100%;
+          height: auto;
+          margin-top: 1.5rem;
+          margin-bottom: 1.5rem;
+          border-radius: 0.5rem;
+        }
+      `}</style>
 
       <div className="flex flex-wrap gap-2 mb-6">
         {blog.tags && blog.tags.map((tag: string) => (

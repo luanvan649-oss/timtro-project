@@ -521,6 +521,97 @@
       "featured": false,
       "contactPhone": "0339578143",
       "contactName": "Tran Dinh Dat"
+    },
+    {
+      "id": "951e",
+      "title": "88",
+      "description": "Tam Đảo Quê tôi",
+      "price": 300000,
+      "area": 69,
+      "location": "Hà Nội",
+      "district": "Hoàn Kiếm",
+      "category": "Phòng trọ",
+      "images": [
+        "https://noithatviet24h.vn/wp-content/uploads/2020/08/hinh-anh-can-ho-chung-cu-dep-3.jpg",
+        "https://anlacmoonlight.vn/wp-content/uploads/2023/07/xac-dinh-huong-vi-tri-cua-can-ho-chung-cu-de-thu-hut-tai-loc.jpg"
+      ],
+      "amenities": [
+        "Thang máy",
+        "Máy lạnh"
+      ],
+      "utilities": [
+        "Điện",
+        "Nước",
+        "Internet"
+      ],
+      "deposit": 2000000,
+      "contact": {
+        "name": "Đỗ Minh Sáng",
+        "phone": "0392591258",
+        "email": "minhsanghcvp@gmail.com"
+      },
+      "address": "Núi",
+      "genderPreference": "Nam",
+      "school": "đại học fpt",
+      "major": "công nghệ thông tin",
+      "year": "Sau đại học",
+      "userId": "532c",
+      "type": "room_listing",
+      "city": "Hà Nội",
+      "status": "active",
+      "createdAt": "2025-12-06T06:22:03.590Z",
+      "updatedAt": "2025-12-06T06:22:03.590Z",
+      "views": 0,
+      "likes": 0,
+      "rating": 0,
+      "featured": false,
+      "contactPhone": "0392591258",
+      "contactName": "Đỗ Minh Sáng"
+    },
+    {
+      "id": "076a",
+      "title": "888888",
+      "description": "888",
+      "price": 88888,
+      "area": 88,
+      "location": "Hồ Chí Minh",
+      "district": "Phú Nhuận",
+      "category": "Phòng trọ",
+      "images": [
+        "https://anlacmoonlight.vn/wp-content/uploads/2023/07/xac-dinh-huong-vi-tri-cua-can-ho-chung-cu-de-thu-hut-tai-loc.jpg"
+      ],
+      "amenities": [
+        "An ninh 24/7",
+        "Ban công"
+      ],
+      "utilities": [
+        "Điện",
+        "Nước",
+        "Internet"
+      ],
+      "deposit": 888,
+      "contact": {
+        "name": "Đỗ Minh Sáng",
+        "phone": "0392591258",
+        "email": "minhsanghcvp@gmail.com"
+      },
+      "address": "8888",
+      "genderPreference": "Nam",
+      "school": "đại học fpt",
+      "major": "công nghệ thông tin",
+      "year": "Năm 5",
+      "userId": "532c",
+      "type": "room_listing",
+      "city": "Hồ Chí Minh",
+      "status": "approved",
+      "createdAt": "2025-12-06T12:51:51.578Z",
+      "updatedAt": "2025-12-06T12:51:51.578Z",
+      "views": 0,
+      "likes": 0,
+      "rating": 0,
+      "featured": false,
+      "contactPhone": "0392591258",
+      "contactName": "Đỗ Minh Sáng"
     }
   ],
   "blogs": [
@@ -571,6 +662,32 @@
         "kinh nghiệm"
       ],
       "id": "blog3"
+    },
+    {
+      "title": "s",
+      "author": "s",
+      "date": "2025-12-06",
+      "content": "<ol><li><p>a</p></li><li><p>b</p></li><li><p>c</p></li></ol><h1>ss</h1><h2>dfdfd</h2><h3>gsfde</h3><blockquote><p>d</p><p></p></blockquote><ol><li><p></p></li></ol><p></p>",
+      "images": [
+        "https://anlacmoonlight.vn/wp-content/uploads/2023/07/xac-dinh-huong-vi-tri-cua-can-ho-chung-cu-de-thu-hut-tai-loc.jpg"
+      ],
+      "tags": [
+        "vvvv"
+      ],
+      "id": "1765028466675"
+    },
+    {
+      "id": "1765031305744",
+      "title": "99",
+      "author": "Sang",
+      "date": "2025-12-06",
+      "content": "<p>1 anh</p><p><img class=\"editor-image\" src=\"https://anlacmoonlight.vn/wp-content/uploads/2023/07/xac-dinh-huong-vi-tri-cua-can-ho-chung-cu-de-thu-hut-tai-loc.jpg\"></p><p></p><p>2 link</p><p><a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://www.bing.com/images/search?q=tr%E1%BB%8D+%C4%91%E1%BA%B9p+ho%E1%BA%B7c+chung+c%C6%B0&amp;form=HDRSC3&amp;first=1&amp;cw=1177&amp;ch=683\">https://www.bing.com/images/search?q=tr%E1%BB%8D+%C4%91%E1%BA%B9p+ho%E1%BA%B7c+chung+c%C6%B0&amp;form=HDRSC3&amp;first=1&amp;cw=1177&amp;ch=683</a></p>",
+      "images": [
+        "https://amore-architecture.vn/wp-content/uploads/2021/01/thiet-ke-chung-cu-mini-20m2-1.6-min.jpg"
+      ],
+      "tags": [
+        "a"
+      ]
     }
   ],
   "users": [
@@ -584,7 +701,7 @@
       "zalo": "0901234567",
       "avatar": "https://via.placeholder.com/150",
       "createdAt": "2023-01-01T00:00:00.000Z",
-      "updatedAt": "2023-01-01T00:00:00.000Z",
+      "updatedAt": "2025-12-05T13:02:37.653Z",
       "school": "Đại học FPT",
       "major": "Công nghệ thông tin",
       "year": "3",
@@ -676,7 +793,8 @@
           "Không uống rượu"
         ]
       },
-      "id": "74ad"
+      "id": "74ad",
+      "isActive": false
     },
     {
       "id": "4fe5",
@@ -684,7 +802,7 @@
       "email": "acc@gmail.com",
       "password": "123456",
       "role": "admin",
-      "isActive": true,
+      "isActive": false,
       "creationTime": "2025-07-17T03:58:55.610Z"
     },
     {
@@ -695,14 +813,16 @@
       "phone": "0972773693",
       "createdAt": "2025-07-17T11:45:55.735Z",
       "updatedAt": "2025-07-17T11:45:55.735Z",
-      "role": "user"
+      "role": "user",
+      "isActive": false
     },
     {
       "fullName": "Trần Hoàng Hải",
       "email": "ccc@gmail.com",
       "password": "123456",
       "role": "admin",
-      "id": "e3f3"
+      "id": "e3f3",
+      "isActive": false
     },
     {
       "id": "81ed",
@@ -710,7 +830,7 @@
       "email": "az@gmail.com",
       "password": "123456",
       "role": "admin",
-      "isActive": true,
+      "isActive": false,
       "creationTime": "2025-07-17T12:46:24.260Z"
     },
     {
@@ -742,13 +862,13 @@
       "email": "laptqse183589@fpt.edu.vn",
       "password": "1234567890",
       "role": "user",
-      "isActive": true,
+      "isActive": false,
       "id": "6b9e"
     },
     {
       "id": "532c",
       "email": "minhsanghcvp@gmail.com",
-      "password": "231020004",
+      "password": "23102004",
       "fullName": "Đỗ Minh Sáng",
       "phone": "0392591258",
       "createdAt": "2025-11-28T06:54:16.383Z",
@@ -766,7 +886,7 @@
       "createdAt": "2025-12-02T02:43:35.218Z",
       "updatedAt": "2025-12-02T02:43:35.218Z",
       "role": "user",
-      "isActive": true,
+      "isActive": false,
       "creationTime": "2025-12-02T02:43:35.218Z"
     },
     {
@@ -998,6 +1118,36 @@
     },
     {
       "id": "5f06",
+      "notifications": {
+        "email": true,
+        "push": true,
+        "sms": false
+      },
+      "privacy": {
+        "showPhone": false,
+        "showEmail": false,
+        "profileVisible": true
+      },
+      "language": "vi",
+      "theme": "light"
+    },
+    {
+      "id": "user1",
+      "notifications": {
+        "email": true,
+        "push": true,
+        "sms": false
+      },
+      "privacy": {
+        "showPhone": false,
+        "showEmail": false,
+        "profileVisible": true
+      },
+      "language": "vi",
+      "theme": "light"
+    },
+    {
+      "id": "user1",
       "notifications": {
         "email": true,
         "push": true,

@@ -111,6 +111,9 @@ const Home: React.FC<HomeProps> = ({ globalSearchTerm = '', setGlobalSearchTerm 
     const response = await api.get('/posts', { params: queryParams });
 
     let fetchedPosts: Post[] = response.data as Post[];
+    
+    // Only show approved posts to regular users
+    fetchedPosts = fetchedPosts.filter(post => post.status === 'approved' || !post.status);
 
     // Client-side filtering based on globalSearchTerm (by title)
     if (globalSearchTerm && globalSearchTerm.trim()) {

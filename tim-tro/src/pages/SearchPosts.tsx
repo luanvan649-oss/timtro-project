@@ -101,6 +101,9 @@ function SearchPosts() {
       const totalCount = parseInt(response.headers["x-total-count"], 10);
 
       let fetchedPosts = response.data;
+      
+      // Only show approved posts to regular users
+      fetchedPosts = fetchedPosts.filter(post => post.status === 'approved' || !post.status);
 
       if (filters.amenities && filters.amenities.length > 0) {
         fetchedPosts = fetchedPosts.filter((post) =>

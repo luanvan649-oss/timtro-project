@@ -275,6 +275,9 @@ const CreatePost = () => {
     }
 
     try {
+      // Get current user role
+      const userRole = currentUser?.role || 'user';
+      
       const postData = {
         ...formData,
         location: formData.location || '',
@@ -284,17 +287,22 @@ const CreatePost = () => {
         userId: currentUser ? currentUser.id : 'anonymous',
         createdAt: formData.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        status: formData.status || 'active',
+        // If user is admin, set status to 'approved', otherwise 'pending'
+        status: userRole === 'admin' ? 'approved' : (formData.status || 'pending'),
         views: formData.views || 0,
         likes: formData.likes || 0,
       };
 
       if (postId) {
-        await api.put(`/posts/${postId}`, postData);  // Sử dụng api.put thay vì axios.put
+        await api.put(`/posts/${postId}`, postData);
         alert('Cập nhật bài đăng thành công!');
       } else {
-        await api.post(`/posts`, postData);  // Sử dụng api.post thay vì axios.post
-        alert('Đăng bài thành công!');
+        await api.post(`/posts`, postData);
+        if (userRole === 'admin') {
+          alert('Đăng bài thành công!');
+        } else {
+          alert('Đăng bài thành công! Bài đăng của bạn đang chờ được phê duyệt bởi quản trị viên.');
+        }
       }
       navigate('/my-posts');
     } catch (err) {

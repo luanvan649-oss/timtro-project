@@ -76,7 +76,7 @@ const Modal = forwardRef<HTMLDivElement, ModalComponentProps>(({
       <div
         ref={ref}
         className={clsx(
-          "relative w-full bg-white rounded-2xl shadow-2xl animate-scaleIn",
+          "relative w-full bg-white rounded-2xl shadow-2xl animate-scaleIn max-h-[90vh] flex flex-col",
           sizes[size],
           className
         )}
@@ -158,7 +158,7 @@ interface ModalContentProps {
 const ModalContent = forwardRef<HTMLDivElement, ModalContentProps & { [key: string]: any }>(({ className, children, ...props }, ref) => (
   <div
     ref={ref}
-    className={clsx("p-6", className)}
+    className={clsx("p-6 overflow-y-auto flex-1", className)}
     {...props}
   >
     {children}

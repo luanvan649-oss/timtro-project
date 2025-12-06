@@ -283,6 +283,9 @@ const CreateRoomListing = () => {
         }
 
         try {
+            // Get current user role
+            const userRole = currentUser?.role || 'user';
+            
             const postData = {
                 ...formData,
                 price: parseInt(String(formData.price)),
@@ -291,7 +294,8 @@ const CreateRoomListing = () => {
                 userId: currentUser ? currentUser.id : 'anonymous',
                 type: 'room_listing',
                 city: formData.location,
-                status: formData.status || 'active',
+                // If user is admin, set status to 'approved', otherwise 'pending'
+                status: userRole === 'admin' ? 'approved' : (formData.status || 'pending'),
                 createdAt: formData.createdAt || new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 views: formData.views || 0,
@@ -307,7 +311,11 @@ const CreateRoomListing = () => {
                 alert('Cập nhật bài đăng thành công!');
             } else {
                 await axios.post(`${API_BASE_URL}/posts`, postData);
-                alert('Đăng bài thành công!');
+                if (userRole === 'admin') {
+                    alert('Đăng bài thành công!');
+                } else {
+                    alert('Đăng bài thành công! Bài đăng của bạn đang chờ được phê duyệt bởi quản trị viên.');
+                }
             }
             navigate('/my-posts');
         } catch (err) {

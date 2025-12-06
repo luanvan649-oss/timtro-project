@@ -182,14 +182,16 @@ function SearchFilter({ onSearch, onFilter, initialFilters = {} }: { onSearch?: 
         <button
           type="button"
           onClick={() => setShowFilters(!showFilters)}
-          className={`px-4 py-2 border rounded-lg transition-colors flex items-center gap-2 ${
-            showFilters ? 'bg-blue-50 border-blue-300' : 'border-gray-300 hover:bg-gray-50'
+          className={`px-5 py-2.5 rounded-lg transition-all duration-200 flex items-center gap-2 font-semibold shadow-lg transform hover:scale-105 ${
+            showFilters 
+              ? 'bg-primary-800 text-white border-2 border-primary-900 shadow-xl hover:bg-primary-900' 
+              : 'bg-primary-700 text-white border-2 border-primary-800 hover:bg-primary-800 hover:shadow-xl'
           }`}
         >
-          <Filter className="w-4 h-4" />
-          Bộ lọc
+          <Filter className="w-5 h-5" />
+          <span className="text-sm">Bộ lọc</span>
           {activeFiltersCount > 0 && (
-            <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1">
+            <span className="bg-red-600 text-white text-xs rounded-full px-2.5 py-1 font-bold shadow-md">
               {activeFiltersCount}
             </span>
           )}
