@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Search, Filter, X, MapPin, DollarSign, Home } from 'lucide-react';
+import { VIETNAM_PROVINCES } from '../constants/vietnamLocations';
 
 interface Filters {
   location: string;
@@ -12,13 +13,7 @@ interface Filters {
 type OnFilterFn = (apiFilters: Record<string, any>) => void;
 
 function SearchFilter({ onSearch, onFilter, initialFilters = {} }: { onSearch?: (term: string) => void; onFilter?: OnFilterFn; initialFilters?: Partial<Filters> }) {
-  const LOCATIONS = [
-    "Hồ Chí Minh",
-    "Hà Nội",
-    "Đà Nẵng",
-    "Cần Thơ",
-    "Quy Nhơn"
-  ];
+  const LOCATIONS = VIETNAM_PROVINCES;
 
   const CATEGORIES = [
     "Phòng trọ",

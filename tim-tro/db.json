@@ -245,7 +245,7 @@
       "userId": "user1",
       "featured": false,
       "rating": 4,
-      "views": 123,
+      "views": 124,
       "likes": 5,
       "id": "6",
       "type": "room_listing"
@@ -561,7 +561,7 @@
       "status": "active",
       "createdAt": "2025-12-06T06:22:03.590Z",
       "updatedAt": "2025-12-06T06:22:03.590Z",
-      "views": 0,
+      "views": 2,
       "likes": 0,
       "rating": 0,
       "featured": false,
@@ -606,7 +606,7 @@
       "status": "approved",
       "createdAt": "2025-12-06T12:51:51.578Z",
       "updatedAt": "2025-12-06T12:51:51.578Z",
-      "views": 3,
+      "views": 4,
       "likes": 2,
       "rating": 0,
       "featured": false,
@@ -681,7 +681,7 @@
         "vvvv"
       ],
       "id": "1765028466675",
-      "likes": 1,
+      "likes": 2,
       "views": 2
     },
     {
@@ -1437,7 +1437,7 @@
         "blogTitle": "5 mẹo tiết kiệm chi phí sinh hoạt khi ở trọ",
         "blogId": "blog2"
       },
-      "isRead": false,
+      "isRead": true,
       "createdAt": "2025-12-07T07:31:53.530Z"
     },
     {
@@ -1512,7 +1512,7 @@
         "blogTitle": "5 mẹo tiết kiệm chi phí sinh hoạt khi ở trọ",
         "blogId": "blog2"
       },
-      "isRead": false,
+      "isRead": true,
       "createdAt": "2025-12-07T07:31:56.353Z"
     },
     {
@@ -1677,7 +1677,7 @@
         "postTitle": "888888",
         "postId": "076a"
       },
-      "isRead": false,
+      "isRead": true,
       "createdAt": "2025-12-07T08:05:43.805Z"
     },
     {
@@ -1754,6 +1754,81 @@
       },
       "isRead": false,
       "createdAt": "2025-12-07T08:05:43.806Z"
+    },
+    {
+      "id": "blog_liked_1765106281186_user1_1765028466675",
+      "type": "blog_liked",
+      "userId": "user1",
+      "fromUser": {
+        "fullName": "Demo User",
+        "id": "user1"
+      },
+      "data": {
+        "blogTitle": "s",
+        "blogId": "1765028466675"
+      },
+      "isRead": true,
+      "createdAt": "2025-12-07T11:18:01.186Z"
+    },
+    {
+      "id": "blog_liked_1765106281186_74ad_1765028466675",
+      "type": "blog_liked",
+      "userId": "74ad",
+      "fromUser": {
+        "fullName": "Demo User",
+        "id": "user1"
+      },
+      "data": {
+        "blogTitle": "s",
+        "blogId": "1765028466675"
+      },
+      "isRead": false,
+      "createdAt": "2025-12-07T11:18:01.186Z"
+    },
+    {
+      "id": "blog_liked_1765106281187_4fe5_1765028466675",
+      "type": "blog_liked",
+      "userId": "4fe5",
+      "fromUser": {
+        "fullName": "Demo User",
+        "id": "user1"
+      },
+      "data": {
+        "blogTitle": "s",
+        "blogId": "1765028466675"
+      },
+      "isRead": false,
+      "createdAt": "2025-12-07T11:18:01.187Z"
+    },
+    {
+      "id": "blog_liked_1765106281187_e3f3_1765028466675",
+      "type": "blog_liked",
+      "userId": "e3f3",
+      "fromUser": {
+        "fullName": "Demo User",
+        "id": "user1"
+      },
+      "data": {
+        "blogTitle": "s",
+        "blogId": "1765028466675"
+      },
+      "isRead": false,
+      "createdAt": "2025-12-07T11:18:01.187Z"
+    },
+    {
+      "id": "blog_liked_1765106281187_81ed_1765028466675",
+      "type": "blog_liked",
+      "userId": "81ed",
+      "fromUser": {
+        "fullName": "Demo User",
+        "id": "user1"
+      },
+      "data": {
+        "blogTitle": "s",
+        "blogId": "1765028466675"
+      },
+      "isRead": false,
+      "createdAt": "2025-12-07T11:18:01.187Z"
     }
   ],
   "settings": [

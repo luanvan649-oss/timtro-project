@@ -258,12 +258,66 @@ const Layout = ({ children, searchTermValue, onSearchSubmit }: LayoutProps) => {
           <div className="flex space-x-8">
             <Link
               to="/"
-              className={`py-3 text-sm font-medium border-b-2 transition-colors ${location.pathname === '/'
+              className={`py-3 text-sm font-medium border-b-2 transition-colors ${location.pathname === '/' && !location.search.includes('category=')
                   ? 'text-orange-500 border-orange-500'
                   : 'text-gray-600 border-transparent hover:text-gray-800'
                 }`}
             >
               Phòng trọ
+            </Link>
+            <Link
+              to="/?category=Nhà nguyên căn"
+              className={`py-3 text-sm font-medium border-b-2 transition-colors ${location.search.includes('category=Nhà nguyên căn')
+                  ? 'text-orange-500 border-orange-500'
+                  : 'text-gray-600 border-transparent hover:text-gray-800'
+                }`}
+            >
+              Nhà nguyên căn
+            </Link>
+            <Link
+              to="/?category=Căn hộ chung cư"
+              className={`py-3 text-sm font-medium border-b-2 transition-colors ${location.search.includes('category=Căn hộ chung cư')
+                  ? 'text-orange-500 border-orange-500'
+                  : 'text-gray-600 border-transparent hover:text-gray-800'
+                }`}
+            >
+              Căn hộ chung cư
+            </Link>
+            <Link
+              to="/?category=Căn hộ mini"
+              className={`py-3 text-sm font-medium border-b-2 transition-colors ${location.search.includes('category=Căn hộ mini')
+                  ? 'text-orange-500 border-orange-500'
+                  : 'text-gray-600 border-transparent hover:text-gray-800'
+                }`}
+            >
+              Căn hộ mini
+            </Link>
+            <Link
+              to="/?category=Căn hộ dịch vụ"
+              className={`py-3 text-sm font-medium border-b-2 transition-colors ${location.search.includes('category=Căn hộ dịch vụ')
+                  ? 'text-orange-500 border-orange-500'
+                  : 'text-gray-600 border-transparent hover:text-gray-800'
+                }`}
+            >
+              Căn hộ dịch vụ
+            </Link>
+            <Link
+              to="/?category=Ở ghép"
+              className={`py-3 text-sm font-medium border-b-2 transition-colors ${location.search.includes('category=Ở ghép')
+                  ? 'text-orange-500 border-orange-500'
+                  : 'text-gray-600 border-transparent hover:text-gray-800'
+                }`}
+            >
+              Ở ghép
+            </Link>
+            <Link
+              to="/?category=Mặt bằng"
+              className={`py-3 text-sm font-medium border-b-2 transition-colors ${location.search.includes('category=Mặt bằng')
+                  ? 'text-orange-500 border-orange-500'
+                  : 'text-gray-600 border-transparent hover:text-gray-800'
+                }`}
+            >
+              Mặt bằng
             </Link>
             <Link
               to="/blog"

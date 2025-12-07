@@ -29,6 +29,7 @@ function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: string; text: string }>({ type: '', text: '' });
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [profileData, setProfileData] = useState<any>({
     fullName: '',
     email: '',
@@ -366,7 +367,8 @@ function Profile() {
                   <img
                     src={currentUser.avatar}
                     alt={profileData.fullName || 'Avatar'}
-                    className="w-20 h-20 rounded-full object-cover border-4 border-white"
+                    className="w-20 h-20 rounded-full object-cover border-4 border-white cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => setShowAvatarModal(true)}
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = '';
                       (e.target as HTMLImageElement).style.display = 'none';
@@ -874,6 +876,28 @@ function Profile() {
           </div>
         </div>
       </div>
+
+      {/* Avatar Modal */}
+      {showAvatarModal && currentUser?.avatar && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50" onClick={() => setShowAvatarModal(false)}>
+          <div className="relative max-w-4xl max-h-[90vh] p-4" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setShowAvatarModal(false)}
+              className="absolute top-2 right-2 bg-white rounded-full p-2 hover:bg-gray-200 transition-colors z-10"
+            >
+              <X size={24} />
+            </button>
+            <img
+              src={currentUser.avatar}
+              alt={profileData.fullName || 'Avatar'}
+              className="max-w-full max-h-[90vh] rounded-lg object-contain"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = '/default-avatar.png';
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,20 +1,14 @@
-import React, { useState, useEffect, useCallback, ChangeEvent } from 'react';
-import { Link } from 'react-router-dom';
-import PostCard from '../components/PostCard';
-import SearchFilter from '../components/SearchFilter';
-import Pagination from '../components/Pagination';
+import React, { useState, useEffect, useCallback, ChangeEvent } from "react";
+import { Link, useLocation } from "react-router-dom";
+import PostCard from "../components/PostCard";
+import SearchFilter from "../components/SearchFilter";
+import Pagination from "../components/Pagination";
+import { Clock } from "lucide-react";
+import ChatWindow from "../components/ChatWindow";
+import api from "../api"; // Import API configuration
+import { VIETNAM_PROVINCES } from "../constants/vietnamLocations";
 
-import ChatWindow from '../components/ChatWindow';
-import api from '../api';  // Import API configuration
-
-const LOCATIONS = [
-  "Hồ Chí Minh",
-  "Hà Nội",
-  "Đà Nẵng",
-  "Cần Thơ",
-  "Quy Nhơn"
-];
-
+const LOCATIONS = VIETNAM_PROVINCES;
 
 interface Post {
   id?: string | number;
@@ -48,7 +42,12 @@ interface HomeProps {
   setGlobalSearchTerm?: (term: string) => void;
 }
 
-const Home: React.FC<HomeProps> = ({ globalSearchTerm = '', setGlobalSearchTerm = () => {} }) => { // Receive globalSearchTerm and setGlobalSearchTerm
+const Home: React.FC<HomeProps> = ({
+  globalSearchTerm = "",
+  setGlobalSearchTerm = () => {},
+}) => {
+  // Receive globalSearchTerm and setGlobalSearchTerm
+  const location = useLocation();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,110 +55,187 @@ const Home: React.FC<HomeProps> = ({ globalSearchTerm = '', setGlobalSearchTerm 
   // Use globalSearchTerm as the primary source of truth for search term
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
-  const [sortBy, setSortBy] = useState<string>('createdAt');
+  const [sortBy, setSortBy] = useState<string>("createdAt");
   const [totalPosts, setTotalPosts] = useState<number>(0);
+  const [recentPosts, setRecentPosts] = useState<Post[]>([]);
 
- const loadPosts = useCallback(async () => {
-  try {
-    setLoading(true);
-    console.log('Loading posts with filters:', filters, 'search:', globalSearchTerm);
-
-    const queryParams: Record<string, any> = {
-      _page: currentPage,
-      _limit: 10000, // Fetch a large number of posts for client-side filtering
-    };
-
-    // Các bộ lọc
-    if (filters.location) {
-      queryParams.location = filters.location;
+  // Get category from URL query params
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const category = searchParams.get("category");
+    if (category) {
+      setFilters((prev) => ({ ...prev, category }));
     }
-    if (filters.district) {
-      queryParams.district = filters.district;
-    }
-    if (filters.category) {
-      queryParams.category = filters.category;
-    }
+  }, [location.search]);
 
-    if (filters.priceMin !== undefined) {
-      queryParams.price_gte = filters.priceMin;
-    }
-    if (filters.priceMax !== undefined) {
-      queryParams.price_lte = filters.priceMax;
-    }
-    if (filters.areaMin !== undefined) {
-      queryParams.area_gte = filters.areaMin;
-    }
-    if (filters.areaMax !== undefined) {
-      queryParams.area_lte = filters.areaMax;
-    }
-
-    // Logic sắp xếp
-    if (sortBy === 'newest' || sortBy === 'createdAt') {
-      queryParams._sort = 'createdAt';
-      queryParams._order = 'desc';
-    } else if (sortBy === 'price') {
-      queryParams._sort = 'price';
-      queryParams._order = 'asc';
-    } else if (sortBy === 'priceDesc') {
-      queryParams._sort = 'price';
-      queryParams._order = 'desc';
-    }
-
-    console.log('Fetching posts with query:', queryParams);
-
-    // Sử dụng api.get thay vì axios.get
-    const response = await api.get('/posts', { params: queryParams });
-
-    let fetchedPosts: Post[] = response.data as Post[];
-    
-    // Only show approved posts to regular users
-    fetchedPosts = fetchedPosts.filter(post => post.status === 'approved' || !post.status);
-
-    // Client-side filtering based on globalSearchTerm (by title)
-    if (globalSearchTerm && globalSearchTerm.trim()) {
-      const lowerCaseSearchTerm = globalSearchTerm.trim().toLowerCase();
-      fetchedPosts = fetchedPosts.filter(post =>
-        post.title && String(post.title).toLowerCase().includes(lowerCaseSearchTerm)
+  const loadPosts = useCallback(async () => {
+    try {
+      setLoading(true);
+      console.log(
+        "Loading posts with filters:",
+        filters,
+        "search:",
+        globalSearchTerm
       );
-    }
 
-    // Client-side filtering for amenities
-    if (filters.amenities && filters.amenities.length > 0) {
-      fetchedPosts = fetchedPosts.filter(post =>
-        filters.amenities?.every(amenity => post.amenities?.includes(amenity))
+      const queryParams: Record<string, any> = {
+        _page: currentPage,
+        _limit: 10000, // Fetch a large number of posts for client-side filtering
+      };
+
+      // Các bộ lọc
+      if (filters.location) {
+        queryParams.location = filters.location;
+      }
+      if (filters.district) {
+        queryParams.district = filters.district;
+      }
+      if (filters.category) {
+        queryParams.category = filters.category;
+      }
+
+      if (filters.priceMin !== undefined) {
+        queryParams.price_gte = filters.priceMin;
+      }
+      if (filters.priceMax !== undefined) {
+        queryParams.price_lte = filters.priceMax;
+      }
+      if (filters.areaMin !== undefined) {
+        queryParams.area_gte = filters.areaMin;
+      }
+      if (filters.areaMax !== undefined) {
+        queryParams.area_lte = filters.areaMax;
+      }
+
+      // Logic sắp xếp
+      if (sortBy === "newest" || sortBy === "createdAt") {
+        queryParams._sort = "createdAt";
+        queryParams._order = "desc";
+      } else if (sortBy === "price") {
+        queryParams._sort = "price";
+        queryParams._order = "asc";
+      } else if (sortBy === "priceDesc") {
+        queryParams._sort = "price";
+        queryParams._order = "desc";
+      }
+
+      console.log("Fetching posts with query:", queryParams);
+
+      // Sử dụng api.get thay vì axios.get
+      const response = await api.get("/posts", { params: queryParams });
+
+      let fetchedPosts: Post[] = response.data as Post[];
+
+      // Only show approved posts to regular users
+      fetchedPosts = fetchedPosts.filter(
+        (post) => post.status === "approved" || !post.status
       );
+
+      // Client-side filtering based on globalSearchTerm (by title)
+      if (globalSearchTerm && globalSearchTerm.trim()) {
+        const lowerCaseSearchTerm = globalSearchTerm.trim().toLowerCase();
+        fetchedPosts = fetchedPosts.filter(
+          (post) =>
+            post.title &&
+            String(post.title).toLowerCase().includes(lowerCaseSearchTerm)
+        );
+      }
+
+      // Client-side filtering for category (if not already filtered by API)
+      if (filters.category && !queryParams.category) {
+        fetchedPosts = fetchedPosts.filter(
+          (post) => post.category === filters.category
+        );
+      }
+
+      // Client-side filtering for amenities
+      if (filters.amenities && filters.amenities.length > 0) {
+        fetchedPosts = fetchedPosts.filter((post) =>
+          filters.amenities?.every((amenity) =>
+            post.amenities?.includes(amenity)
+          )
+        );
+      }
+
+      // Calculate total count after client-side filtering
+      const filteredTotalCount = fetchedPosts.length;
+
+      // Implement pagination client-side
+      const startIndex = (currentPage - 1) * 20;
+      const endIndex = startIndex + 20;
+      const paginatedPosts = fetchedPosts.slice(startIndex, endIndex);
+
+      setPosts(paginatedPosts);
+      setTotalPages(Math.ceil(filteredTotalCount / 20));
+      setTotalPosts(filteredTotalCount);
+    } catch (err) {
+      setError("Có lỗi xảy ra khi tải dữ liệu");
+      console.error("Error loading posts:", err);
+      setPosts([]);
+      setTotalPages(1);
+      setTotalPosts(0);
+    } finally {
+      setLoading(false);
     }
-
-    // Calculate total count after client-side filtering
-    const filteredTotalCount = fetchedPosts.length;
-
-    // Implement pagination client-side
-    const startIndex = (currentPage - 1) * 20;
-    const endIndex = startIndex + 20;
-    const paginatedPosts = fetchedPosts.slice(startIndex, endIndex);
-
-    setPosts(paginatedPosts);
-    setTotalPages(Math.ceil(filteredTotalCount / 20));
-    setTotalPosts(filteredTotalCount);
-  } catch (err) {
-    setError('Có lỗi xảy ra khi tải dữ liệu');
-    console.error('Error loading posts:', err);
-    setPosts([]);
-    setTotalPages(1);
-    setTotalPosts(0);
-  } finally {
-    setLoading(false);
-  }
-}, [filters, currentPage, sortBy, globalSearchTerm]);
-
+  }, [filters, currentPage, sortBy, globalSearchTerm]);
 
   useEffect(() => {
-    console.log('Home component: loading posts due to dependency change...');
+    console.log("Home component: loading posts due to dependency change...");
     loadPosts();
 
     // Loại bỏ real-time listener của Firebase
     return () => {};
   }, [loadPosts, filters, globalSearchTerm]); // Add globalSearchTerm to dependencies
+
+  // Load recent posts for sidebar
+  useEffect(() => {
+    const loadRecentPosts = async () => {
+      try {
+        // Load all posts first
+        const response = await api.get("/posts");
+        const posts = response.data || [];
+        console.log("Total posts loaded:", posts.length);
+
+        // Filter out only rejected posts, include all others (approved, pending, or no status)
+        const validPosts = posts.filter((post: Post) => {
+          // Exclude only rejected posts
+          return post.status !== "rejected";
+        });
+
+        // Remove duplicates by post ID
+        const uniquePosts = validPosts.filter(
+          (post: Post, index: number, self: Post[]) => {
+            return index === self.findIndex((p: Post) => p.id === post.id);
+          }
+        );
+
+        console.log(
+          "Unique posts after removing duplicates:",
+          uniquePosts.length
+        );
+
+        // Sort by createdAt descending (newest first)
+        uniquePosts.sort((a, b) => {
+          const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          return dateB - dateA; // Descending order (newest first)
+        });
+
+        console.log(
+          "Valid posts after filtering, deduplication and sorting:",
+          uniquePosts.length
+        );
+
+        // Take up to 10 posts (newest first), or all if less than 10
+        const finalPosts = uniquePosts.slice(0, 10);
+        setRecentPosts(finalPosts);
+        console.log("Final recent posts to display:", finalPosts.length);
+      } catch (error) {
+        console.error("Error loading recent posts:", error);
+      }
+    };
+    loadRecentPosts();
+  }, []);
 
   const handleFilterChange = (newFilters: Filters) => {
     setFilters(newFilters);
@@ -178,11 +254,11 @@ const Home: React.FC<HomeProps> = ({ globalSearchTerm = '', setGlobalSearchTerm 
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleLocationFilter = (location?: string) => {
-    setFilters(prevFilters => {
+    setFilters((prevFilters) => {
       const newFilters = { ...prevFilters } as Filters;
       if (location) {
         newFilters.location = location;
@@ -199,7 +275,7 @@ const Home: React.FC<HomeProps> = ({ globalSearchTerm = '', setGlobalSearchTerm 
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-500 text-lg mb-4">Có lỗi xảy ra</div>
-          <button 
+          <button
             onClick={loadPosts}
             className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
           >
@@ -220,7 +296,11 @@ const Home: React.FC<HomeProps> = ({ globalSearchTerm = '', setGlobalSearchTerm 
             Cho thuê phòng trọ, nhà nguyên căn, căn hộ
           </h1>
           <p className="text-sm text-gray-600 mb-6">
-            Hiện có <span className="font-semibold text-orange-500">{(totalPosts || 0).toLocaleString()}</span> tin đăng
+            Hiện có{" "}
+            <span className="font-semibold text-orange-500">
+              {(totalPosts || 0).toLocaleString()}
+            </span>{" "}
+            tin đăng
           </p>
 
           {/* Location Filter */}
@@ -234,7 +314,9 @@ const Home: React.FC<HomeProps> = ({ globalSearchTerm = '', setGlobalSearchTerm 
                   key={location}
                   onClick={() => handleLocationFilter(location)}
                   className={`flex-shrink-0 bg-white border border-gray-200 rounded px-4 py-3 text-sm hover:shadow-md transition-shadow ${
-                    filters.location === location ? 'bg-blue-50 border-blue-300 text-blue-600' : ''
+                    filters.location === location
+                      ? "bg-blue-50 border-blue-300 text-blue-600"
+                      : ""
                   }`}
                 >
                   <div className="text-xs text-gray-500">Phòng trọ</div>
@@ -242,12 +324,22 @@ const Home: React.FC<HomeProps> = ({ globalSearchTerm = '', setGlobalSearchTerm 
                 </button>
               ))}
               <button
-                onClick={() => handleLocationFilter('')}
+                onClick={() => handleLocationFilter("")}
                 className="flex-shrink-0 bg-white border border-gray-200 rounded px-4 py-3 text-sm text-blue-600 hover:shadow-md transition-colors"
               >
                 Tất cả
-                <svg className="w-3 h-3 ml-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                <svg
+                  className="w-3 h-3 ml-1 inline"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </button>
             </div>
@@ -257,31 +349,31 @@ const Home: React.FC<HomeProps> = ({ globalSearchTerm = '', setGlobalSearchTerm 
           <div className="mb-6 border-b border-gray-200">
             <div className="flex space-x-8">
               <button
-                onClick={() => handleSortChange('createdAt')}
+                onClick={() => handleSortChange("createdAt")}
                 className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
-                  sortBy === 'createdAt'
-                    ? 'text-gray-800 border-gray-800'
-                    : 'text-gray-600 border-transparent hover:text-gray-800'
+                  sortBy === "createdAt"
+                    ? "text-gray-800 border-gray-800"
+                    : "text-gray-600 border-transparent hover:text-gray-800"
                 }`}
               >
                 Đề xuất
               </button>
               <button
-                onClick={() => handleSortChange('newest')}
+                onClick={() => handleSortChange("newest")}
                 className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
-                  sortBy === 'newest'
-                    ? 'text-gray-800 border-gray-800'
-                    : 'text-gray-600 border-transparent hover:text-gray-800'
+                  sortBy === "newest"
+                    ? "text-gray-800 border-gray-800"
+                    : "text-gray-600 border-transparent hover:text-gray-800"
                 }`}
               >
                 Mới đăng
               </button>
               <button
-                onClick={() => handleSortChange('hasVideo')}
+                onClick={() => handleSortChange("hasVideo")}
                 className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
-                  sortBy === 'hasVideo'
-                    ? 'text-gray-800 border-gray-800'
-                    : 'text-gray-600 border-transparent hover:text-gray-800'
+                  sortBy === "hasVideo"
+                    ? "text-gray-800 border-gray-800"
+                    : "text-gray-600 border-transparent hover:text-gray-800"
                 }`}
               >
                 Có video
@@ -293,7 +385,10 @@ const Home: React.FC<HomeProps> = ({ globalSearchTerm = '', setGlobalSearchTerm 
           {loading ? (
             <div className="space-y-4">
               {[...Array(5)].map((_, index) => (
-                <div key={index} className="bg-white rounded p-4 shadow-sm animate-pulse">
+                <div
+                  key={index}
+                  className="bg-white rounded p-4 shadow-sm animate-pulse"
+                >
                   <div className="flex space-x-4">
                     <div className="bg-gray-200 rounded w-48 h-36"></div>
                     <div className="flex-1 space-y-3">
@@ -309,16 +404,30 @@ const Home: React.FC<HomeProps> = ({ globalSearchTerm = '', setGlobalSearchTerm 
           ) : posts.length === 0 ? (
             <div className="bg-white rounded p-12 text-center shadow-sm">
               <div className="text-gray-400 mb-4">
-                <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                <svg
+                  className="w-16 h-16 mx-auto"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1}
+                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                  />
                 </svg>
               </div>
-              <h3 className="text-lg font-medium text-gray-800 mb-2">Không tìm thấy bài đăng nào</h3>
-              <p className="text-gray-600 mb-4">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
+              <h3 className="text-lg font-medium text-gray-800 mb-2">
+                Không tìm thấy bài đăng nào
+              </h3>
+              <p className="text-gray-600 mb-4">
+                Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm
+              </p>
               <button
                 onClick={() => {
                   setFilters({});
-                  setGlobalSearchTerm(''); // Use globalSearchTerm
+                  setGlobalSearchTerm(""); // Use globalSearchTerm
                   setCurrentPage(1);
                 }}
                 className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition-colors"
@@ -329,7 +438,11 @@ const Home: React.FC<HomeProps> = ({ globalSearchTerm = '', setGlobalSearchTerm 
           ) : (
             <div className="space-y-4">
               {posts.map((post, idx) => (
-                <Link to={`/post/${post.id}`} key={post.id ?? idx} className="block">
+                <Link
+                  to={`/post/${post.id}`}
+                  key={post.id ?? idx}
+                  className="block"
+                >
                   <PostCard post={post as any} />
                 </Link>
               ))}
@@ -340,12 +453,12 @@ const Home: React.FC<HomeProps> = ({ globalSearchTerm = '', setGlobalSearchTerm 
           {!loading && posts.length > 0 && (
             <div className="mt-8">
               <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={handlePageChange}
-                    hasNextPage={currentPage < totalPages}
-                    hasPreviousPage={currentPage > 1}
-                  />
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                hasNextPage={currentPage < totalPages}
+                hasPreviousPage={currentPage > 1}
+              />
             </div>
           )}
         </div>
@@ -353,33 +466,144 @@ const Home: React.FC<HomeProps> = ({ globalSearchTerm = '', setGlobalSearchTerm 
         {/* Sidebar */}
         <div className="w-full lg:w-80 lg:flex-shrink-0 space-y-6">
           {/* Search Filter */}
-          <SearchFilter 
-            onSearch={handleSearch} 
-            onFilter={handleFilterChange} 
-            initialFilters={filters} 
+          <SearchFilter
+            onSearch={handleSearch}
+            onFilter={handleFilterChange}
+            initialFilters={filters}
           />
+
+          {/* Recent Posts */}
+          <div className="bg-white rounded shadow-sm p-4">
+            <h3 className="font-medium text-gray-800 mb-4">Tin mới đăng</h3>
+            <div className="space-y-4">
+              {recentPosts.length > 0 ? (
+                recentPosts.map((post) => {
+                  const formatPrice = (price?: number | string) => {
+                    if (!price) return "N/A";
+                    const numPrice =
+                      typeof price === "string" ? parseFloat(price) : price;
+                    if (numPrice >= 1000000) {
+                      return `${(numPrice / 1000000).toFixed(1)} triệu/tháng`;
+                    }
+                    return `${numPrice.toLocaleString("vi-VN")} đồng/tháng`;
+                  };
+
+                  const formatTime = (dateString?: string) => {
+                    if (!dateString) return "Không rõ";
+                    const date = new Date(dateString);
+                    if (Number.isNaN(date.getTime())) return "Không rõ";
+                    const now = new Date();
+                    const diffTime = Math.abs(now.getTime() - date.getTime());
+                    const diffMinutes = Math.floor(diffTime / (1000 * 60));
+                    const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+                    const diffDays = Math.floor(
+                      diffTime / (1000 * 60 * 60 * 24)
+                    );
+
+                    if (diffMinutes < 60) {
+                      return `${diffMinutes} phút trước`;
+                    } else if (diffHours < 24) {
+                      return `${diffHours} giờ trước`;
+                    } else if (diffDays === 1) {
+                      return "Hôm qua";
+                    } else if (diffDays < 7) {
+                      return `${diffDays} ngày trước`;
+                    } else {
+                      return date.toLocaleDateString("vi-VN");
+                    }
+                  };
+
+                  return (
+                    <Link
+                      key={post.id}
+                      to={`/post/${post.id}`}
+                      className="flex gap-3 hover:bg-gray-50 p-2 rounded transition-colors group"
+                    >
+                      <div className="flex-shrink-0 w-24 h-20 rounded overflow-hidden bg-gray-100">
+                        {post.images && post.images.length > 0 ? (
+                          <img
+                            src={post.images[0]}
+                            alt={post.title || "Post image"}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src =
+                                "/default-room.jpg";
+                            }}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-400">
+                            <svg
+                              className="w-8 h-8"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={1}
+                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                              />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-medium text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors mb-1">
+                          {post.title || "Không có tiêu đề"}
+                        </h4>
+                        <p className="text-sm font-semibold text-green-600 mb-1">
+                          {formatPrice(post.price)}
+                        </p>
+                        <div className="flex items-center text-xs text-gray-500">
+                          <Clock size={12} className="mr-1" />
+                          <span>{formatTime(post.createdAt)}</span>
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })
+              ) : (
+                <p className="text-sm text-gray-500 text-center py-4">
+                  Chưa có tin mới
+                </p>
+              )}
+            </div>
+          </div>
 
           {/* Blog Posts */}
           <div className="bg-white rounded shadow-sm p-4">
             <h3 className="font-medium text-gray-800 mb-4">Bài viết mới</h3>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-sm text-gray-600 hover:text-gray-800 transition-colors block py-1">
-                  5 điều cần lưu ý khi thuê phòng trọ 
+                <a
+                  href="#"
+                  className="text-sm text-gray-600 hover:text-gray-800 transition-colors block py-1"
+                >
+                  5 điều cần lưu ý khi thuê phòng trọ
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm text-gray-600 hover:text-gray-800 transition-colors block py-1">
+                <a
+                  href="#"
+                  className="text-sm text-gray-600 hover:text-gray-800 transition-colors block py-1"
+                >
                   Hướng dẫn tính tiền điện nước phòng trọ
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm text-gray-600 hover:text-gray-800 transition-colors block py-1">
+                <a
+                  href="#"
+                  className="text-sm text-gray-600 hover:text-gray-800 transition-colors block py-1"
+                >
                   Kinh nghiệm thuê phòng trọ cho sinh viên
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm text-gray-600 hover:text-gray-800 transition-colors block py-1">
+                <a
+                  href="#"
+                  className="text-sm text-gray-600 hover:text-gray-800 transition-colors block py-1"
+                >
                   Những khu vực cho thuê phòng trọ giá rẻ
                 </a>
               </li>
@@ -388,7 +612,9 @@ const Home: React.FC<HomeProps> = ({ globalSearchTerm = '', setGlobalSearchTerm 
         </div>
       </div>
       {/* Add ChatWindow component for testing */}
-      <div className="mt-8 h-[600px]"> {/* Added a fixed height for demonstration */}
+      <div className="mt-8 h-[600px]">
+        {" "}
+        {/* Added a fixed height for demonstration */}
         <ChatWindow />
       </div>
     </div>

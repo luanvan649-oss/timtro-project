@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import {
@@ -11,37 +11,17 @@ import {
     Phone,
     Image as ImageIcon
 } from 'lucide-react';
+import { VIETNAM_PROVINCES, VIETNAM_DISTRICTS, VIETNAM_WARDS, VIETNAM_STREETS, getDefaultWards, getDefaultStreets } from '../constants/vietnamLocations';
 
-const LOCATIONS = [
-    "Hồ Chí Minh",
-    "Hà Nội",
-    "Đà Nẵng",
-    "Cần Thơ",
-    "Quy Nhơn"
-];
+// Declare Google Maps types
+declare global {
+    interface Window {
+        google: any;
+    }
+}
 
-const DISTRICTS: Record<string, string[]> = {
-    "Hồ Chí Minh": [
-        "Quận 1", "Quận 2", "Quận 3", "Quận 4", "Quận 5", "Quận 6", "Quận 7", "Quận 8", "Quận 9", "Quận 10", "Quận 11", "Quận 12",
-        "Bình Thạnh", "Phú Nhuận", "Tân Bình", "Tân Phú", "Gò Vấp", "Bình Tân", "Thủ Đức",
-        "Bình Chánh", "Nhà Bè", "Hóc Môn", "Củ Chi", "Cần Giờ"
-    ],
-    "Hà Nội": [
-        "Ba Đình", "Hoàn Kiếm", "Tây Hồ", "Long Biên", "Cầu Giấy", "Đống Đa", "Hai Bà Trưng", "Hoàng Mai", "Thanh Xuân", "Hà Đông",
-        "Nam Từ Liêm", "Bắc Từ Liêm", "Thanh Trì", "Gia Lâm", "Đông Anh", "Sóc Sơn", "Mê Linh", "Sơn Tây",
-        "Ba Vì", "Phúc Thọ", "Đan Phượng", "Hoài Đức", "Quốc Oai", "Thạch Thất", "Chương Mỹ", "Thanh Oai",
-        "Thường Tín", "Phú Xuyên", "Ứng Hòa", "Mỹ Đức"
-    ],
-    "Đà Nẵng": [
-        "Hải Châu", "Thanh Khê", "Sơn Trà", "Ngũ Hành Sơn", "Liên Chiểu", "Cẩm Lệ", "Hòa Vang", "Hoàng Sa"
-    ],
-    "Cần Thơ": [
-        "Ninh Kiều", "Bình Thủy", "Cái Răng", "Ô Môn", "Thốt Nốt", "Phong Điền", "Cờ Đỏ", "Vĩnh Thạnh", "Thới Lai"
-    ],
-    "Quy Nhơn": [
-        "Quy Nhơn", "An Nhơn", "Tuy Phước", "Phù Cát", "Phù Mỹ", "Hoài Nhơn", "Hoài Ân", "Tây Sơn", "Vân Canh", "Vĩnh Thạnh", "An Lão"
-    ]
-};
+const LOCATIONS = VIETNAM_PROVINCES;
+const DISTRICTS: Record<string, string[]> = VIETNAM_DISTRICTS;
 
 const CATEGORIES = [
     "Phòng trọ",
@@ -90,6 +70,11 @@ interface PostForm {
         email: string;
     };
     address: string;
+    ward?: string; // Phường/Xã
+    street?: string; // Đường/Phố
+    houseNumber?: string; // Số nhà
+    latitude?: number;
+    longitude?: number;
     genderPreference?: string;
     school?: string;
     major?: string;
@@ -135,6 +120,9 @@ const CreateRoomListing = () => {
             email: ''
         },
         address: '',
+        ward: '',
+        street: '',
+        houseNumber: '',
         genderPreference: '',
         school: '',
         major: '',
@@ -144,6 +132,39 @@ const CreateRoomListing = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [newImageUrl, setNewImageUrl] = useState('');
+    const [mapLoaded, setMapLoaded] = useState(false);
+    const mapRef = useRef<HTMLDivElement>(null);
+    const mapInstanceRef = useRef<any>(null);
+    const markerRef = useRef<any>(null);
+    const [showDistrictDropdown, setShowDistrictDropdown] = useState(false);
+    const [districtSearchTerm, setDistrictSearchTerm] = useState('');
+    const [showWardDropdown, setShowWardDropdown] = useState(false);
+    const [wardSearchTerm, setWardSearchTerm] = useState('');
+    const [showStreetDropdown, setShowStreetDropdown] = useState(false);
+    const [streetSearchTerm, setStreetSearchTerm] = useState('');
+    const districtDropdownRef = useRef<HTMLDivElement>(null);
+    const wardDropdownRef = useRef<HTMLDivElement>(null);
+    const streetDropdownRef = useRef<HTMLDivElement>(null);
+
+    // Close dropdowns when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (districtDropdownRef.current && !districtDropdownRef.current.contains(event.target as Node)) {
+                setShowDistrictDropdown(false);
+            }
+            if (wardDropdownRef.current && !wardDropdownRef.current.contains(event.target as Node)) {
+                setShowWardDropdown(false);
+            }
+            if (streetDropdownRef.current && !streetDropdownRef.current.contains(event.target as Node)) {
+                setShowStreetDropdown(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     // Load post data if editing
     useEffect(() => {
@@ -171,8 +192,84 @@ const CreateRoomListing = () => {
         fetchPost();
     }, [navigate, postId]);
 
+    // Function to update address and geocode
+    const updateAddressAndGeocode = async (location: string, district: string, ward: string, street: string, houseNumber: string) => {
+        const addressParts = [];
+        if (houseNumber) addressParts.push(houseNumber);
+        if (street) addressParts.push(street);
+        if (ward) addressParts.push(ward);
+        if (district) addressParts.push(district);
+        if (location) addressParts.push(location);
+        
+        const fullAddress = addressParts.join(', ') + ', Việt Nam';
+        
+        if (fullAddress === ', Việt Nam') return; // Don't geocode empty address
+        
+        if (window.google && window.google.maps) {
+            const geocoder = new window.google.maps.Geocoder();
+            geocoder.geocode({ address: fullAddress, region: 'VN' }, (results, status) => {
+                if (status === 'OK' && results && results[0]) {
+                    const location = results[0].geometry.location;
+                    const lat = location.lat();
+                    const lng = location.lng();
+                    
+                    setFormData(prev => ({
+                        ...prev,
+                        address: fullAddress,
+                        latitude: lat,
+                        longitude: lng
+                    }));
+
+                    // Update map marker if map is initialized
+                    if (mapInstanceRef.current && markerRef.current) {
+                        const position = { lat, lng };
+                        markerRef.current.setPosition(position);
+                        mapInstanceRef.current.setCenter(position);
+                        mapInstanceRef.current.setZoom(15);
+                    }
+                }
+            });
+        }
+    };
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
+
+        // Reset các trường con khi thay đổi tỉnh/thành phố
+        if (name === 'location') {
+            setFormData(prev => ({
+                ...prev,
+                location: value,
+                district: '',
+                ward: '',
+                street: '',
+                address: ''
+            }));
+            setShowDistrictDropdown(false);
+            setShowWardDropdown(false);
+            setShowStreetDropdown(false);
+            return;
+        }
+
+        // Reset phường/xã và đường/phố khi thay đổi quận/huyện
+        if (name === 'district') {
+            setFormData(prev => {
+                const newData = {
+                    ...prev,
+                    district: value,
+                    ward: '',
+                    street: ''
+                };
+                // Update address and geocode
+                setTimeout(() => {
+                    updateAddressAndGeocode(newData.location, value, '', '', newData.houseNumber || '');
+                }, 100);
+                return newData;
+            });
+            setShowWardDropdown(false);
+            setShowStreetDropdown(false);
+            return;
+        }
 
         if (name.includes('contact.')) {
             const field = name.split('.')[1];
@@ -234,6 +331,348 @@ const CreateRoomListing = () => {
             images: prev.images.filter((_, i) => i !== index)
         }));
     };
+
+    // Auto-generate address from selected fields and update map
+    useEffect(() => {
+        const addressParts = [];
+        if (formData.houseNumber) addressParts.push(formData.houseNumber);
+        if (formData.street) addressParts.push(formData.street);
+        if (formData.ward) addressParts.push(formData.ward);
+        if (formData.district) addressParts.push(formData.district);
+        if (formData.location) addressParts.push(formData.location);
+        
+        const fullAddress = addressParts.join(', ');
+        
+        if (fullAddress) {
+            setFormData(prev => ({
+                ...prev,
+                address: fullAddress
+            }));
+
+            // Geocode address to get coordinates and update map
+            if (window.google && window.google.maps && fullAddress.length > 5) {
+                const geocoder = new window.google.maps.Geocoder();
+                geocoder.geocode({ address: fullAddress, region: 'VN' }, (results, status) => {
+                    if (status === 'OK' && results && results[0]) {
+                        const location = results[0].geometry.location;
+                        const lat = location.lat();
+                        const lng = location.lng();
+                        
+                        setFormData(prev => ({
+                            ...prev,
+                            latitude: lat,
+                            longitude: lng
+                        }));
+
+                        // Update map marker if map is initialized
+                        if (mapInstanceRef.current && markerRef.current) {
+                            const position = { lat, lng };
+                            markerRef.current.setPosition(position);
+                            mapInstanceRef.current.setCenter(position);
+                            mapInstanceRef.current.setZoom(15);
+                        }
+                    }
+                });
+            }
+        }
+    }, [formData.houseNumber, formData.street, formData.ward, formData.district, formData.location]);
+
+    // Initialize Google Maps
+    const initializeMap = () => {
+        try {
+            if (!mapRef.current) {
+                console.error('Map ref is not available');
+                setError('Không thể khởi tạo bản đồ. Vui lòng thử lại.');
+                return;
+            }
+            
+            if (!window.google || !window.google.maps) {
+                console.error('Google Maps API not loaded');
+                setError('Google Maps API chưa được tải. Vui lòng kiểm tra kết nối internet hoặc thử lại sau.');
+                return;
+            }
+
+            // Default to Ho Chi Minh City if no location selected
+            const defaultLat = formData.latitude || 10.8231;
+            const defaultLng = formData.longitude || 106.6297;
+
+            let map;
+            try {
+                map = new window.google.maps.Map(mapRef.current, {
+                    center: { lat: defaultLat, lng: defaultLng },
+                    zoom: 15,
+                    mapTypeControl: true,
+                    streetViewControl: true,
+                    fullscreenControl: true
+                });
+                
+                // Check for InvalidKeyMapError immediately after map creation
+                // Google Maps throws this error synchronously, so we need to check the console
+                setTimeout(() => {
+                    // Check if map div shows error (Google Maps displays error in the map container)
+                    if (mapRef.current) {
+                        const mapDiv = mapRef.current;
+                        const hasError = mapDiv.innerHTML.includes('Rất tiếc') || 
+                                       mapDiv.innerHTML.includes('Đã xảy ra lỗi') ||
+                                       mapDiv.innerHTML.includes('did not load Google Maps correctly');
+                        if (hasError) {
+                            console.error('Google Maps error detected in map container');
+                            setError('API key Google Maps không hợp lệ hoặc đã hết hạn. Vui lòng:\n1. Truy cập Google Cloud Console (https://console.cloud.google.com/)\n2. Vào "APIs & Services" > "Credentials"\n3. Kiểm tra hoặc tạo API key mới\n4. Đảm bảo "Maps JavaScript API" đã được kích hoạt\n5. Cập nhật API key trong file .env hoặc liên hệ quản trị viên.');
+                        }
+                    }
+                }, 500);
+                
+                // Listen for map errors (like InvalidKeyMapError)
+                map.addListener('error', (error: any) => {
+                    console.error('Google Maps error event:', error);
+                    if (error && error.message) {
+                        if (error.message.includes('InvalidKey') || error.message.includes('InvalidKeyMapError')) {
+                            setError('API key Google Maps không hợp lệ hoặc đã hết hạn. Vui lòng cập nhật API key mới trong Google Cloud Console.');
+                        } else {
+                            setError(`Lỗi Google Maps: ${error.message}`);
+                        }
+                    }
+                });
+            } catch (mapError: any) {
+                console.error('Error creating map:', mapError);
+                const errorMsg = mapError.message || mapError.toString() || 'Lỗi không xác định';
+                if (errorMsg.includes('InvalidKey') || errorMsg.includes('InvalidKeyMapError')) {
+                    throw new Error('API key Google Maps không hợp lệ hoặc đã hết hạn. Vui lòng kiểm tra API key trong Google Cloud Console và đảm bảo "Maps JavaScript API" đã được kích hoạt.');
+                }
+                throw new Error(`Không thể tạo bản đồ: ${errorMsg}. Có thể do API key không hợp lệ.`);
+            }
+
+            mapInstanceRef.current = map;
+
+            // Add marker
+            const marker = new window.google.maps.Marker({
+                map: map,
+                position: { lat: defaultLat, lng: defaultLng },
+                draggable: true,
+                title: 'Vị trí phòng trọ'
+            });
+
+            markerRef.current = marker;
+
+            // Update form data when marker is dragged
+            marker.addListener('dragend', () => {
+                const position = marker.getPosition();
+                if (position) {
+                    setFormData(prev => ({
+                        ...prev,
+                        latitude: position.lat(),
+                        longitude: position.lng()
+                    }));
+                }
+            });
+
+            // Update marker position when map is clicked
+            map.addListener('click', (e: any) => {
+                const lat = e.latLng.lat();
+                const lng = e.latLng.lng();
+                marker.setPosition({ lat, lng });
+                setFormData(prev => ({
+                    ...prev,
+                    latitude: lat,
+                    longitude: lng
+                }));
+
+                // Reverse geocoding to get address
+                const geocoder = new window.google.maps.Geocoder();
+                geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+                    if (status === 'OK' && results && results[0]) {
+                        setFormData(prev => ({
+                            ...prev,
+                            address: results[0].formatted_address
+                        }));
+                    }
+                });
+            });
+
+            // Add search box (optional, may fail if Places API is not available)
+            try {
+                if (window.google.maps.places && window.google.maps.places.SearchBox) {
+                    const searchBox = new window.google.maps.places.SearchBox(
+                        document.createElement('input')
+                    );
+                    map.controls[window.google.maps.ControlPosition.TOP_LEFT].push(searchBox);
+
+                    searchBox.addListener('places_changed', () => {
+                        const places = searchBox.getPlaces();
+                        if (places && places.length > 0) {
+                            const place = places[0];
+                            if (place.geometry && place.geometry.location) {
+                                const lat = place.geometry.location.lat();
+                                const lng = place.geometry.location.lng();
+                                marker.setPosition({ lat, lng });
+                                map.setCenter({ lat, lng });
+                                map.setZoom(17);
+                                setFormData(prev => ({
+                                    ...prev,
+                                    latitude: lat,
+                                    longitude: lng,
+                                    address: place.formatted_address || prev.address
+                                }));
+                            }
+                        }
+                    });
+                } else {
+                    console.warn('Places API is not available, search box will not be shown');
+                }
+            } catch (searchBoxError) {
+                console.warn('SearchBox initialization failed:', searchBoxError);
+                // SearchBox is optional, so we continue without it
+            }
+
+            setError(''); // Clear any previous errors
+            console.log('Map initialized successfully');
+        } catch (error: any) {
+            console.error('Error initializing map:', error);
+            setError(`Không thể khởi tạo bản đồ: ${error.message || 'Lỗi không xác định'}. Vui lòng kiểm tra console (F12) để biết thêm chi tiết.`);
+        }
+    };
+
+    // Load Google Maps script
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        
+        // Check if script already exists
+        const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
+        if (existingScript) {
+            if (window.google && window.google.maps) {
+                setMapLoaded(true);
+                setTimeout(initializeMap, 100);
+            } else {
+                existingScript.addEventListener('load', () => {
+                    setMapLoaded(true);
+                    setTimeout(initializeMap, 100);
+                });
+            }
+            return;
+        }
+
+        // Load Google Maps script
+        // Try to get API key from environment variable, fallback to hardcoded key
+        const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 'AIzaSyBFw0Qbyq9zTFTd-tUY6d-s6M4kZWL5XjE';
+        
+        if (!apiKey || apiKey === '') {
+            setError('Google Maps API key chưa được cấu hình. Vui lòng liên hệ quản trị viên.');
+            return;
+        }
+        
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&language=vi`;
+        script.async = true;
+        script.defer = true;
+        
+        script.onload = () => {
+            console.log('Google Maps script loaded, checking API availability...');
+            
+            // Override console.error temporarily to catch InvalidKeyMapError
+            const originalConsoleError = console.error;
+            let invalidKeyErrorDetected = false;
+            
+            const errorInterceptor = (...args: any[]) => {
+                const errorStr = args.join(' ');
+                if (errorStr.includes('InvalidKeyMapError') || errorStr.includes('InvalidKey')) {
+                    invalidKeyErrorDetected = true;
+                    setError('API key Google Maps không hợp lệ hoặc đã hết hạn. Vui lòng:\n1. Truy cập Google Cloud Console (https://console.cloud.google.com/)\n2. Vào "APIs & Services" > "Credentials"\n3. Kiểm tra hoặc tạo API key mới\n4. Đảm bảo "Maps JavaScript API" đã được kích hoạt\n5. Cập nhật API key trong file .env hoặc liên hệ quản trị viên.');
+                }
+                originalConsoleError.apply(console, args);
+            };
+            
+            // Temporarily override console.error
+            console.error = errorInterceptor;
+            
+            // Wait for Google Maps API to be fully loaded
+            const checkGoogleMaps = (attempts = 0) => {
+                console.log(`Checking Google Maps API (attempt ${attempts + 1}/30)...`);
+                
+                if (window.google && window.google.maps && window.google.maps.Map) {
+                    console.log('Google Maps API is available, initializing map...');
+                    setMapLoaded(true);
+                    setTimeout(() => {
+                        try {
+                            initializeMap();
+                            console.log('Map initialized successfully');
+                            
+                            // Check for error after initialization
+                            setTimeout(() => {
+                                if (invalidKeyErrorDetected) {
+                                    // Error already set by interceptor
+                                } else if (mapRef.current) {
+                                    const mapDiv = mapRef.current;
+                                    const hasError = mapDiv.innerHTML.includes('Rất tiếc') || 
+                                                   mapDiv.innerHTML.includes('Đã xảy ra lỗi') ||
+                                                   mapDiv.innerHTML.includes('did not load Google Maps correctly');
+                                    if (hasError) {
+                                        setError('API key Google Maps không hợp lệ hoặc đã hết hạn. Vui lòng kiểm tra API key trong Google Cloud Console.');
+                                    }
+                                }
+                                // Restore original console.error after checking
+                                console.error = originalConsoleError;
+                            }, 1000);
+                        } catch (err: any) {
+                            console.error('Error initializing map:', err);
+                            let errorMessage = `Không thể khởi tạo bản đồ: ${err.message || 'Lỗi không xác định'}.`;
+                            
+                            // Check for specific Google Maps errors
+                            const errMsg = err.message || err.toString() || '';
+                            if (errMsg.includes('InvalidKey') || errMsg.includes('InvalidKeyMapError')) {
+                                errorMessage = 'API key Google Maps không hợp lệ hoặc đã hết hạn. Vui lòng:\n1. Truy cập Google Cloud Console (https://console.cloud.google.com/)\n2. Vào "APIs & Services" > "Credentials"\n3. Kiểm tra hoặc tạo API key mới\n4. Đảm bảo "Maps JavaScript API" đã được kích hoạt\n5. Cập nhật API key trong file .env hoặc liên hệ quản trị viên.';
+                            } else if (errMsg.includes('RefererNotAllowedMapError')) {
+                                errorMessage = 'Domain không được phép sử dụng API key này. Vui lòng thêm domain vào "Application restrictions" trong Google Cloud Console.';
+                            } else if (errMsg.includes('ApiNotActivatedMapError')) {
+                                errorMessage = 'Google Maps JavaScript API chưa được kích hoạt. Vui lòng kích hoạt API này trong Google Cloud Console.';
+                            }
+                            
+                            setError(errorMessage);
+                            console.error = originalConsoleError;
+                        }
+                    }, 100);
+                } else if (attempts < 30) {
+                    // Retry up to 30 times (3 seconds total)
+                    setTimeout(() => checkGoogleMaps(attempts + 1), 100);
+                } else {
+                    console.error('Google Maps API failed to load after 30 attempts');
+                    console.error('window.google:', window.google);
+                    console.error('window.google.maps:', window.google?.maps);
+                    setError('Google Maps API không tải được sau nhiều lần thử. Có thể do: (1) API key không hợp lệ hoặc đã hết hạn, (2) Google Maps JavaScript API chưa được kích hoạt trong Google Cloud Console, (3) Kết nối internet bị gián đoạn, (4) Billing account chưa được thiết lập. Vui lòng mở Console (F12) để xem lỗi cụ thể từ Google Maps API.');
+                    console.error = originalConsoleError;
+                }
+            };
+            checkGoogleMaps();
+        };
+        
+        script.onerror = (error) => {
+            console.error('Failed to load Google Maps API script:', error);
+            console.error('API Key used (first 10 chars):', apiKey.substring(0, 10) + '...');
+            setError('Không thể tải Google Maps. Có thể do: (1) API key không hợp lệ hoặc đã hết hạn, (2) Kết nối internet bị gián đoạn, (3) Google Maps JavaScript API chưa được kích hoạt trong Google Cloud Console, (4) Domain restrictions trên API key, (5) Billing account chưa được thiết lập. Vui lòng mở Console (F12) để xem lỗi cụ thể từ Google Maps API.');
+            setMapLoaded(false);
+        };
+        
+        // Add error listener for script loading errors
+        script.addEventListener('error', (e) => {
+            console.error('Script loading error event:', e);
+            setError('Không thể tải script Google Maps. Vui lòng kiểm tra kết nối internet hoặc API key.');
+        });
+        
+        document.head.appendChild(script);
+        
+        // Cleanup
+        return () => {
+            // Clean up if component unmounts
+        };
+    }, []);
+
+    // Update map when location changes
+    useEffect(() => {
+        if (mapInstanceRef.current && markerRef.current && formData.latitude && formData.longitude) {
+            const position = { lat: formData.latitude, lng: formData.longitude };
+            markerRef.current.setPosition(position);
+            mapInstanceRef.current.setCenter(position);
+        }
+    }, [formData.latitude, formData.longitude]);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -530,7 +969,7 @@ const CreateRoomListing = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Tỉnh/Thành phố *
+                                    Tỉnh/Thành phố <span className="text-red-500">*</span>
                                 </label>
                                 <select
                                     name="location"
@@ -539,45 +978,468 @@ const CreateRoomListing = () => {
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     required
                                 >
-                                    <option value="">Chọn tỉnh/thành phố</option>
+                                    <option value="">-- Chọn Tỉnh/TP --</option>
                                     {LOCATIONS.map(loc => (
                                         <option key={loc} value={loc}>{loc}</option>
                                     ))}
                                 </select>
                             </div>
 
-                            <div>
+                            <div className="relative" ref={districtDropdownRef}>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Quận/Huyện *
+                                    Quận/Huyện <span className="text-red-500">*</span>
                                 </label>
-                                <select
-                                    name="district"
-                                    value={formData.district}
-                                    onChange={handleInputChange}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    required
-                                    disabled={!formData.location}
+                                <div
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (formData.location) {
+                                            setShowDistrictDropdown(!showDistrictDropdown);
+                                            setDistrictSearchTerm('');
+                                        }
+                                    }}
+                                    className={`w-full px-3 py-2 border rounded-lg cursor-pointer bg-white flex items-center justify-between ${
+                                        showDistrictDropdown ? 'border-blue-500 ring-2 ring-blue-500' : 'border-gray-300'
+                                    } ${!formData.location ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
-                                    <option value="">Chọn quận/huyện</option>
-                                    {DISTRICTS[formData.location]?.map(d => (
-                                        <option key={d} value={d}>{d}</option>
-                                    ))}
-                                </select>
+                                    {formData.location && DISTRICTS[formData.location] && DISTRICTS[formData.location].length > 0 ? (
+                                        <span className={formData.district ? 'text-gray-900' : 'text-gray-400'}>
+                                            {formData.district || '-- Chọn quận huyện --'}
+                                        </span>
+                                    ) : (
+                                        <input
+                                            type="text"
+                                            name="district"
+                                            value={formData.district}
+                                            onChange={(e) => {
+                                                e.stopPropagation();
+                                                handleInputChange(e);
+                                            }}
+                                            placeholder="Nhập quận/huyện"
+                                            className="flex-1 outline-none bg-transparent"
+                                            onClick={(e) => e.stopPropagation()}
+                                            onFocus={(e) => {
+                                                e.stopPropagation();
+                                                if (formData.location) {
+                                                    setShowDistrictDropdown(true);
+                                                }
+                                            }}
+                                            disabled={!formData.location}
+                                        />
+                                    )}
+                                    <svg 
+                                        className={`w-4 h-4 text-gray-400 transition-transform ${showDistrictDropdown ? 'transform rotate-180' : ''}`} 
+                                        fill="none" 
+                                        stroke="currentColor" 
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                                {showDistrictDropdown && formData.location && (
+                                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-hidden">
+                                        <div className="p-2 border-b border-gray-200">
+                                            <input
+                                                type="text"
+                                                placeholder="Nhập từ khóa để tìm kiếm"
+                                                value={districtSearchTerm}
+                                                onChange={(e) => {
+                                                    e.stopPropagation();
+                                                    setDistrictSearchTerm(e.target.value);
+                                                }}
+                                                onClick={(e) => e.stopPropagation()}
+                                                onFocus={(e) => e.stopPropagation()}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                autoFocus
+                                            />
+                                        </div>
+                                        <div className="max-h-48 overflow-y-auto">
+                                            {formData.location && DISTRICTS[formData.location] && DISTRICTS[formData.location].length > 0 ? (
+                                                <>
+                                                    {DISTRICTS[formData.location]
+                                                        .filter(d => d.toLowerCase().includes(districtSearchTerm.toLowerCase()))
+                                                        .map(d => (
+                                                            <div
+                                                                key={d}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setFormData(prev => {
+                                                                        const newData = { ...prev, district: d, ward: '', street: '' };
+                                                                        setTimeout(() => {
+                                                                            updateAddressAndGeocode(
+                                                                                newData.location || '',
+                                                                                d,
+                                                                                '',
+                                                                                '',
+                                                                                newData.houseNumber || ''
+                                                                            );
+                                                                        }, 100);
+                                                                        return newData;
+                                                                    });
+                                                                    setShowDistrictDropdown(false);
+                                                                    setDistrictSearchTerm('');
+                                                                }}
+                                                                className={`px-4 py-2 cursor-pointer hover:bg-blue-50 transition-colors ${
+                                                                    formData.district === d ? 'bg-blue-500 text-white hover:bg-blue-600' : 'text-gray-900'
+                                                                }`}
+                                                            >
+                                                                {d}
+                                                            </div>
+                                                        ))}
+                                                    {DISTRICTS[formData.location].filter(d => d.toLowerCase().includes(districtSearchTerm.toLowerCase())).length === 0 && (
+                                                        <div className="px-4 py-2 text-gray-500 text-sm text-center">
+                                                            Không tìm thấy
+                                                        </div>
+                                                    )}
+                                                </>
+                                            ) : (
+                                                <div className="px-4 py-2 text-gray-500 text-sm text-center">
+                                                    Nhập quận/huyện vào ô trên
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
-                            <div className="md:col-span-2">
+                            <div className="relative" ref={wardDropdownRef}>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Địa chỉ chi tiết
+                                    Phường/Xã
+                                </label>
+                                <div
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (formData.district) {
+                                            setShowWardDropdown(!showWardDropdown);
+                                            setWardSearchTerm('');
+                                        }
+                                    }}
+                                    className={`w-full px-3 py-2 border rounded-lg cursor-pointer bg-white flex items-center justify-between ${
+                                        showWardDropdown ? 'border-blue-500 ring-2 ring-blue-500' : 'border-gray-300'
+                                    } ${!formData.district ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                >
+                                    {formData.district && (VIETNAM_WARDS[formData.district] || getDefaultWards(formData.district)) && (VIETNAM_WARDS[formData.district] || getDefaultWards(formData.district)).length > 0 ? (
+                                        <span className={formData.ward ? 'text-gray-900' : 'text-gray-400'}>
+                                            {formData.ward || '-- Phường/Xã --'}
+                                        </span>
+                                    ) : (
+                                        <input
+                                            type="text"
+                                            name="ward"
+                                            value={formData.ward || ''}
+                                            onChange={(e) => {
+                                                e.stopPropagation();
+                                                handleInputChange(e);
+                                            }}
+                                            placeholder="Nhập phường/xã"
+                                            className="flex-1 outline-none bg-transparent"
+                                            onClick={(e) => e.stopPropagation()}
+                                            onFocus={(e) => {
+                                                e.stopPropagation();
+                                                if (formData.district) {
+                                                    setShowWardDropdown(true);
+                                                }
+                                            }}
+                                            disabled={!formData.district}
+                                        />
+                                    )}
+                                    <svg 
+                                        className={`w-4 h-4 text-gray-400 transition-transform ${showWardDropdown ? 'transform rotate-180' : ''}`} 
+                                        fill="none" 
+                                        stroke="currentColor" 
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                                {showWardDropdown && formData.district && (
+                                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-hidden">
+                                        <div className="p-2 border-b border-gray-200">
+                                            <input
+                                                type="text"
+                                                placeholder="Nhập từ khóa để tìm kiếm"
+                                                value={wardSearchTerm}
+                                                onChange={(e) => {
+                                                    e.stopPropagation();
+                                                    setWardSearchTerm(e.target.value);
+                                                }}
+                                                onClick={(e) => e.stopPropagation()}
+                                                onFocus={(e) => e.stopPropagation()}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                autoFocus
+                                            />
+                                        </div>
+                                        <div className="max-h-48 overflow-y-auto">
+                                            {formData.district && (VIETNAM_WARDS[formData.district] || getDefaultWards(formData.district)) && (VIETNAM_WARDS[formData.district] || getDefaultWards(formData.district)).length > 0 ? (
+                                                <>
+                                                    <div
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setFormData(prev => ({ ...prev, ward: '' }));
+                                                            setShowWardDropdown(false);
+                                                            setWardSearchTerm('');
+                                                        }}
+                                                        className="px-4 py-2 cursor-pointer hover:bg-blue-50 text-gray-500"
+                                                    >
+                                                        -- Phường/Xã --
+                                                    </div>
+                                                    {(VIETNAM_WARDS[formData.district] || getDefaultWards(formData.district))
+                                                        .filter(w => w.toLowerCase().includes(wardSearchTerm.toLowerCase()))
+                                                        .map(w => (
+                                                            <div
+                                                                key={w}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setFormData(prev => {
+                                                                        const newData = { ...prev, ward: w };
+                                                                        setTimeout(() => {
+                                                                            updateAddressAndGeocode(
+                                                                                newData.location || '',
+                                                                                newData.district || '',
+                                                                                w,
+                                                                                newData.street || '',
+                                                                                newData.houseNumber || ''
+                                                                            );
+                                                                        }, 100);
+                                                                        return newData;
+                                                                    });
+                                                                    setShowWardDropdown(false);
+                                                                    setWardSearchTerm('');
+                                                                }}
+                                                                className={`px-4 py-2 cursor-pointer hover:bg-blue-50 transition-colors ${
+                                                                    formData.ward === w ? 'bg-blue-500 text-white hover:bg-blue-600' : 'text-gray-900'
+                                                                }`}
+                                                            >
+                                                                {w}
+                                                            </div>
+                                                        ))}
+                                                    {(VIETNAM_WARDS[formData.district] || getDefaultWards(formData.district)).filter(w => w.toLowerCase().includes(wardSearchTerm.toLowerCase())).length === 0 && (
+                                                        <div className="px-4 py-2 text-gray-500 text-sm text-center">
+                                                            Không tìm thấy
+                                                        </div>
+                                                    )}
+                                                </>
+                                            ) : (
+                                                <div className="px-4 py-2 text-gray-500 text-sm text-center">
+                                                    Nhập phường/xã vào ô trên (có thể nhập tay)
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="relative" ref={streetDropdownRef}>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Đường/Phố
+                                </label>
+                                <div
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (formData.district) {
+                                            setShowStreetDropdown(!showStreetDropdown);
+                                            setStreetSearchTerm('');
+                                        }
+                                    }}
+                                    className={`w-full px-3 py-2 border rounded-lg cursor-pointer bg-white flex items-center justify-between ${
+                                        showStreetDropdown ? 'border-blue-500 ring-2 ring-blue-500' : 'border-gray-300'
+                                    } ${!formData.district ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                >
+                                    {formData.district && (VIETNAM_STREETS[formData.district] || getDefaultStreets(formData.district)) && (VIETNAM_STREETS[formData.district] || getDefaultStreets(formData.district)).length > 0 ? (
+                                        <span className={formData.street ? 'text-gray-900' : 'text-gray-400'}>
+                                            {formData.street || '-- Đường/Phố --'}
+                                        </span>
+                                    ) : (
+                                        <input
+                                            type="text"
+                                            name="street"
+                                            value={formData.street || ''}
+                                            onChange={(e) => {
+                                                e.stopPropagation();
+                                                handleInputChange(e);
+                                            }}
+                                            placeholder="Nhập đường/phố"
+                                            className="flex-1 outline-none bg-transparent"
+                                            onClick={(e) => e.stopPropagation()}
+                                            onFocus={(e) => {
+                                                e.stopPropagation();
+                                                if (formData.district) {
+                                                    setShowStreetDropdown(true);
+                                                }
+                                            }}
+                                            disabled={!formData.district}
+                                        />
+                                    )}
+                                    <svg 
+                                        className={`w-4 h-4 text-gray-400 transition-transform ${showStreetDropdown ? 'transform rotate-180' : ''}`} 
+                                        fill="none" 
+                                        stroke="currentColor" 
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                                {showStreetDropdown && formData.district && (
+                                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-hidden">
+                                        <div className="p-2 border-b border-gray-200">
+                                            <input
+                                                type="text"
+                                                placeholder="Nhập từ khóa để tìm kiếm"
+                                                value={streetSearchTerm}
+                                                onChange={(e) => {
+                                                    e.stopPropagation();
+                                                    setStreetSearchTerm(e.target.value);
+                                                }}
+                                                onClick={(e) => e.stopPropagation()}
+                                                onFocus={(e) => e.stopPropagation()}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                autoFocus
+                                            />
+                                        </div>
+                                        <div className="max-h-48 overflow-y-auto">
+                                            {formData.district && (VIETNAM_STREETS[formData.district] || getDefaultStreets(formData.district)) && (VIETNAM_STREETS[formData.district] || getDefaultStreets(formData.district)).length > 0 ? (
+                                                <>
+                                                    <div
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setFormData(prev => ({ ...prev, street: '' }));
+                                                            setShowStreetDropdown(false);
+                                                            setStreetSearchTerm('');
+                                                        }}
+                                                        className="px-4 py-2 cursor-pointer hover:bg-blue-50 text-gray-500"
+                                                    >
+                                                        -- Đường/Phố --
+                                                    </div>
+                                                    {(VIETNAM_STREETS[formData.district] || getDefaultStreets(formData.district))
+                                                        .filter(s => s.toLowerCase().includes(streetSearchTerm.toLowerCase()))
+                                                        .map(s => (
+                                                            <div
+                                                                key={s}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setFormData(prev => {
+                                                                        const newData = { ...prev, street: s };
+                                                                        setTimeout(() => {
+                                                                            updateAddressAndGeocode(
+                                                                                newData.location || '',
+                                                                                newData.district || '',
+                                                                                newData.ward || '',
+                                                                                s,
+                                                                                newData.houseNumber || ''
+                                                                            );
+                                                                        }, 100);
+                                                                        return newData;
+                                                                    });
+                                                                    setShowStreetDropdown(false);
+                                                                    setStreetSearchTerm('');
+                                                                }}
+                                                                className={`px-4 py-2 cursor-pointer hover:bg-blue-50 transition-colors ${
+                                                                    formData.street === s ? 'bg-blue-500 text-white hover:bg-blue-600' : 'text-gray-900'
+                                                                }`}
+                                                            >
+                                                                {s}
+                                                            </div>
+                                                        ))}
+                                                    {(VIETNAM_STREETS[formData.district] || getDefaultStreets(formData.district)).filter(s => s.toLowerCase().includes(streetSearchTerm.toLowerCase())).length === 0 && (
+                                                        <div className="px-4 py-2 text-gray-500 text-sm text-center">
+                                                            Không tìm thấy
+                                                        </div>
+                                                    )}
+                                                </>
+                                            ) : (
+                                                <div className="px-4 py-2 text-gray-500 text-sm text-center">
+                                                    Nhập đường/phố vào ô trên
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Số nhà
+                                </label>
+                                <input
+                                    type="text"
+                                    name="houseNumber"
+                                    value={formData.houseNumber || ''}
+                                    onChange={handleInputChange}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="Nhập số nhà"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Địa chỉ
                                 </label>
                                 <input
                                     type="text"
                                     name="address"
                                     value={formData.address}
                                     onChange={handleInputChange}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="VD: 123 Đường ABC, Phường XYZ"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50"
+                                    placeholder="Địa chỉ"
+                                    readOnly
                                 />
                             </div>
+                        </div>
+
+                        {/* Google Maps */}
+                        <div className="mt-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Chọn vị trí trên bản đồ
+                            </label>
+                            <div className="relative">
+                                <div 
+                                    ref={mapRef}
+                                    className="w-full h-96 rounded-lg border border-gray-300 overflow-hidden"
+                                    style={{ minHeight: '400px' }}
+                                />
+                                {error && (
+                                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg z-10">
+                                        <div className="text-center p-6 max-w-md bg-white rounded-lg shadow-lg border border-red-200">
+                                            <div className="text-red-500 text-5xl mb-4">⚠️</div>
+                                            <p className="text-red-600 font-semibold mb-2 text-lg">Rất tiếc! Đã xảy ra lỗi.</p>
+                                            <p className="text-gray-700 mb-4 text-sm">{error}</p>
+                                            <div className="space-y-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setError('');
+                                                        setMapLoaded(false);
+                                                        // Remove existing script and reload
+                                                        const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
+                                                        if (existingScript) {
+                                                            existingScript.remove();
+                                                        }
+                                                        window.location.reload();
+                                                    }}
+                                                    className="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors mr-2"
+                                                >
+                                                    Thử lại
+                                                </button>
+                                                <p className="text-xs text-gray-500 mt-2">
+                                                    Mở Console (F12) để xem chi tiết lỗi
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                                {!mapLoaded && !error && (
+                                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg">
+                                        <div className="text-center">
+                                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                                            <p className="text-gray-600">Đang tải bản đồ...</p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            {formData.latitude && formData.longitude && (
+                                <p className="text-sm text-gray-600 mt-2">
+                                    Tọa độ: {formData.latitude.toFixed(6)}, {formData.longitude.toFixed(6)}
+                                </p>
+                            )}
                         </div>
                     </div>
 

@@ -1,7 +1,14 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api'; // Đảm bảo bạn đã import API client của mình
 import ConnectionModal from '../components/ConnectionModal';
+
+// Declare Google Maps types
+declare global {
+    interface Window {
+        google: any;
+    }
+}
 import {
   MapPin,
   DollarSign,
@@ -44,6 +51,7 @@ function PostDetail() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showImageModal, setShowImageModal] = useState(false);
   const [showConnectionModal, setShowConnectionModal] = useState(false);
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [authorInfo, setAuthorInfo] = useState(null);
   const [isConnected, setIsConnected] = useState(false); // Thêm state isConnected
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -212,6 +220,65 @@ function PostDetail() {
       fetchConnectionStatus();
     }
   }, [currentUser, authorInfo, fetchConnectionStatus]);
+
+  // Initialize Google Maps for displaying location
+  const initializeMap = useCallback(() => {
+    if (!mapRef.current || !window.google || !post) return;
+    if (!post.latitude || !post.longitude) return;
+
+    const map = new window.google.maps.Map(mapRef.current, {
+      center: { lat: post.latitude, lng: post.longitude },
+      zoom: 15,
+      mapTypeControl: true,
+      streetViewControl: true,
+      fullscreenControl: true
+    });
+
+    mapInstanceRef.current = map;
+
+    // Add marker
+    const marker = new window.google.maps.Marker({
+      map: map,
+      position: { lat: post.latitude, lng: post.longitude },
+      title: post.title || 'Vị trí phòng trọ'
+    });
+
+    markerRef.current = marker;
+
+    // Add info window
+    const infoWindow = new window.google.maps.InfoWindow({
+      content: `
+        <div>
+          <h3 class="font-semibold">${post.title || 'Phòng trọ'}</h3>
+          <p class="text-sm">${post.address || `${post.district}, ${post.location}`}</p>
+        </div>
+      `
+    });
+
+    marker.addListener('click', () => {
+      infoWindow.open(map, marker);
+    });
+  }, [post]);
+
+  // Load Google Maps script
+  useEffect(() => {
+    if (post && post.latitude && post.longitude) {
+      if (typeof window !== 'undefined' && !window.google) {
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBFw0Qbyq9zTFTd-tUY6d-s6M4kZWL5XjE&libraries=places&language=vi`;
+        script.async = true;
+        script.defer = true;
+        script.onload = () => {
+          setMapLoaded(true);
+          setTimeout(initializeMap, 100);
+        };
+        document.head.appendChild(script);
+      } else if (window.google) {
+        setMapLoaded(true);
+        setTimeout(initializeMap, 100);
+      }
+    }
+  }, [post, initializeMap]);
 
   // Debugging logs
   useEffect(() => {
@@ -600,6 +667,34 @@ function PostDetail() {
               <p className="text-gray-700 leading-relaxed">{post.description}</p>
             </div>
 
+            {/* Google Maps */}
+            {(post.latitude && post.longitude) && (
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-3 flex items-center">
+                  <MapPin className="w-5 h-5 mr-2" />
+                  Vị trí trên bản đồ
+                </h3>
+                <div className="relative">
+                  <div 
+                    ref={mapRef}
+                    className="w-full h-96 rounded-lg border border-gray-300 overflow-hidden"
+                    style={{ minHeight: '400px' }}
+                  />
+                  {!mapLoaded && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+                      <p className="text-gray-600">Đang tải bản đồ...</p>
+                    </div>
+                  )}
+                </div>
+                {post.address && (
+                  <p className="text-sm text-gray-600 mt-2">
+                    <MapPin className="w-4 h-4 inline mr-1" />
+                    {post.address}
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* Property Details / Roommate Details */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
@@ -686,11 +781,16 @@ function PostDetail() {
           <div className="bg-white rounded-lg shadow-lg p-6">
             <div className="flex items-center space-x-4 mb-4">
               <div className="relative group">
-                <img
+              <img
                   key={authorInfo?.avatar || 'default'}
-                  src={authorInfo?.avatar || '/default-avatar.png'}
+                src={authorInfo?.avatar || '/default-avatar.png'}
                   alt={authorInfo?.fullName || authorInfo?.email || 'Người dùng'}
-                  className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+                  className="w-16 h-16 rounded-full object-cover border-2 border-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={() => {
+                    if (authorInfo?.avatar) {
+                      setShowAvatarModal(true);
+                    }
+                  }}
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = '/default-avatar.png';
                   }}
@@ -821,7 +921,7 @@ function PostDetail() {
                 ) : (
                   <h3 className="font-semibold text-gray-900 flex items-center gap-2">
                     <span>{authorInfo?.fullName || authorInfo?.email || 'Người dùng ẩn danh'}</span>
-                    {authorInfo?.verified && (
+                  {authorInfo?.verified && (
                       <CheckCircle size={16} className="text-green-500" />
                     )}
                     {currentUser && currentUser.id === authorInfo?.id && (
@@ -835,8 +935,8 @@ function PostDetail() {
                       >
                         <Edit2 size={14} />
                       </button>
-                    )}
-                  </h3>
+                  )}
+                </h3>
                 )}
                 <p className="text-sm text-gray-600">
                   Tham gia từ {formatDate(authorInfo?.createdAt || new Date())}
@@ -943,6 +1043,28 @@ function PostDetail() {
           </div>
         </div>
       </div>
+
+      {/* Avatar Modal */}
+      {showAvatarModal && authorInfo?.avatar && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50" onClick={() => setShowAvatarModal(false)}>
+          <div className="relative max-w-4xl max-h-[90vh] p-4" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setShowAvatarModal(false)}
+              className="absolute top-2 right-2 bg-white rounded-full p-2 hover:bg-gray-200 transition-colors z-10"
+            >
+              <X size={24} />
+            </button>
+            <img
+              src={authorInfo.avatar}
+              alt={authorInfo?.fullName || authorInfo?.email || 'Avatar'}
+              className="max-w-full max-h-[90vh] rounded-lg object-contain"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = '/default-avatar.png';
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Image Modal */}
       {showImageModal && (
