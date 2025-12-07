@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Bell, Check, X, UserPlus, MessageCircle } from 'lucide-react';
+import { Bell, Check, X, UserPlus, MessageCircle, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import clsx from 'clsx';
 import { useSocket } from '../hooks/useSocket';
@@ -16,6 +16,8 @@ interface Notification {
     message?: string;
     toUser?: { fullName: string };
     fromUser?: { fullName: string };
+    blogTitle?: string;
+    blogId?: string;
   };
   isRead: boolean;
   createdAt: string;
@@ -32,7 +34,7 @@ function NotificationDropdown() {
     return storedUser ? JSON.parse(storedUser) : null;
   })[0];
   const { socket } = useSocket() as any;
-
+  
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -89,6 +91,29 @@ function NotificationDropdown() {
             }
           }
         }
+        // blog_liked: ensure fromUser is set
+        else if (processedNotification.type === 'blog_liked') {
+          if (!processedNotification.fromUser || !processedNotification.fromUser.fullName) {
+            // fromUser should already be in data, but ensure it's set
+            if (processedNotification.data?.fromUser) {
+              processedNotification.fromUser = processedNotification.data.fromUser;
+            }
+          }
+        }
+        // post_liked: ensure fromUser is set
+        else if (processedNotification.type === 'post_liked') {
+          if (!processedNotification.fromUser || !processedNotification.fromUser.fullName) {
+            // fromUser should already be in data, but ensure it's set
+            if (processedNotification.data?.fromUser) {
+              processedNotification.fromUser = processedNotification.data.fromUser;
+            }
+          }
+        }
+        
+        // Only add notification if it's for the current user
+        if (processedNotification.userId !== currentUser?.id) {
+          return;
+        }
          setNotifications(prev => {
           if (prev.some(n => n.id === processedNotification.id)) return prev;
           return [processedNotification, ...prev].sort(
@@ -129,12 +154,28 @@ function NotificationDropdown() {
             } catch (err) {
               console.error('Error fetching connection/sender for notification:', err);
             }
+          } else if (notif.type === 'blog_liked') {
+            // blog_liked notifications should already have fromUser in data
+            if (notif.data?.fromUser) {
+              notif.fromUser = notif.data.fromUser;
+            }
+          } else if (notif.type === 'post_liked') {
+            // post_liked notifications should already have fromUser in data
+            if (notif.data?.fromUser) {
+              notif.fromUser = notif.data.fromUser;
+            }
           }
           return notif;
         }),
       );
-      setNotifications(notificationsWithSender);
-      setUnreadCount(notificationsWithSender.filter(n => !n.isRead).length);
+      
+      // Sort notifications by createdAt descending (newest first)
+      const sortedNotifications = notificationsWithSender.sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      
+      setNotifications(sortedNotifications);
+      setUnreadCount(sortedNotifications.filter(n => !n.isRead).length);
     } catch (error) {
       console.error('Error loading notifications:', error);
     } finally {
@@ -144,9 +185,13 @@ function NotificationDropdown() {
  const handleMarkAsRead = async (notificationId: string) => {
     try {
       await api.patch(`/notifications/${notificationId}`, { isRead: true });
-      setNotifications(prev =>
-        prev.map(n => (n.id === notificationId ? { ...n, isRead: true } : n)),
-      );
+      setNotifications(prev => {
+        const updated = prev.map(n => (n.id === notificationId ? { ...n, isRead: true } : n));
+        // Maintain sort order (newest first)
+        return updated.sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      });
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
       console.error('Error marking notification as read:', error);
@@ -178,6 +223,10 @@ function NotificationDropdown() {
         return <X size={16} className="text-red-600" />;
       case 'connection_cancelled':
         return <X size={16} className="text-gray-600" />;
+      case 'blog_liked':
+        return <Heart size={16} className="text-red-600" fill="currentColor" />;
+      case 'post_liked':
+        return <Heart size={16} className="text-red-600" fill="currentColor" />;
       default:
         return <MessageCircle size={16} className="text-gray-600" />;
     }
@@ -194,6 +243,10 @@ function NotificationDropdown() {
         return `${notification.data?.toUser?.fullName || 'Ai đó'} đã từ chối lời mời kết nối`;
       case 'connection_cancelled':
         return `${notification.data?.fromUser?.fullName || 'Ai đó'} đã hủy lời mời kết nối`;
+      case 'blog_liked':
+        return `${notification.fromUser?.fullName || 'Ai đó'} đã thích bài viết "${notification.data?.blogTitle || 'blog'}"`;
+      case 'post_liked':
+        return `${notification.fromUser?.fullName || 'Ai đó'} đã thích bài đăng "${notification.data?.postTitle || 'phòng trọ'}"`;
       default:
         return 'Bạn có thông báo mới';
     }
@@ -207,6 +260,10 @@ function NotificationDropdown() {
       case 'connection_declined':
       case 'connection_cancelled':
         return `/connections`;
+      case 'blog_liked':
+        return notification.data?.blogId ? `/blog/${notification.data.blogId}` : '/blog';
+      case 'post_liked':
+        return notification.data?.postId ? `/post/${notification.data.postId}` : '/';
       default:
         return '/';
     }
@@ -225,6 +282,7 @@ function NotificationDropdown() {
     };
   }, []);
 
+  // Show for all logged-in users
   if (!currentUser) return null;
 
   return (

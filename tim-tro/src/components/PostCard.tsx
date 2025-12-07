@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { Heart, Eye } from 'lucide-react';
 import ConnectionModal from './ConnectionModal';
+import api from '../api';
 
 interface Post {
   id: string;
@@ -27,6 +29,8 @@ interface Post {
   major?: string;
   year?: string;
   amenities?: string[];
+  views?: number;
+  likes?: number;
 }
 
 interface CurrentUser {
@@ -41,21 +45,46 @@ interface PostCardProps {
   post: Post;
 }
 const PostCard: React.FC<PostCardProps> = ({ post }) => {
+  const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [showConnectionModal, setShowConnectionModal] = useState(false);
+  const [postLikes, setPostLikes] = useState(post.likes || 0);
+  const [postViews, setPostViews] = useState(post.views || 0);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('currentUser');
     if (storedUser) {
       try {
-        setCurrentUser(JSON.parse(storedUser));
+        const user = JSON.parse(storedUser);
+        setCurrentUser(user);
+        const userId = user.id || user.uid || null;
+        setCurrentUserId(userId);
+        
+        // Load liked posts for this user
+        if (userId) {
+          const likedKey = `likedPosts_${userId}`;
+          const savedLikes = localStorage.getItem(likedKey);
+          if (savedLikes) {
+            try {
+              const likedArray = JSON.parse(savedLikes);
+              setIsLiked(likedArray.includes(post.id));
+            } catch (e) {
+              console.error('Error parsing liked posts:', e);
+            }
+          }
+        }
       } catch (error) {
         console.error('Error parsing currentUser from localStorage:', error);
       }
     }
-  }, []);
+    
+    // Initialize views and likes
+    setPostLikes(post.likes || 0);
+    setPostViews(post.views || 0);
+  }, [post.id, post.likes, post.views]);
  const getCurrentUserId = () => {
     return currentUser?.id || currentUser?.uid || '';
   };
@@ -119,10 +148,268 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
     }
   };
 
-   const handleLike = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleLike = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsLiked((prev) => !prev);
+    
+    // Check if user is logged in
+    if (!currentUserId) {
+      alert('Vui lòng đăng nhập để thích bài đăng.');
+      return;
+    }
+    
+    try {
+      const wasLiked = isLiked;
+      const newLikes = wasLiked ? postLikes - 1 : postLikes + 1;
+      
+      // Update in database
+      await api.patch(`/posts/${post.id}`, {
+        likes: newLikes
+      });
+      
+      // Update local state
+      setPostLikes(newLikes);
+      setIsLiked(!wasLiked);
+      
+      // Update localStorage
+      const likedKey = `likedPosts_${currentUserId}`;
+      const likedPosts = JSON.parse(localStorage.getItem(likedKey) || '[]');
+      if (wasLiked) {
+        const updated = likedPosts.filter((postId: string) => postId !== post.id);
+        localStorage.setItem(likedKey, JSON.stringify(updated));
+      } else {
+        if (!likedPosts.includes(post.id)) {
+          likedPosts.push(post.id);
+          localStorage.setItem(likedKey, JSON.stringify(likedPosts));
+        }
+      }
+      
+      // Create notification for admin and post author when user likes (only if liking, not unliking)
+      if (!wasLiked) {
+        try {
+          console.log('Creating notification for post like...');
+          
+          // Get current user info
+          const userResponse = await api.get(`/users/${currentUserId}`);
+          const user = userResponse.data;
+          
+          // Find admin users and post author
+          const adminsResponse = await api.get(`/users?role=admin`);
+          const admins = Array.isArray(adminsResponse.data) ? adminsResponse.data : [];
+          
+          // Get post author (try both authorId and userId)
+          const authorId = post.authorId || post.userId;
+          if (authorId) {
+            try {
+              const authorResponse = await api.get(`/users/${authorId}`);
+              const author = authorResponse.data;
+              
+              // List of users to notify: admins + post author (if not already admin)
+              const usersToNotify = [...admins];
+              if (author && author.id && !admins.some((a: any) => a.id === author.id)) {
+                usersToNotify.push(author);
+              }
+              
+              console.log('Users to notify:', usersToNotify.map((u: any) => u.id));
+              
+              if (usersToNotify.length === 0) {
+                console.warn('No users to notify.');
+                return;
+              }
+              
+              // Create notification for each user (admin + author)
+              const notificationPromises = usersToNotify.map((targetUser: any) => {
+                const notificationId = `post_liked_${Date.now()}_${targetUser.id}_${post.id}`;
+                return api.post(`/notifications`, {
+                  id: notificationId,
+                  type: 'post_liked',
+                  userId: targetUser.id,
+                  fromUser: {
+                    fullName: user.fullName || user.email || 'Người dùng',
+                    id: user.id || currentUserId
+                  },
+                  data: {
+                    postTitle: post.title,
+                    postId: post.id
+                  },
+                  isRead: false,
+                  createdAt: new Date().toISOString()
+                }).then(res => {
+                  console.log(`Notification created for user ${targetUser.id}:`, res.data);
+                  return res.data;
+                }).catch(err => {
+                  console.error(`Error creating notification for user ${targetUser.id}:`, err);
+                  return null;
+                });
+              });
+              
+              const createdNotifications = await Promise.all(notificationPromises);
+              console.log('All notifications created:', createdNotifications.filter(n => n !== null));
+              
+              // Emit socket event if available
+              if ((window as any).socket) {
+                usersToNotify.forEach((targetUser: any) => {
+                  (window as any).socket.emit('newNotification', {
+                    id: `post_liked_${Date.now()}_${targetUser.id}_${post.id}`,
+                    type: 'post_liked',
+                    userId: targetUser.id,
+                    fromUser: {
+                      fullName: user.fullName || user.email || 'Người dùng',
+                      id: user.id || currentUserId
+                    },
+                    data: {
+                      postTitle: post.title,
+                      postId: post.id
+                    },
+                    isRead: false,
+                    createdAt: new Date().toISOString()
+                  });
+                });
+                console.log('Socket events emitted');
+              }
+            } catch (authorError) {
+              console.error('Error fetching author:', authorError);
+              // Still notify admins even if author fetch fails
+              if (admins.length > 0) {
+                const notificationPromises = admins.map((targetUser: any) => {
+                  const notificationId = `post_liked_${Date.now()}_${targetUser.id}_${post.id}`;
+                  return api.post(`/notifications`, {
+                    id: notificationId,
+                    type: 'post_liked',
+                    userId: targetUser.id,
+                    fromUser: {
+                      fullName: user.fullName || user.email || 'Người dùng',
+                      id: user.id || currentUserId
+                    },
+                    data: {
+                      postTitle: post.title,
+                      postId: post.id
+                    },
+                    isRead: false,
+                    createdAt: new Date().toISOString()
+                  }).catch(err => {
+                    console.error(`Error creating notification for admin ${targetUser.id}:`, err);
+                    return null;
+                  });
+                });
+                await Promise.all(notificationPromises);
+              }
+            }
+          } else {
+            // No authorId, only notify admins
+            if (admins.length > 0) {
+              const notificationPromises = admins.map((targetUser: any) => {
+                const notificationId = `post_liked_${Date.now()}_${targetUser.id}_${post.id}`;
+                return api.post(`/notifications`, {
+                  id: notificationId,
+                  type: 'post_liked',
+                  userId: targetUser.id,
+                  fromUser: {
+                    fullName: user.fullName || user.email || 'Người dùng',
+                    id: user.id || currentUserId
+                  },
+                  data: {
+                    postTitle: post.title,
+                    postId: post.id
+                  },
+                  isRead: false,
+                  createdAt: new Date().toISOString()
+                }).catch(err => {
+                  console.error(`Error creating notification for admin ${targetUser.id}:`, err);
+                  return null;
+                });
+              });
+              await Promise.all(notificationPromises);
+            }
+          }
+          
+          console.log('Users to notify:', usersToNotify.map((u: any) => u.id));
+          
+          if (usersToNotify.length === 0) {
+            console.warn('No users to notify.');
+            return;
+          }
+          
+          // Create notification for each user (admin + author)
+          const notificationPromises = usersToNotify.map((targetUser: any) => {
+            const notificationId = `post_liked_${Date.now()}_${targetUser.id}_${post.id}`;
+            return api.post(`/notifications`, {
+              id: notificationId,
+              type: 'post_liked',
+              userId: targetUser.id,
+              fromUser: {
+                fullName: user.fullName || user.email || 'Người dùng',
+                id: user.id || currentUserId
+              },
+              data: {
+                postTitle: post.title,
+                postId: post.id
+              },
+              isRead: false,
+              createdAt: new Date().toISOString()
+            }).then(res => {
+              console.log(`Notification created for user ${targetUser.id}:`, res.data);
+              return res.data;
+            }).catch(err => {
+              console.error(`Error creating notification for user ${targetUser.id}:`, err);
+              return null;
+            });
+          });
+          
+          const createdNotifications = await Promise.all(notificationPromises);
+          console.log('All notifications created:', createdNotifications.filter(n => n !== null));
+          
+          // Emit socket event if available
+          if ((window as any).socket) {
+            usersToNotify.forEach((targetUser: any) => {
+              (window as any).socket.emit('newNotification', {
+                id: `post_liked_${Date.now()}_${targetUser.id}_${post.id}`,
+                type: 'post_liked',
+                userId: targetUser.id,
+                fromUser: {
+                  fullName: user.fullName || user.email || 'Người dùng',
+                  id: user.id || currentUserId
+                },
+                data: {
+                  postTitle: post.title,
+                  postId: post.id
+                },
+                isRead: false,
+                createdAt: new Date().toISOString()
+              });
+            });
+            console.log('Socket events emitted');
+          }
+        } catch (notifError) {
+          console.error('Error creating like notification:', notifError);
+        }
+      }
+    } catch (error) {
+      console.error('Error updating likes:', error);
+      alert('Có lỗi xảy ra khi cập nhật lượt thích. Vui lòng thử lại.');
+    }
+  };
+  
+  const handleViewDetails = async () => {
+    try {
+      // Increment views
+      const newViews = (postViews || 0) + 1;
+      
+      // Update in database
+      await api.patch(`/posts/${post.id}`, {
+        views: newViews
+      });
+      
+      // Update local state
+      setPostViews(newViews);
+      
+      // Navigate to detail page
+      navigate(`/post/${post.id}`);
+    } catch (error) {
+      console.error('Error updating views:', error);
+      // Still navigate even if update fails
+      navigate(`/post/${post.id}`);
+    }
   };
 
   return (
@@ -185,7 +472,10 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
         <div className="flex-1 min-w-0">
           {/* Title with VIP Badge */}
           <div className="mb-2">
-            <h3 className="text-lg font-medium text-red-600 hover:text-red-700 cursor-pointer line-clamp-2 transition-colors">
+            <h3 
+              onClick={handleViewDetails}
+              className="text-lg font-medium text-red-600 hover:text-red-700 cursor-pointer line-clamp-2 transition-colors"
+            >
               <span className="inline-flex items-center mr-2">
                 {/* Star Rating */}
                 <div className="flex text-yellow-400 mr-2">
@@ -312,19 +602,24 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
                 </button>
               )}
 
-              {/* Save Button */}
-              <button
-                onClick={handleLike}
-                className={`p-2 rounded border transition-colors ${isLiked
-                  ? 'bg-red-50 border-red-200 text-red-600'
-                  : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
-                  }`}
-                aria-label="Lưu tin này"
-              >
-                <svg className="w-4 h-4" fill={isLiked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-              </button>
+              {/* Like and View Icons */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleLike}
+                  className={`p-2 rounded border transition-colors flex items-center gap-1 ${isLiked
+                    ? 'bg-red-50 border-red-200 text-red-600'
+                    : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                    }`}
+                  aria-label="Thích bài đăng"
+                >
+                  <Heart size={16} fill={isLiked ? 'currentColor' : 'none'} />
+                  <span className="text-xs">{postLikes}</span>
+                </button>
+                <div className="p-2 rounded border bg-gray-50 border-gray-200 text-gray-600 flex items-center gap-1">
+                  <Eye size={16} />
+                  <span className="text-xs">{postViews}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

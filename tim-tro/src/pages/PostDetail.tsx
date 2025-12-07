@@ -21,26 +21,57 @@ import {
   ChevronRight,
   X,
   UserPlus,
-  MessageCircle
+  MessageCircle,
+  Camera,
+  Edit2,
+  Check,
+  X as XIcon
 } from 'lucide-react';
 
 function PostDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const currentUser = useState(() => {
+  const [currentUser, setCurrentUser] = useState(() => {
     const storedUser = localStorage.getItem('currentUser');
     return storedUser ? JSON.parse(storedUser) : null;
-  })[0];
+  });
 
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showImageModal, setShowImageModal] = useState(false);
   const [showConnectionModal, setShowConnectionModal] = useState(false);
   const [authorInfo, setAuthorInfo] = useState(null);
   const [isConnected, setIsConnected] = useState(false); // Thêm state isConnected
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editingName, setEditingName] = useState('');
+  
+  useEffect(() => {
+    if (currentUser) {
+      const userId = currentUser.id || currentUser.uid || null;
+      setCurrentUserId(userId);
+    }
+  }, [currentUser]);
+  
+  useEffect(() => {
+    // Load liked posts for this user
+    if (currentUserId && post && post.id) {
+      const likedKey = `likedPosts_${currentUserId}`;
+      const savedLikes = localStorage.getItem(likedKey);
+      if (savedLikes) {
+        try {
+          const likedArray = JSON.parse(savedLikes);
+          setIsLiked(likedArray.includes(post.id));
+        } catch (e) {
+          console.error('Error parsing liked posts:', e);
+        }
+      }
+    }
+  }, [currentUserId, post]);
 
   // Fallback contact phone: prefer author profile phone, then post.contactPhone or post.contact.phone
   const contactPhone = (authorInfo && (authorInfo.phone || authorInfo.contactPhone)) ||
@@ -57,8 +88,10 @@ function PostDetail() {
       }
 
       const response = await api.get(`/posts/${id}`); // Sử dụng api.get thay vì axios.get
-      const postData = response.data;
+      postData = response.data;
       console.log('Fetched post data:', postData);
+      console.log('Post userId:', postData?.userId);
+      console.log('Post authorId:', postData?.authorId);
 
       if (!postData) {
         console.error('Post not found');
@@ -66,7 +99,28 @@ function PostDetail() {
         return;
       }
 
-      setPost(postData);
+      const postWithDefaults = {
+        ...postData,
+        views: postData.views || 0,
+        likes: postData.likes || 0,
+      };
+
+      setPost(postWithDefaults);
+      
+      // Increment views when viewing detail (only once per session)
+      const viewKey = `post_viewed_${id}`;
+      if (!sessionStorage.getItem(viewKey)) {
+        const newViews = (postWithDefaults.views || 0) + 1;
+        setPost((prev: any) => prev ? { ...prev, views: newViews } : null); // Optimistic update
+        api.patch(`/posts/${id}`, {
+          views: newViews
+        }).then(() => {
+          sessionStorage.setItem(viewKey, 'true');
+        }).catch((viewError) => {
+          console.error('Error updating views:', viewError);
+          setPost((prev: any) => prev ? { ...prev, views: postWithDefaults.views || 0 } : null); // Revert on error
+        });
+      }
     } catch (error) {
       console.error('Error fetching post:', error);
       navigate('/');
@@ -74,22 +128,70 @@ function PostDetail() {
     }
 
     // Separate try-catch for author fetching so it doesn't block the post from showing
-    if (postData && postData.userId) {
+    const authorId = postData?.userId || postData?.authorId;
+    if (authorId) {
       try {
-        const authorResponse = await api.get(`/users/${postData.userId}`); // Sử dụng api.get thay vì axios.get
+        console.log('Fetching author info for userId:', authorId);
+        const authorResponse = await api.get(`/users/${authorId}`);
+        console.log('Fetched author info:', authorResponse.data);
         setAuthorInfo(authorResponse.data);
       } catch (error) {
         console.error('Error fetching author info:', error);
-        // Do NOT navigate away if author info fails to load
+        // Try to get from currentUser if it's the same user
+        if (currentUser && (currentUser.id === authorId || currentUser.uid === authorId)) {
+          console.log('Using currentUser as authorInfo');
+          setAuthorInfo(currentUser);
+        }
+      }
+    } else {
+      console.warn('Post has no userId or authorId');
+      // If no authorId, try to use currentUser if they are viewing their own post
+      if (currentUser) {
+        console.log('No authorId found, checking if currentUser is the author');
+        // This is a fallback - ideally post should have userId/authorId
       }
     }
 
     setLoading(false);
-  }, [id, navigate]);
+  }, [id, navigate, currentUser]);
+  
+  // Function to reload author info
+  const reloadAuthorInfo = useCallback(async () => {
+    if (post && (post.userId || post.authorId)) {
+      try {
+        const authorId = post.userId || post.authorId;
+        const authorResponse = await api.get(`/users/${authorId}`);
+        console.log('Reloaded author info:', authorResponse.data);
+        setAuthorInfo(authorResponse.data);
+      } catch (error) {
+        console.error('Error reloading author info:', error);
+      }
+    } else if (currentUser && currentUser.id) {
+      // If post doesn't have userId, try to reload from currentUser
+      try {
+        const authorResponse = await api.get(`/users/${currentUser.id}`);
+        console.log('Reloaded author info from currentUser:', authorResponse.data);
+        setAuthorInfo(authorResponse.data);
+      } catch (error) {
+        console.error('Error reloading author info from currentUser:', error);
+      }
+    }
+  }, [post, currentUser]);
 
   useEffect(() => {
     fetchPost();
   }, [id, navigate, fetchPost]);
+  
+  // Reload author info when currentUser changes (e.g., after login or profile update)
+  useEffect(() => {
+    if (post && currentUser && (post.userId || post.authorId)) {
+      const authorId = post.userId || post.authorId;
+      // Only reload if currentUser is the author
+      if (currentUser.id === authorId || currentUser.uid === authorId) {
+        reloadAuthorInfo();
+      }
+    }
+  }, [currentUser, post, reloadAuthorInfo]);
 
   // Thêm hàm fetchConnectionStatus phần kiểm tra trạng thái kết nối:
   const fetchConnectionStatus = useCallback(async () => {
@@ -144,6 +246,135 @@ function PostDetail() {
   // Thay đổi trạng thái bài đăng
   const toggleFavorite = () => {
     setIsFavorite(!isFavorite);
+  };
+  
+  const handleLike = async () => {
+    if (!currentUserId) {
+      alert('Vui lòng đăng nhập để thích bài đăng.');
+      return;
+    }
+    
+    if (!post) return;
+    
+    try {
+      const wasLiked = isLiked;
+      const newLikes = wasLiked ? (post.likes || 0) - 1 : (post.likes || 0) + 1;
+      
+      // Optimistic update
+      setPost((prev: any) => prev ? { ...prev, likes: newLikes } : null);
+      setIsLiked(!wasLiked);
+      
+      // Update in database
+      await api.patch(`/posts/${post.id}`, {
+        likes: newLikes
+      });
+      
+      // Update localStorage
+      const likedKey = `likedPosts_${currentUserId}`;
+      const likedPosts = JSON.parse(localStorage.getItem(likedKey) || '[]');
+      if (wasLiked) {
+        const updated = likedPosts.filter((postId: string) => postId !== post.id);
+        localStorage.setItem(likedKey, JSON.stringify(updated));
+      } else {
+        if (!likedPosts.includes(post.id)) {
+          likedPosts.push(post.id);
+          localStorage.setItem(likedKey, JSON.stringify(likedPosts));
+        }
+      }
+      
+      // Create notification for admin and post author when user likes (only if liking, not unliking)
+      if (!wasLiked) {
+        try {
+          console.log('Creating notification for post like...');
+          
+          // Get current user info
+          const userResponse = await api.get(`/users/${currentUserId}`);
+          const user = userResponse.data;
+          
+          // Find admin users and post author
+          const adminsResponse = await api.get(`/users?role=admin`);
+          const admins = Array.isArray(adminsResponse.data) ? adminsResponse.data : [];
+          
+          // Get post author
+          const authorResponse = await api.get(`/users/${post.userId || post.authorId}`);
+          const author = authorResponse.data;
+          
+          // List of users to notify: admins + post author (if not already admin)
+          const usersToNotify = [...admins];
+          if (author && author.id && !admins.some((a: any) => a.id === author.id)) {
+            usersToNotify.push(author);
+          }
+          
+          console.log('Users to notify:', usersToNotify.map((u: any) => u.id));
+          
+          if (usersToNotify.length === 0) {
+            console.warn('No users to notify.');
+            return;
+          }
+          
+          // Create notification for each user (admin + author)
+          const notificationPromises = usersToNotify.map((targetUser: any) => {
+            const notificationId = `post_liked_${Date.now()}_${targetUser.id}_${post.id}`;
+            return api.post(`/notifications`, {
+              id: notificationId,
+              type: 'post_liked',
+              userId: targetUser.id,
+              fromUser: {
+                fullName: user.fullName || user.email || 'Người dùng',
+                id: user.id || currentUserId
+              },
+              data: {
+                postTitle: post.title,
+                postId: post.id
+              },
+              isRead: false,
+              createdAt: new Date().toISOString()
+            }).then(res => {
+              console.log(`Notification created for user ${targetUser.id}:`, res.data);
+              return res.data;
+            }).catch(err => {
+              console.error(`Error creating notification for user ${targetUser.id}:`, err);
+              return null;
+            });
+          });
+          
+          const createdNotifications = await Promise.all(notificationPromises);
+          console.log('All notifications created:', createdNotifications.filter(n => n !== null));
+          
+          // Emit socket event if available
+          if ((window as any).socket) {
+            usersToNotify.forEach((targetUser: any) => {
+              (window as any).socket.emit('newNotification', {
+                id: `post_liked_${Date.now()}_${targetUser.id}_${post.id}`,
+                type: 'post_liked',
+                userId: targetUser.id,
+                fromUser: {
+                  fullName: user.fullName || user.email || 'Người dùng',
+                  id: user.id || currentUserId
+                },
+                data: {
+                  postTitle: post.title,
+                  postId: post.id
+                },
+                isRead: false,
+                createdAt: new Date().toISOString()
+              });
+            });
+            console.log('Socket events emitted');
+          }
+        } catch (notifError) {
+          console.error('Error creating like notification:', notifError);
+        }
+      }
+    } catch (error) {
+      console.error('Error updating likes:', error);
+      // Revert optimistic update on error
+      if (post) {
+        setPost((prev: any) => prev ? { ...prev, likes: post.likes || 0 } : null);
+        setIsLiked(isLiked);
+      }
+      alert('Có lỗi xảy ra khi cập nhật lượt thích. Vui lòng thử lại.');
+    }
   };
 
   const getZaloHref = (phone) => {
@@ -254,13 +485,14 @@ function PostDetail() {
 
         <div className="flex items-center space-x-4">
           <button
-            onClick={toggleFavorite}
-            className={`p-2 rounded-full ${isFavorite
+            onClick={handleLike}
+            className={`p-2 rounded-full flex items-center gap-2 ${isLiked
               ? 'bg-red-500 text-white'
               : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
               }`}
           >
-            <Heart size={20} fill={isFavorite ? 'currentColor' : 'none'} />
+            <Heart size={20} fill={isLiked ? 'currentColor' : 'none'} />
+            <span className="text-sm">{post?.likes || 0}</span>
           </button>
 
           <button
@@ -453,18 +685,159 @@ function PostDetail() {
           {/* Contact Card */}
           <div className="bg-white rounded-lg shadow-lg p-6">
             <div className="flex items-center space-x-4 mb-4">
-              <img
-                src={authorInfo?.avatar || '/default-avatar.png'}
-                alt={authorInfo?.fullName || 'Người dùng'}
-                className="w-12 h-12 rounded-full"
-              />
-              <div>
-                <h3 className="font-semibold text-gray-900 flex items-center">
-                  {authorInfo?.fullName || 'Người dùng ẩn danh'}
-                  {authorInfo?.verified && (
-                    <CheckCircle size={16} className="ml-1 text-green-500" />
-                  )}
-                </h3>
+              <div className="relative group">
+                <img
+                  key={authorInfo?.avatar || 'default'}
+                  src={authorInfo?.avatar || '/default-avatar.png'}
+                  alt={authorInfo?.fullName || authorInfo?.email || 'Người dùng'}
+                  className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/default-avatar.png';
+                  }}
+                />
+                {currentUser && currentUser.id === authorInfo?.id && (
+                  <label className="absolute bottom-0 right-0 bg-blue-500 text-white rounded-full p-2 cursor-pointer hover:bg-blue-600 transition-colors shadow-lg">
+                    <Camera size={16} />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      id="avatar-upload"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        
+                        // Validate file size (max 5MB)
+                        if (file.size > 5 * 1024 * 1024) {
+                          alert('Kích thước ảnh không được vượt quá 5MB');
+                          return;
+                        }
+                        
+                        // Validate file type
+                        if (!file.type.startsWith('image/')) {
+                          alert('Vui lòng chọn file ảnh');
+                          return;
+                        }
+                        
+                        // Convert to base64 or upload to server
+                        const reader = new FileReader();
+                        reader.onloadend = async () => {
+                          const base64String = reader.result as string;
+                          try {
+                            console.log('Updating avatar for user:', currentUser.id);
+                            
+                            // Update avatar in database
+                            const response = await api.patch(`/users/${currentUser.id}`, {
+                              avatar: base64String
+                            });
+                            
+                            console.log('Avatar update response:', response.data);
+                            
+                            // Update localStorage first
+                            const storedUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                            const updatedUser = {
+                              ...storedUser,
+                              ...response.data,
+                              avatar: base64String
+                            };
+                            localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+                            setCurrentUser(updatedUser);
+                            
+                            // Reload author info from server to get latest data
+                            await reloadAuthorInfo();
+                            
+                            alert('Cập nhật avatar thành công!');
+                          } catch (error: any) {
+                            console.error('Error updating avatar:', error);
+                            console.error('Error details:', error.response?.data || error.message);
+                            alert(`Có lỗi xảy ra khi cập nhật avatar: ${error.response?.data?.message || error.message || 'Vui lòng thử lại'}`);
+                          }
+                        };
+                        reader.onerror = () => {
+                          alert('Có lỗi xảy ra khi đọc file. Vui lòng thử lại.');
+                        };
+                        reader.readAsDataURL(file);
+                        
+                        // Reset input để có thể chọn lại file cùng tên
+                        e.target.value = '';
+                      }}
+                    />
+                    <span className="sr-only">Cập nhật avatar</span>
+                  </label>
+                )}
+              </div>
+              <div className="flex-1">
+                {isEditingName && currentUser && currentUser.id === authorInfo?.id ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={editingName}
+                      onChange={(e) => setEditingName(e.target.value)}
+                      className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                      placeholder="Nhập tên của bạn"
+                      autoFocus
+                    />
+                    <button
+                      onClick={async () => {
+                        try {
+                          const response = await api.patch(`/users/${currentUser.id}`, {
+                            fullName: editingName
+                          });
+                          
+                          // Update localStorage first
+                          const storedUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                          const updatedUser = {
+                            ...storedUser,
+                            ...response.data,
+                            fullName: editingName
+                          };
+                          localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+                          setCurrentUser(updatedUser);
+                          
+                          // Reload author info from server to get latest data
+                          await reloadAuthorInfo();
+                          
+                          setIsEditingName(false);
+                          alert('Cập nhật tên thành công!');
+                        } catch (error: any) {
+                          console.error('Error updating name:', error);
+                          alert(`Có lỗi xảy ra: ${error.response?.data?.message || error.message || 'Vui lòng thử lại'}`);
+                        }
+                      }}
+                      className="p-1 text-green-600 hover:bg-green-50 rounded"
+                    >
+                      <Check size={16} />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsEditingName(false);
+                        setEditingName(authorInfo?.fullName || '');
+                      }}
+                      className="p-1 text-red-600 hover:bg-red-50 rounded"
+                    >
+                      <XIcon size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                    <span>{authorInfo?.fullName || authorInfo?.email || 'Người dùng ẩn danh'}</span>
+                    {authorInfo?.verified && (
+                      <CheckCircle size={16} className="text-green-500" />
+                    )}
+                    {currentUser && currentUser.id === authorInfo?.id && (
+                      <button
+                        onClick={() => {
+                          setEditingName(authorInfo?.fullName || '');
+                          setIsEditingName(true);
+                        }}
+                        className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded"
+                        title="Chỉnh sửa tên"
+                      >
+                        <Edit2 size={14} />
+                      </button>
+                    )}
+                  </h3>
+                )}
                 <p className="text-sm text-gray-600">
                   Tham gia từ {formatDate(authorInfo?.createdAt || new Date())}
                 </p>

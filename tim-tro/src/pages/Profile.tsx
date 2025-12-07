@@ -85,8 +85,11 @@ function Profile() {
 
         // Update localStorage to keep it in sync
         const storedUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-        localStorage.setItem('currentUser', JSON.stringify({ ...storedUser, ...userData }));
-
+        const updatedUser = { ...storedUser, ...userData };
+        localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+        
+        // Update currentUser state with avatar
+        setCurrentUser(updatedUser);
 
         setProfileData({
           fullName: userData.fullName || '',
@@ -359,12 +362,100 @@ function Profile() {
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6">
             <div className="flex items-center space-x-4">
               <div className="relative">
-                <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center">
+                {currentUser?.avatar ? (
+                  <img
+                    src={currentUser.avatar}
+                    alt={profileData.fullName || 'Avatar'}
+                    className="w-20 h-20 rounded-full object-cover border-4 border-white"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '';
+                      (e.target as HTMLImageElement).style.display = 'none';
+                      const parent = (e.target as HTMLImageElement).parentElement;
+                      if (parent) {
+                        const fallback = parent.querySelector('.avatar-fallback') as HTMLElement;
+                        if (fallback) fallback.style.display = 'flex';
+                      }
+                    }}
+                  />
+                ) : null}
+                <div className={`w-20 h-20 bg-white rounded-full flex items-center justify-center ${currentUser?.avatar ? 'hidden avatar-fallback' : ''}`}>
                   <User size={40} className="text-blue-600" />
                 </div>
-                <button type="button" className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700">
+                <label className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 cursor-pointer shadow-lg">
                   <Camera size={16} />
-                </button>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      
+                      // Validate file size (max 5MB)
+                      if (file.size > 5 * 1024 * 1024) {
+                        alert('Kích thước ảnh không được vượt quá 5MB');
+                        return;
+                      }
+                      
+                      // Validate file type
+                      if (!file.type.startsWith('image/')) {
+                        alert('Vui lòng chọn file ảnh');
+                        return;
+                      }
+                      
+                      // Convert to base64
+                      const reader = new FileReader();
+                      reader.onloadend = async () => {
+                        const base64String = reader.result as string;
+                        try {
+                          setLoading(true);
+                          setMessage({ type: '', text: '' });
+                          
+                          console.log('Updating avatar for user:', currentUser.id);
+                          
+                          // Update avatar in database
+                          const response = await api.patch(`/users/${currentUser.id}`, {
+                            avatar: base64String
+                          });
+                          
+                          console.log('Avatar update response:', response.data);
+                          
+                          // Update currentUser state
+                          const updatedUser = {
+                            ...currentUser,
+                            ...response.data,
+                            avatar: base64String
+                          };
+                          setCurrentUser(updatedUser);
+                          
+                          // Update localStorage
+                          localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+                          
+                          // Reload profile to get latest data
+                          await loadUserProfile();
+                          
+                          setMessage({ type: 'success', text: 'Cập nhật avatar thành công!' });
+                          setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+                        } catch (error: any) {
+                          console.error('Error updating avatar:', error);
+                          console.error('Error details:', error.response?.data || error.message);
+                          setMessage({ 
+                            type: 'error', 
+                            text: `Có lỗi xảy ra: ${error.response?.data?.message || error.message || 'Vui lòng thử lại'}` 
+                          });
+                        } finally {
+                          setLoading(false);
+                          // Reset input để có thể chọn lại file cùng tên
+                          e.target.value = '';
+                        }
+                      };
+                      reader.onerror = () => {
+                        setMessage({ type: 'error', text: 'Có lỗi xảy ra khi đọc file. Vui lòng thử lại.' });
+                      };
+                      reader.readAsDataURL(file);
+                    }}
+                  />
+                </label>
               </div>
               <div className="flex-1">
                 <h1 className="text-2xl font-bold">
