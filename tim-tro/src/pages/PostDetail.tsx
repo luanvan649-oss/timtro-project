@@ -5,9 +5,9 @@ import ConnectionModal from '../components/ConnectionModal';
 
 // Declare Google Maps types
 declare global {
-    interface Window {
-        google: any;
-    }
+  interface Window {
+    google: any;
+  }
 }
 import {
   MapPin,
@@ -57,14 +57,14 @@ function PostDetail() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editingName, setEditingName] = useState('');
-  
+
   useEffect(() => {
     if (currentUser) {
       const userId = currentUser.id || currentUser.uid || null;
       setCurrentUserId(userId);
     }
   }, [currentUser]);
-  
+
   useEffect(() => {
     // Load liked posts for this user
     if (currentUserId && post && post.id) {
@@ -114,7 +114,7 @@ function PostDetail() {
       };
 
       setPost(postWithDefaults);
-      
+
       // Increment views when viewing detail (only once per session)
       const viewKey = `post_viewed_${id}`;
       if (!sessionStorage.getItem(viewKey)) {
@@ -162,7 +162,7 @@ function PostDetail() {
 
     setLoading(false);
   }, [id, navigate, currentUser]);
-  
+
   // Function to reload author info
   const reloadAuthorInfo = useCallback(async () => {
     if (post && (post.userId || post.authorId)) {
@@ -189,7 +189,7 @@ function PostDetail() {
   useEffect(() => {
     fetchPost();
   }, [id, navigate, fetchPost]);
-  
+
   // Reload author info when currentUser changes (e.g., after login or profile update)
   useEffect(() => {
     if (post && currentUser && (post.userId || post.authorId)) {
@@ -314,28 +314,28 @@ function PostDetail() {
   const toggleFavorite = () => {
     setIsFavorite(!isFavorite);
   };
-  
+
   const handleLike = async () => {
     if (!currentUserId) {
       alert('Vui lòng đăng nhập để thích bài đăng.');
       return;
     }
-    
+
     if (!post) return;
-    
+
     try {
       const wasLiked = isLiked;
       const newLikes = wasLiked ? (post.likes || 0) - 1 : (post.likes || 0) + 1;
-      
+
       // Optimistic update
       setPost((prev: any) => prev ? { ...prev, likes: newLikes } : null);
       setIsLiked(!wasLiked);
-      
+
       // Update in database
       await api.patch(`/posts/${post.id}`, {
         likes: newLikes
       });
-      
+
       // Update localStorage
       const likedKey = `likedPosts_${currentUserId}`;
       const likedPosts = JSON.parse(localStorage.getItem(likedKey) || '[]');
@@ -348,37 +348,37 @@ function PostDetail() {
           localStorage.setItem(likedKey, JSON.stringify(likedPosts));
         }
       }
-      
+
       // Create notification for admin and post author when user likes (only if liking, not unliking)
       if (!wasLiked) {
         try {
           console.log('Creating notification for post like...');
-          
+
           // Get current user info
           const userResponse = await api.get(`/users/${currentUserId}`);
           const user = userResponse.data;
-          
+
           // Find admin users and post author
           const adminsResponse = await api.get(`/users?role=admin`);
           const admins = Array.isArray(adminsResponse.data) ? adminsResponse.data : [];
-          
+
           // Get post author
           const authorResponse = await api.get(`/users/${post.userId || post.authorId}`);
           const author = authorResponse.data;
-          
+
           // List of users to notify: admins + post author (if not already admin)
           const usersToNotify = [...admins];
           if (author && author.id && !admins.some((a: any) => a.id === author.id)) {
             usersToNotify.push(author);
           }
-          
+
           console.log('Users to notify:', usersToNotify.map((u: any) => u.id));
-          
+
           if (usersToNotify.length === 0) {
             console.warn('No users to notify.');
             return;
           }
-          
+
           // Create notification for each user (admin + author)
           const notificationPromises = usersToNotify.map((targetUser: any) => {
             const notificationId = `post_liked_${Date.now()}_${targetUser.id}_${post.id}`;
@@ -404,10 +404,10 @@ function PostDetail() {
               return null;
             });
           });
-          
+
           const createdNotifications = await Promise.all(notificationPromises);
           console.log('All notifications created:', createdNotifications.filter(n => n !== null));
-          
+
           // Emit socket event if available
           if ((window as any).socket) {
             usersToNotify.forEach((targetUser: any) => {
@@ -675,7 +675,7 @@ function PostDetail() {
                   Vị trí trên bản đồ
                 </h3>
                 <div className="relative">
-                  <div 
+                  <div
                     ref={mapRef}
                     className="w-full h-96 rounded-lg border border-gray-300 overflow-hidden"
                     style={{ minHeight: '400px' }}
@@ -781,9 +781,9 @@ function PostDetail() {
           <div className="bg-white rounded-lg shadow-lg p-6">
             <div className="flex items-center space-x-4 mb-4">
               <div className="relative group">
-              <img
+                <img
                   key={authorInfo?.avatar || 'default'}
-                src={authorInfo?.avatar || '/default-avatar.png'}
+                  src={authorInfo?.avatar || '/default-avatar.png'}
                   alt={authorInfo?.fullName || authorInfo?.email || 'Người dùng'}
                   className="w-16 h-16 rounded-full object-cover border-2 border-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
                   onClick={() => {
@@ -806,33 +806,33 @@ function PostDetail() {
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
-                        
+
                         // Validate file size (max 5MB)
                         if (file.size > 5 * 1024 * 1024) {
                           alert('Kích thước ảnh không được vượt quá 5MB');
                           return;
                         }
-                        
+
                         // Validate file type
                         if (!file.type.startsWith('image/')) {
                           alert('Vui lòng chọn file ảnh');
                           return;
                         }
-                        
+
                         // Convert to base64 or upload to server
                         const reader = new FileReader();
                         reader.onloadend = async () => {
                           const base64String = reader.result as string;
                           try {
                             console.log('Updating avatar for user:', currentUser.id);
-                            
+
                             // Update avatar in database
                             const response = await api.patch(`/users/${currentUser.id}`, {
                               avatar: base64String
                             });
-                            
+
                             console.log('Avatar update response:', response.data);
-                            
+
                             // Update localStorage first
                             const storedUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
                             const updatedUser = {
@@ -842,10 +842,10 @@ function PostDetail() {
                             };
                             localStorage.setItem('currentUser', JSON.stringify(updatedUser));
                             setCurrentUser(updatedUser);
-                            
+
                             // Reload author info from server to get latest data
                             await reloadAuthorInfo();
-                            
+
                             alert('Cập nhật avatar thành công!');
                           } catch (error: any) {
                             console.error('Error updating avatar:', error);
@@ -857,7 +857,7 @@ function PostDetail() {
                           alert('Có lỗi xảy ra khi đọc file. Vui lòng thử lại.');
                         };
                         reader.readAsDataURL(file);
-                        
+
                         // Reset input để có thể chọn lại file cùng tên
                         e.target.value = '';
                       }}
@@ -883,7 +883,7 @@ function PostDetail() {
                           const response = await api.patch(`/users/${currentUser.id}`, {
                             fullName: editingName
                           });
-                          
+
                           // Update localStorage first
                           const storedUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
                           const updatedUser = {
@@ -893,10 +893,10 @@ function PostDetail() {
                           };
                           localStorage.setItem('currentUser', JSON.stringify(updatedUser));
                           setCurrentUser(updatedUser);
-                          
+
                           // Reload author info from server to get latest data
                           await reloadAuthorInfo();
-                          
+
                           setIsEditingName(false);
                           alert('Cập nhật tên thành công!');
                         } catch (error: any) {
@@ -921,7 +921,7 @@ function PostDetail() {
                 ) : (
                   <h3 className="font-semibold text-gray-900 flex items-center gap-2">
                     <span>{authorInfo?.fullName || authorInfo?.email || 'Người dùng ẩn danh'}</span>
-                  {authorInfo?.verified && (
+                    {authorInfo?.verified && (
                       <CheckCircle size={16} className="text-green-500" />
                     )}
                     {currentUser && currentUser.id === authorInfo?.id && (
@@ -935,8 +935,8 @@ function PostDetail() {
                       >
                         <Edit2 size={14} />
                       </button>
-                  )}
-                </h3>
+                    )}
+                  </h3>
                 )}
                 <p className="text-sm text-gray-600">
                   Tham gia từ {formatDate(authorInfo?.createdAt || new Date())}

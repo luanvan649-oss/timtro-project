@@ -120,6 +120,47 @@ io.on('connection', (socket) => {
       await axios.post(`${JSON_SERVER_URL}/messages`, newMessage);
       // Emit message to all clients in the conversation room, including the sender
       io.to(conversationId).emit('receiveMessage', newMessage);
+
+      // --- Notification Logic ---
+      // 1. Get connection details to find receiverId
+      const connectionRes = await axios.get(`${JSON_SERVER_URL}/connections/${conversationId}`);
+      const connection = connectionRes.data;
+
+      if (connection) {
+        const receiverId = connection.senderId === senderId ? connection.receiverId : connection.senderId;
+
+        // 2. Get sender info for notification message
+        const senderUserRes = await axios.get(`${JSON_SERVER_URL}/users/${senderId}`);
+        const senderUser = senderUserRes.data;
+
+        // 3. Create notification object
+        const notification = {
+          id: Date.now().toString() + '-msg-notify',
+          userId: receiverId,
+          type: 'new_message',
+          message: `${senderUser?.fullName || 'Người dùng'} đã gửi tin nhắn cho bạn`,
+          isRead: false,
+          createdAt: new Date().toISOString(),
+          relatedEntity: {
+            type: 'connection', // Link to the connection/conversation
+            id: conversationId
+          },
+          fromUser: {
+            id: senderUser?.id,
+            fullName: senderUser?.fullName,
+            avatar: senderUser?.avatar
+          }
+        };
+
+        // 4. Save notification to db.json
+        await axios.post(`${JSON_SERVER_URL}/notifications`, notification);
+
+        // 5. Emit notification to receiver via socket
+        const receiverSocketId = usersMap.get(receiverId);
+        if (receiverSocketId) {
+          io.to(receiverSocketId).emit('newNotification', notification);
+        }
+      }
     } catch (error) {
       console.error('Error sending message via socket:', error.response?.data || error.message);
       socket.emit('sendMessageFailed', 'Failed to send message.');

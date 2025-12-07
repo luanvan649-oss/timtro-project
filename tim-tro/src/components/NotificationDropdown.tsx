@@ -9,8 +9,9 @@ import api from '../api'; // ✅ Dùng api client
 interface Notification {
   id: string;
   type: string;
+  userId: string; // Added userId
   relatedEntity?: { id: string };
-  fromUser?: { fullName: string };
+  fromUser?: { fullName: string; avatar?: string }; // Added avatar
   toUser?: { fullName: string };
   data?: {
     message?: string;
@@ -18,6 +19,8 @@ interface Notification {
     fromUser?: { fullName: string };
     blogTitle?: string;
     blogId?: string;
+    postTitle?: string; // Added postTitle
+    postId?: string;    // Added postId
   };
   isRead: boolean;
   createdAt: string;
@@ -34,7 +37,7 @@ function NotificationDropdown() {
     return storedUser ? JSON.parse(storedUser) : null;
   })[0];
   const { socket } = useSocket() as any;
-  
+
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -46,7 +49,7 @@ function NotificationDropdown() {
 
     loadNotifications();
 
-   if (socket) {
+    if (socket) {
       socket.on('newNotification', async (newNotification: Notification) => {
         console.log('New notification received:', newNotification);
         let processedNotification: Notification = { ...newNotification };
@@ -109,12 +112,21 @@ function NotificationDropdown() {
             }
           }
         }
-        
+        // new_message: ensure fromUser is set (server sends it, but good to be safe)
+        else if (processedNotification.type === 'new_message') {
+          if (!processedNotification.fromUser || !processedNotification.fromUser.fullName) {
+            // Try to use data.fromUser if available (though server structure puts it at top level)
+            if (processedNotification.data?.fromUser) {
+              processedNotification.fromUser = processedNotification.data.fromUser;
+            }
+          }
+        }
+
         // Only add notification if it's for the current user
         if (processedNotification.userId !== currentUser?.id) {
           return;
         }
-         setNotifications(prev => {
+        setNotifications(prev => {
           if (prev.some(n => n.id === processedNotification.id)) return prev;
           return [processedNotification, ...prev].sort(
             (a, b) =>
@@ -131,9 +143,9 @@ function NotificationDropdown() {
 
   const loadNotifications = async () => {
     if (!currentUser?.id) return;
-    
+
     setLoading(true);
-   try {
+    try {
       const response = await api.get(
         `/notifications?userId=${currentUser.id}&_sort=createdAt&_order=desc`,
       );
@@ -168,12 +180,12 @@ function NotificationDropdown() {
           return notif;
         }),
       );
-      
+
       // Sort notifications by createdAt descending (newest first)
       const sortedNotifications = notificationsWithSender.sort(
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
-      
+
       setNotifications(sortedNotifications);
       setUnreadCount(sortedNotifications.filter(n => !n.isRead).length);
     } catch (error) {
@@ -182,7 +194,7 @@ function NotificationDropdown() {
       setLoading(false);
     }
   };
- const handleMarkAsRead = async (notificationId: string) => {
+  const handleMarkAsRead = async (notificationId: string) => {
     try {
       await api.patch(`/notifications/${notificationId}`, { isRead: true });
       setNotifications(prev => {
@@ -198,7 +210,7 @@ function NotificationDropdown() {
     }
   };
 
- const handleMarkAllAsRead = async () => {
+  const handleMarkAllAsRead = async () => {
     try {
       const unreadNotifications = notifications.filter(n => !n.isRead);
       await Promise.all(
@@ -227,6 +239,8 @@ function NotificationDropdown() {
         return <Heart size={16} className="text-red-600" fill="currentColor" />;
       case 'post_liked':
         return <Heart size={16} className="text-red-600" fill="currentColor" />;
+      case 'new_message':
+        return <MessageCircle size={16} className="text-blue-600" />;
       default:
         return <MessageCircle size={16} className="text-gray-600" />;
     }
@@ -247,6 +261,8 @@ function NotificationDropdown() {
         return `${notification.fromUser?.fullName || 'Ai đó'} đã thích bài viết "${notification.data?.blogTitle || 'blog'}"`;
       case 'post_liked':
         return `${notification.fromUser?.fullName || 'Ai đó'} đã thích bài đăng "${notification.data?.postTitle || 'phòng trọ'}"`;
+      case 'new_message':
+        return `${notification.fromUser?.fullName || 'Ai đó'} đã gửi tin nhắn cho bạn`;
       default:
         return 'Bạn có thông báo mới';
     }
@@ -264,6 +280,8 @@ function NotificationDropdown() {
         return notification.data?.blogId ? `/blog/${notification.data.blogId}` : '/blog';
       case 'post_liked':
         return notification.data?.postId ? `/post/${notification.data.postId}` : '/';
+      case 'new_message':
+        return `/connections`;
       default:
         return '/';
     }
@@ -342,7 +360,7 @@ function NotificationDropdown() {
                       <div className="flex-shrink-0 mt-1">
                         {getNotificationIcon(notification.type)}
                       </div>
-                      
+
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <p className="text-sm text-gray-900">
@@ -357,18 +375,18 @@ function NotificationDropdown() {
                             </button>
                           )}
                         </div>
-                        
+
                         {notification.data?.message && (
                           <p className="text-xs text-gray-600 mt-1 line-clamp-2">
                             "{notification.data.message}"
                           </p>
                         )}
-                        
+
                         <div className="flex items-center justify-between mt-2">
                           <span className="text-xs text-gray-500">
                             {formatTime(notification.createdAt)}
                           </span>
-                          
+
                           <Link
                             to={getNotificationLink(notification)}
                             onClick={() => {
@@ -412,7 +430,7 @@ const formatTime = (timestamp: string) => {
   const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
   const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
   const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-  
+
   if (diffInMinutes < 1) return 'Vừa xong';
   if (diffInMinutes < 60) return `${diffInMinutes} phút trước`;
   if (diffInHours < 24) return `${diffInHours} giờ trước`;

@@ -57,7 +57,7 @@ function ConnectionModal({ isOpen, onClose, post, targetUser, currentUser }: Con
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     if (!message.trim()) {
       setError('Vui lòng nhập lời nhắn');
       return;
@@ -73,12 +73,12 @@ function ConnectionModal({ isOpen, onClose, post, targetUser, currentUser }: Con
 
     try {
       const requestData = {
-        senderId: currentUser?.id, // Use current user's ID
-        receiverId: targetUser?.uid,
+        senderId: currentUser?.id || currentUser?.uid, // Use current user's ID
+        receiverId: targetUser?.id || targetUser?.uid, // Changed from uid to id for consistency
         postId: post?.id,
         message: message.trim(),
       };
-      
+
       console.log('Emitting sendConnectionRequest:', requestData);
       socket.emit('sendConnectionRequest', requestData); // Emit socket event
 
