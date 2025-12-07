@@ -31,7 +31,7 @@ import api from './api';  // Import axios
 
 
 function App() {
-  const [globalSearchTerm, setGlobalSearchTerm] = useState<string>(''); 
+  const [globalSearchTerm, setGlobalSearchTerm] = useState<string>('');
   const [currentUser, setCurrentUser] = useState<any | null>(null);
   const [profileData, setProfileData] = useState<any | null>(null);
 
@@ -41,7 +41,7 @@ function App() {
       const parsedUser = JSON.parse(storedUser);
       setCurrentUser(parsedUser);
       // Fetch profile data once currentUser is set
-         const fetchProfile = async () => {
+      const fetchProfile = async () => {
         try {
           // ✅ dùng api.get, không cần API_BASE_URL
           const response = await api.get(`/users?email=${parsedUser.email}`);
@@ -70,14 +70,14 @@ function App() {
             {/* Auth Routes - without Layout */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-          
-          {/* Admin Routes */}
-          <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-            <Route path="/admin" element={<Layout><AdminDashboard /></Layout>} />
-            <Route path="/admin/users" element={<Layout><UserManagement /></Layout>} />
-            <Route path="/admin/posts" element={<Layout><PostManagement /></Layout>} />
-            <Route path="/admin/blogs" element={<Layout><BlogManagement /></Layout>} />
-          </Route>
+
+            {/* Admin Routes */}
+            <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+              <Route path="/admin" element={<Layout><AdminDashboard /></Layout>} />
+              <Route path="/admin/users" element={<Layout><UserManagement /></Layout>} />
+              <Route path="/admin/posts" element={<Layout><PostManagement /></Layout>} />
+              <Route path="/admin/blogs" element={<Layout><BlogManagement /></Layout>} />
+            </Route>
 
             {/* Admin Routes */}
             <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
@@ -131,22 +131,22 @@ function App() {
                   <Route path="/mat-bang" element={<Home />} />
                   <Route path="/bang-gia" element={<Home />} />
 
-                {/* Category Routes */}
-                <Route path="/nha-nguyen-can" element={<Home />} />
-                <Route path="/can-ho-chung-cu" element={<Home />} />
-                <Route path="/can-ho-mini" element={<Home />} />
-                <Route path="/can-ho-dich-vu" element={<Home />} />
-                <Route path="/mat-bang" element={<Home />} />
-                <Route path="/bang-gia" element={<Home />} />
-                
-                {/* Location Routes */}
-                <Route path="/ho-chi-minh" element={<Home />} />
-                <Route path="/ha-noi" element={<Home />} />
-                <Route path="/da-nang" element={<Home />} />
-                <Route path="/saved" element={<Home />} />
-              </Routes>
-            </Layout>
-          } />
+                  {/* Category Routes */}
+                  <Route path="/nha-nguyen-can" element={<Home />} />
+                  <Route path="/can-ho-chung-cu" element={<Home />} />
+                  <Route path="/can-ho-mini" element={<Home />} />
+                  <Route path="/can-ho-dich-vu" element={<Home />} />
+                  <Route path="/mat-bang" element={<Home />} />
+                  <Route path="/bang-gia" element={<Home />} />
+
+                  {/* Location Routes */}
+                  <Route path="/ho-chi-minh" element={<Home />} />
+                  <Route path="/ha-noi" element={<Home />} />
+                  <Route path="/da-nang" element={<Home />} />
+                  <Route path="/saved" element={<Home />} />
+                </Routes>
+              </Layout>
+            } />
           </Routes>
         </Router>
       </SocketProvider> {/* Close SocketProvider */}

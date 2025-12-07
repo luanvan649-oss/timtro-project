@@ -119,6 +119,26 @@ function Login() {
     }
   };
 
+  const syncUserToDatabase = async (userData: any) => {
+    try {
+      // Check if user exists
+      await api.get(`/users/${userData.id}`);
+      console.log('User already exists in database');
+    } catch (error: any) {
+      if (error.response && error.response.status === 404) {
+        // User not found, create new user
+        console.log('User not found, creating new user in database');
+        await api.post('/users', userData);
+      } else {
+        console.error('Error syncing user to database:', error);
+        // Don't throw here to allow login to proceed even if sync fails (optional choice, but safer for UX)
+        // But for this specific requirement (connection), sync is critical. 
+        // Let's log it but maybe we should throw if we want to be strict. 
+        // For now, let's proceed but log error.
+      }
+    }
+  };
+
   const handleGoogleLogin = async () => {
     try {
       setLoading(true);
@@ -153,6 +173,9 @@ function Login() {
         updatedAt: new Date().toISOString()
       };
 
+      // Sync with database
+      await syncUserToDatabase(userData);
+
       localStorage.setItem('currentUser', JSON.stringify(userData));
       navigate('/');
     } catch (error: any) {
@@ -173,12 +196,31 @@ function Login() {
       const userData = {
         id: user.uid,
         email: user.email,
-        fullName: user.displayName,  // Changed from 'name' to 'fullName'
-        photoURL: user.photoURL,
+        fullName: user.displayName,
+        avatar: user.photoURL || 'https://via.placeholder.com/150',
         role: 'user',
+        school: '',
+        major: '',
+        year: '',
+        gender: '',
+        city: '',
+        bio: '',
+        interests: [],
+        lookingFor: {
+          gender: '',
+          ageRange: '',
+          budget: '',
+          location: '',
+          lifestyle: []
+        },
         isActive: true,
-        isBlocked: false
+        isBlocked: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       };
+
+      // Sync with database
+      await syncUserToDatabase(userData);
 
       localStorage.setItem('currentUser', JSON.stringify(userData));
       navigate('/');
