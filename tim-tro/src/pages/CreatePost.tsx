@@ -280,10 +280,23 @@ const CreatePost = () => {
       
       const postData = {
         ...formData,
+        type: 'roommate_finding', // Set type for roommate finding posts
         location: formData.location || '',
         district: formData.district || '',
         budget: formData.isFree ? 0 : parseInt(String(formData.budget) || '0'),
         isFree: formData.isFree || false,
+        roomType: formData.roomType || 'double', // Ensure roomType is included
+        genderPreference: formData.genderPreference || '',
+        myGender: formData.myGender || '',
+        school: formData.school || '',
+        major: formData.major || '',
+        year: formData.year || '',
+        availableFrom: formData.availableFrom || '',
+        contactName: formData.contactName || '',
+        contactPhone: formData.contactPhone || '',
+        interests: formData.interests || [],
+        lifestyle: formData.lifestyle || [],
+        images: formData.images || [],
         userId: currentUser ? currentUser.id : 'anonymous',
         createdAt: formData.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -447,6 +460,7 @@ const CreatePost = () => {
                   <option value="dorm">Phòng tập thể</option>
                   <option value="studio">Studio</option>
                   <option value="apartment">Căn hộ</option>
+                  <option value="house">Nhà nguyên căn</option>
                 </select>
               </div>
 

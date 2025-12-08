@@ -488,7 +488,35 @@ function PostDetail() {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('vi-VN');
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'N/A';
+      return date.toLocaleDateString('vi-VN');
+    } catch {
+      return 'N/A';
+    }
+  };
+
+  const getRoomTypeLabel = (roomType) => {
+    const roomTypeMap = {
+      'single': 'Phòng đơn',
+      'double': 'Phòng đôi',
+      'dorm': 'Phòng tập thể',
+      'studio': 'Studio',
+      'apartment': 'Căn hộ',
+      'house': 'Nhà nguyên căn'
+    };
+    return roomTypeMap[roomType] || roomType || 'N/A';
+  };
+
+  const getGenderLabel = (gender) => {
+    const genderMap = {
+      'male': 'Nam',
+      'female': 'Nữ',
+      'any': 'Không quan trọng'
+    };
+    return genderMap[gender] || gender || 'N/A';
   };
 
   const nextImage = () => {
@@ -702,11 +730,11 @@ function PostDetail() {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Loại phòng:</span>
-                    <span className="font-medium">{post.roomType || 'N/A'}</span>
+                    <span className="font-medium">{getRoomTypeLabel(post.roomType)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Giới tính mong muốn:</span>
-                    <span className="font-medium">{post.genderPreference || 'N/A'}</span>
+                    <span className="font-medium">{getGenderLabel(post.genderPreference)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Trường:</span>
