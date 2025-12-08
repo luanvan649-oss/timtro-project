@@ -57,6 +57,10 @@ function PostDetail() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editingName, setEditingName] = useState('');
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<any>(null);
+  const markerRef = useRef<any>(null);
 
   useEffect(() => {
     if (currentUser) {
@@ -1153,7 +1157,7 @@ function PostDetail() {
           onClose={() => setShowConnectionModal(false)}
           post={post}
           targetUser={{
-            uid: authorInfo?.id,
+            id: authorInfo?.id,
             fullName: authorInfo?.fullName || '',
             avatar: authorInfo?.avatar || '',
             school: authorInfo?.school || '',
