@@ -9,7 +9,11 @@ import {
     Plus,
     X,
     Phone,
-    Image as ImageIcon
+    Image as ImageIcon,
+    Upload,
+    Video,
+    Star,
+    Heart
 } from 'lucide-react';
 import { VIETNAM_PROVINCES, VIETNAM_DISTRICTS, VIETNAM_WARDS, VIETNAM_STREETS, getDefaultWards, getDefaultStreets } from '../constants/vietnamLocations';
 
@@ -29,7 +33,7 @@ const CATEGORIES = [
     "Căn hộ chung cư",
     "Căn hộ mini",
     "Căn hộ dịch vụ",
-    "Ở ghép",
+    "Tìm người ở ghép",
     "Mặt bằng"
 ];
 
@@ -49,7 +53,19 @@ const AMENITIES_LIST = [
     "An ninh 24/7"
 ];
 
+const COMMON_INTERESTS = [
+    'Đọc sách', 'Xem phim', 'Nghe nhạc', 'Du lịch', 'Thể thao', 'Nấu ăn',
+    'Chơi game', 'Nhiếp ảnh', 'Học ngoại ngữ', 'Yoga', 'Gym', 'Vẽ'
+];
+
+const LIFESTYLE_OPTIONS = [
+    'Sạch sẽ', 'Yên tĩnh', 'Thân thiện', 'Không hút thuốc', 'Không uống rượu',
+    'Dậy sớm', 'Đi ngủ muộn', 'Thích nấu ăn', 'Thích tiệc tùng', 'Học tập nhiều'
+];
+
 const API_BASE_URL = 'http://localhost:3001';
+// Toggle Google Maps embed (off for free listing flow)
+const MAP_ENABLED = false;
 
 interface PostForm {
     id?: string;
@@ -91,6 +107,10 @@ interface PostForm {
     updatedAt?: string;
     contactPhone?: string;
     contactName?: string;
+    video?: string; // Video URL (YouTube/TikTok) or uploaded video URL
+    videoFile?: File; // For uploaded video file
+    interests?: string[];
+    lifestyle?: string[];
 }
 
 const CreateRoomListing = () => {
@@ -126,13 +146,20 @@ const CreateRoomListing = () => {
         genderPreference: '',
         school: '',
         major: '',
-        year: ''
+        year: '',
+        interests: [],
+        lifestyle: []
     });
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [newImageUrl, setNewImageUrl] = useState('');
     const [mapLoaded, setMapLoaded] = useState(false);
+    const [videoLink, setVideoLink] = useState('');
+    const [uploadingImage, setUploadingImage] = useState(false);
+    const [uploadingVideo, setUploadingVideo] = useState(false);
+    const imageInputRef = useRef<HTMLInputElement>(null);
+    const videoInputRef = useRef<HTMLInputElement>(null);
     const mapRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<any>(null);
     const markerRef = useRef<any>(null);
@@ -271,6 +298,17 @@ const CreateRoomListing = () => {
             return;
         }
 
+        // Xử lý đặc biệt cho các trường số tiền (price, deposit)
+        if (name === 'price' || name === 'deposit') {
+            // Parse số tiền (loại bỏ dấu chấm) để lưu vào state
+            const numericValue = parseCurrency(value);
+            setFormData(prev => ({
+                ...prev,
+                [name]: numericValue
+            }));
+            return;
+        }
+
         if (name.includes('contact.')) {
             const field = name.split('.')[1];
             setFormData(prev => ({
@@ -295,6 +333,40 @@ const CreateRoomListing = () => {
                 ? prev.amenities.filter(a => a !== amenity)
                 : [...prev.amenities, amenity]
         }));
+    };
+
+    const toggleInterest = (interest: string) => {
+        setFormData(prev => ({
+            ...prev,
+            interests: prev.interests?.includes(interest)
+                ? prev.interests.filter(i => i !== interest)
+                : [...(prev.interests || []), interest]
+        }));
+    };
+
+    const toggleLifestyle = (lifestyle: string) => {
+        setFormData(prev => ({
+            ...prev,
+            lifestyle: prev.lifestyle?.includes(lifestyle)
+                ? prev.lifestyle.filter(l => l !== lifestyle)
+                : [...(prev.lifestyle || []), lifestyle]
+        }));
+    };
+
+    // Format số tiền với dấu chấm phân cách hàng nghìn
+    const formatCurrency = (value: string | number): string => {
+        if (!value) return '';
+        // Loại bỏ tất cả ký tự không phải số
+        const numericValue = String(value).replace(/[^\d]/g, '');
+        if (!numericValue) return '';
+        // Format với dấu chấm phân cách hàng nghìn
+        return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    };
+
+    // Parse số tiền từ chuỗi có dấu chấm về số thuần
+    const parseCurrency = (value: string): string => {
+        // Loại bỏ tất cả ký tự không phải số
+        return value.replace(/[^\d]/g, '');
     };
 
     const isValidUrl = (url: string) => {
@@ -329,6 +401,127 @@ const CreateRoomListing = () => {
         setFormData(prev => ({
             ...prev,
             images: prev.images.filter((_, i) => i !== index)
+        }));
+    };
+
+    // Handle image upload from device
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+
+        setUploadingImage(true);
+        try {
+            const imageFiles = Array.from(files);
+            const imagePromises = imageFiles.map(file => {
+                return new Promise<string>((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const result = event.target?.result;
+                        if (typeof result === 'string') {
+                            resolve(result);
+                        } else {
+                            reject(new Error('Failed to read image'));
+                        }
+                    };
+                    reader.onerror = () => reject(new Error('Failed to read image'));
+                    reader.readAsDataURL(file);
+                });
+            });
+
+            const imageUrls = await Promise.all(imagePromises);
+            setFormData(prev => ({
+                ...prev,
+                images: [...prev.images, ...imageUrls]
+            }));
+            setError('');
+        } catch (err) {
+            setError('Không thể tải ảnh. Vui lòng thử lại.');
+            console.error('Error uploading images:', err);
+        } finally {
+            setUploadingImage(false);
+            if (imageInputRef.current) {
+                imageInputRef.current.value = '';
+            }
+        }
+    };
+
+    // Handle video link (YouTube/TikTok)
+    const handleAddVideoLink = () => {
+        if (!videoLink.trim()) {
+            setError('Vui lòng nhập link video.');
+            return;
+        }
+
+        // Validate YouTube or TikTok URL
+        const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)[\w-]+/;
+        const tiktokRegex = /^(https?:\/\/)?(www\.)?(tiktok\.com\/@[\w.-]+\/video\/|vm\.tiktok\.com\/)[\w-]+/;
+
+        if (!youtubeRegex.test(videoLink.trim()) && !tiktokRegex.test(videoLink.trim())) {
+            setError('Vui lòng nhập link hợp lệ từ YouTube hoặc TikTok.');
+            return;
+        }
+
+        setFormData(prev => ({
+            ...prev,
+            video: videoLink.trim()
+        }));
+        setVideoLink('');
+        setError('');
+    };
+
+    // Handle video upload from device
+    const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validate video file
+        const validVideoTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'];
+        if (!validVideoTypes.includes(file.type)) {
+            setError('Vui lòng chọn file video hợp lệ (MP4, WebM, OGG, MOV).');
+            return;
+        }
+
+        // Check file size (max 100MB)
+        const maxSize = 100 * 1024 * 1024; // 100MB
+        if (file.size > maxSize) {
+            setError('File video quá lớn. Vui lòng chọn file nhỏ hơn 100MB.');
+            return;
+        }
+
+        setUploadingVideo(true);
+        try {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const result = event.target?.result;
+                if (typeof result === 'string') {
+                    setFormData(prev => ({
+                        ...prev,
+                        video: result,
+                        videoFile: file
+                    }));
+                    setError('');
+                }
+            };
+            reader.onerror = () => {
+                setError('Không thể đọc file video. Vui lòng thử lại.');
+            };
+            reader.readAsDataURL(file);
+        } catch (err) {
+            setError('Không thể tải video. Vui lòng thử lại.');
+            console.error('Error uploading video:', err);
+        } finally {
+            setUploadingVideo(false);
+            if (videoInputRef.current) {
+                videoInputRef.current.value = '';
+            }
+        }
+    };
+
+    const removeVideo = () => {
+        setFormData(prev => ({
+            ...prev,
+            video: undefined,
+            videoFile: undefined
         }));
     };
 
@@ -534,6 +727,8 @@ const CreateRoomListing = () => {
 
     // Load Google Maps script
     useEffect(() => {
+        if (!MAP_ENABLED) return;
+
         if (typeof window === 'undefined') return;
         
         // Check if script already exists
@@ -724,6 +919,7 @@ const CreateRoomListing = () => {
         try {
             // Get current user role
             const userRole = currentUser?.role || 'user';
+            const isRoommateFinding = formData.category === 'Tìm người ở ghép';
             
             const postData = {
                 ...formData,
@@ -731,7 +927,12 @@ const CreateRoomListing = () => {
                 area: parseInt(String(formData.area)),
                 deposit: parseInt(String(formData.deposit) || '0'),
                 userId: currentUser ? currentUser.id : 'anonymous',
-                type: 'room_listing',
+                // Map loại hình "Tìm người ở ghép" sang type roommate_finding, còn lại là room_listing
+                type: isRoommateFinding ? 'roommate_finding' : 'room_listing',
+                // Đặt roomType mặc định cho tìm người ở ghép
+                roomType: isRoommateFinding ? (formData.roomType || 'double') : formData.roomType,
+                // Đặt category chuẩn
+                category: formData.category || (isRoommateFinding ? 'Tìm người ở ghép' : 'Phòng trọ'),
                 city: formData.location,
                 // If user is admin, set status to 'approved', otherwise 'pending'
                 status: userRole === 'admin' ? 'approved' : (formData.status || 'pending'),
@@ -742,7 +943,10 @@ const CreateRoomListing = () => {
                 rating: formData.rating || 0,
                 featured: formData.featured || false,
                 contactPhone: formData.contact.phone,
-                contactName: formData.contact.name
+                contactName: formData.contact.name,
+                // Include video if exists (remove videoFile as it's not serializable)
+                video: formData.video,
+                videoFile: undefined // Remove file object before sending
             };
 
             if (postId) {
@@ -903,12 +1107,12 @@ const CreateRoomListing = () => {
                                     Giá thuê (VNĐ/tháng) *
                                 </label>
                                 <input
-                                    type="number"
+                                    type="text"
                                     name="price"
-                                    value={formData.price}
+                                    value={formatCurrency(formData.price)}
                                     onChange={handleInputChange}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="VD: 3000000"
+                                    placeholder="VD: 3.000.000"
                                     required
                                 />
                             </div>
@@ -933,12 +1137,12 @@ const CreateRoomListing = () => {
                                     Tiền đặt cọc (VNĐ)
                                 </label>
                                 <input
-                                    type="number"
+                                    type="text"
                                     name="deposit"
-                                    value={formData.deposit}
+                                    value={formatCurrency(formData.deposit)}
                                     onChange={handleInputChange}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="VD: 1000000"
+                                    placeholder="VD: 1.000.000"
                                 />
                             </div>
 
@@ -1385,62 +1589,64 @@ const CreateRoomListing = () => {
                             </div>
                         </div>
 
-                        {/* Google Maps */}
-                        <div className="mt-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Chọn vị trí trên bản đồ
-                            </label>
-                            <div className="relative">
-                                <div 
-                                    ref={mapRef}
-                                    className="w-full h-96 rounded-lg border border-gray-300 overflow-hidden"
-                                    style={{ minHeight: '400px' }}
-                                />
-                                {error && (
-                                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg z-10">
-                                        <div className="text-center p-6 max-w-md bg-white rounded-lg shadow-lg border border-red-200">
-                                            <div className="text-red-500 text-5xl mb-4">⚠️</div>
-                                            <p className="text-red-600 font-semibold mb-2 text-lg">Rất tiếc! Đã xảy ra lỗi.</p>
-                                            <p className="text-gray-700 mb-4 text-sm">{error}</p>
-                                            <div className="space-y-2">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setError('');
-                                                        setMapLoaded(false);
-                                                        // Remove existing script and reload
-                                                        const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
-                                                        if (existingScript) {
-                                                            existingScript.remove();
-                                                        }
-                                                        window.location.reload();
-                                                    }}
-                                                    className="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors mr-2"
-                                                >
-                                                    Thử lại
-                                                </button>
-                                                <p className="text-xs text-gray-500 mt-2">
-                                                    Mở Console (F12) để xem chi tiết lỗi
-                                                </p>
+                        {/* Google Maps (disabled for free listing flow) */}
+                        {MAP_ENABLED && (
+                            <div className="mt-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Chọn vị trí trên bản đồ
+                                </label>
+                                <div className="relative">
+                                    <div 
+                                        ref={mapRef}
+                                        className="w-full h-96 rounded-lg border border-gray-300 overflow-hidden"
+                                        style={{ minHeight: '400px' }}
+                                    />
+                                    {error && (
+                                        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg z-10">
+                                            <div className="text-center p-6 max-w-md bg-white rounded-lg shadow-lg border border-red-200">
+                                                <div className="text-red-500 text-5xl mb-4">⚠️</div>
+                                                <p className="text-red-600 font-semibold mb-2 text-lg">Rất tiếc! Đã xảy ra lỗi.</p>
+                                                <p className="text-gray-700 mb-4 text-sm">{error}</p>
+                                                <div className="space-y-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setError('');
+                                                            setMapLoaded(false);
+                                                            // Remove existing script and reload
+                                                            const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
+                                                            if (existingScript) {
+                                                                existingScript.remove();
+                                                            }
+                                                            window.location.reload();
+                                                        }}
+                                                        className="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors mr-2"
+                                                    >
+                                                        Thử lại
+                                                    </button>
+                                                    <p className="text-xs text-gray-500 mt-2">
+                                                        Mở Console (F12) để xem chi tiết lỗi
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                )}
-                                {!mapLoaded && !error && (
-                                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg">
-                                        <div className="text-center">
-                                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                                            <p className="text-gray-600">Đang tải bản đồ...</p>
+                                    )}
+                                    {!mapLoaded && !error && (
+                                        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg">
+                                            <div className="text-center">
+                                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                                                <p className="text-gray-600">Đang tải bản đồ...</p>
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
+                                </div>
+                                {formData.latitude && formData.longitude && (
+                                    <p className="text-sm text-gray-600 mt-2">
+                                        Tọa độ: {formData.latitude.toFixed(6)}, {formData.longitude.toFixed(6)}
+                                    </p>
                                 )}
                             </div>
-                            {formData.latitude && formData.longitude && (
-                                <p className="text-sm text-gray-600 mt-2">
-                                    Tọa độ: {formData.latitude.toFixed(6)}, {formData.longitude.toFixed(6)}
-                                </p>
-                            )}
-                        </div>
+                        )}
                     </div>
 
                     {/* Amenities */}
@@ -1463,6 +1669,56 @@ const CreateRoomListing = () => {
                                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                     />
                                     <span className="text-sm text-gray-700">{amenity}</span>
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Interests */}
+                    <div className="bg-white rounded-lg shadow-sm p-6">
+                        <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <Star className="w-5 h-5 mr-2" />
+                            Sở thích
+                        </h2>
+
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                            {COMMON_INTERESTS.map(interest => (
+                                <label
+                                    key={interest}
+                                    className="flex items-center space-x-2 cursor-pointer p-2 rounded hover:bg-gray-50"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.interests?.includes(interest) || false}
+                                        onChange={() => toggleInterest(interest)}
+                                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    />
+                                    <span className="text-sm text-gray-700">{interest}</span>
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Lifestyle */}
+                    <div className="bg-white rounded-lg shadow-sm p-6">
+                        <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <Heart className="w-5 h-5 mr-2" />
+                            Lối sống
+                        </h2>
+
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                            {LIFESTYLE_OPTIONS.map(lifestyle => (
+                                <label
+                                    key={lifestyle}
+                                    className="flex items-center space-x-2 cursor-pointer p-2 rounded hover:bg-gray-50"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.lifestyle?.includes(lifestyle) || false}
+                                        onChange={() => toggleLifestyle(lifestyle)}
+                                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    />
+                                    <span className="text-sm text-gray-700">{lifestyle}</span>
                                 </label>
                             ))}
                         </div>
@@ -1529,6 +1785,7 @@ const CreateRoomListing = () => {
                             Hình ảnh
                         </h2>
 
+                        {/* Add image from URL */}
                         <div className="mb-4">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Thêm ảnh từ URL
@@ -1552,6 +1809,31 @@ const CreateRoomListing = () => {
                             </div>
                         </div>
 
+                        {/* Upload image from device */}
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Tải ảnh từ thiết bị
+                            </label>
+                            <input
+                                ref={imageInputRef}
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                onChange={handleImageUpload}
+                                className="hidden"
+                                id="image-upload"
+                            />
+                            <label
+                                htmlFor="image-upload"
+                                className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-blue-300 rounded-lg bg-blue-50 hover:bg-blue-100 cursor-pointer transition-colors"
+                            >
+                                <Upload className="w-5 h-5 mr-2 text-blue-600" />
+                                <span className="text-blue-600 font-medium">
+                                    {uploadingImage ? 'Đang tải...' : 'Chọn ảnh từ máy tính'}
+                                </span>
+                            </label>
+                        </div>
+
                         {formData.images.length > 0 && (
                             <div className="mt-4">
                                 <h3 className="text-sm font-medium text-gray-700 mb-2">Hình ảnh đã chọn:</h3>
@@ -1572,6 +1854,111 @@ const CreateRoomListing = () => {
                                             </button>
                                         </div>
                                     ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Video */}
+                    <div className="bg-white rounded-lg shadow-sm p-6">
+                        <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <Video className="w-5 h-5 mr-2" />
+                            Video
+                        </h2>
+
+                        {/* Video Link (YouTube/TikTok) */}
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Video Link (Youtube/Tiktok)
+                            </label>
+                            <input
+                                type="text"
+                                value={videoLink}
+                                onChange={(e) => setVideoLink(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-2"
+                                placeholder="Nhập link video YouTube hoặc TikTok"
+                            />
+                            <p className="text-xs text-gray-500 mb-2">
+                                Lưu ý: Bạn có thể chọn video từ Youtube hoặc Tiktok để hiển thị trên bài viết của mình.
+                            </p>
+                            <div className="text-xs text-gray-400 mb-3">
+                                Ví dụ: https://www.youtube.com/watch?v=xxxxxxxxxx<br />
+                                Ví dụ: https://www.tiktok.com/@username/video
+                            </div>
+                            <button
+                                type="button"
+                                onClick={handleAddVideoLink}
+                                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled={!videoLink.trim()}
+                            >
+                                Thêm link video
+                            </button>
+                        </div>
+
+                        {/* Separator */}
+                        <div className="flex items-center my-4">
+                            <div className="flex-1 border-t border-gray-300"></div>
+                            <span className="px-3 text-sm text-gray-500">Hoặc</span>
+                            <div className="flex-1 border-t border-gray-300"></div>
+                        </div>
+
+                        {/* Upload video from device */}
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Tải Video từ thiết bị
+                            </label>
+                            <input
+                                ref={videoInputRef}
+                                type="file"
+                                accept="video/*"
+                                onChange={handleVideoUpload}
+                                className="hidden"
+                                id="video-upload"
+                            />
+                            <label
+                                htmlFor="video-upload"
+                                className="flex flex-col items-center justify-center w-full px-4 py-8 border-2 border-dashed border-blue-300 rounded-lg bg-blue-50 hover:bg-blue-100 cursor-pointer transition-colors"
+                            >
+                                <div className="relative">
+                                    <Video className="w-16 h-16 text-blue-600 mb-2" />
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <Upload className="w-8 h-8 text-blue-600" />
+                                    </div>
+                                </div>
+                                <span className="text-blue-600 font-medium mt-2">
+                                    {uploadingVideo ? 'Đang tải video...' : 'Tải Video từ thiết bị'}
+                                </span>
+                                <span className="text-xs text-gray-500 mt-1">MP4, WebM, OGG, MOV (tối đa 100MB)</span>
+                            </label>
+                        </div>
+
+                        {/* Display current video */}
+                        {formData.video && (
+                            <div className="mt-4">
+                                <h3 className="text-sm font-medium text-gray-700 mb-2">Video đã chọn:</h3>
+                                <div className="relative rounded-lg overflow-hidden border border-gray-300">
+                                    {formData.video.startsWith('http') ? (
+                                        // YouTube or TikTok embed
+                                        <div className="aspect-video bg-gray-100 flex items-center justify-center">
+                                            <p className="text-gray-600">Video link: {formData.video}</p>
+                                        </div>
+                                    ) : (
+                                        // Uploaded video preview
+                                        <video
+                                            src={formData.video}
+                                            controls
+                                            className="w-full max-h-96"
+                                        >
+                                            Trình duyệt của bạn không hỗ trợ video.
+                                        </video>
+                                    )}
+                                    <button
+                                        type="button"
+                                        onClick={removeVideo}
+                                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
                                 </div>
                             </div>
                         )}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, Eye } from 'lucide-react';
+import { Heart, Eye, User } from 'lucide-react';
 import ConnectionModal from './ConnectionModal';
 import api from '../api';
 
@@ -16,7 +16,8 @@ interface Post {
   district?: string;
   images?: string[];
   description: string;
-  authorId: string;
+  authorId?: string;
+  userId?: string; // db.json uses userId
   authorName?: string;
   authorAvatar?: string;
   createdAt: string;
@@ -53,6 +54,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
   const [postLikes, setPostLikes] = useState(post.likes || 0);
   const [postViews, setPostViews] = useState(post.views || 0);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [authorInfo, setAuthorInfo] = useState<any>(null);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('currentUser');
@@ -85,11 +87,36 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
     setPostLikes(post.likes || 0);
     setPostViews(post.views || 0);
   }, [post.id, post.likes, post.views]);
+
+  // Fetch author info
+  useEffect(() => {
+    const fetchAuthorInfo = async () => {
+      // Try both authorId and userId (db.json uses userId)
+      const authorId = (post as any).authorId || (post as any).userId;
+      if (!authorId) {
+        console.log('PostCard: No authorId/userId found for post:', post.id);
+        setAuthorInfo(null);
+        return;
+      }
+
+      try {
+        console.log('PostCard: Fetching author info for userId:', authorId);
+        const response = await api.get(`/users/${authorId}`);
+        console.log('PostCard: Author info fetched:', response.data);
+        setAuthorInfo(response.data);
+      } catch (error) {
+        console.error('PostCard: Error fetching author info for userId:', authorId, error);
+        setAuthorInfo(null);
+      }
+    };
+
+    fetchAuthorInfo();
+  }, [(post as any).authorId, (post as any).userId, post.id]);
  const getCurrentUserId = () => {
     return currentUser?.id || currentUser?.uid || '';
   };
 
-  const isOwnPost = currentUser && post.authorId === getCurrentUserId();
+  const isOwnPost = currentUser && ((post as any).authorId || (post as any).userId) === getCurrentUserId();
 
     const formatPrice = (price: number | undefined, type: Post['type'], isFree: boolean | undefined = false) => {
     if (isFree) {
@@ -119,17 +146,8 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
     const date = new Date(dateString);
     if (Number.isNaN(date.getTime())) return 'Không rõ thời gian';
 
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 1) {
-      return 'Hôm nay';
-    } else if (diffDays <= 7) {
-      return `${diffDays} ngày trước`;
-    } else {
-      return date.toLocaleDateString('vi-VN');
-    }
+    // Always return the actual date in format: dd/mm/yyyy
+    return date.toLocaleDateString('vi-VN');
   };
 
    const nextImage = () => {
@@ -198,7 +216,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
           const admins = Array.isArray(adminsResponse.data) ? adminsResponse.data : [];
           
           // Get post author (try both authorId and userId)
-          const authorId = post.authorId || post.userId;
+          const authorId = (post as any).authorId || (post as any).userId;
           if (authorId) {
             try {
               const authorResponse = await api.get(`/users/${authorId}`);
@@ -322,64 +340,6 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
               await Promise.all(notificationPromises);
             }
           }
-          
-          console.log('Users to notify:', usersToNotify.map((u: any) => u.id));
-          
-          if (usersToNotify.length === 0) {
-            console.warn('No users to notify.');
-            return;
-          }
-          
-          // Create notification for each user (admin + author)
-          const notificationPromises = usersToNotify.map((targetUser: any) => {
-            const notificationId = `post_liked_${Date.now()}_${targetUser.id}_${post.id}`;
-            return api.post(`/notifications`, {
-              id: notificationId,
-              type: 'post_liked',
-              userId: targetUser.id,
-              fromUser: {
-                fullName: user.fullName || user.email || 'Người dùng',
-                id: user.id || currentUserId
-              },
-              data: {
-                postTitle: post.title,
-                postId: post.id
-              },
-              isRead: false,
-              createdAt: new Date().toISOString()
-            }).then(res => {
-              console.log(`Notification created for user ${targetUser.id}:`, res.data);
-              return res.data;
-            }).catch(err => {
-              console.error(`Error creating notification for user ${targetUser.id}:`, err);
-              return null;
-            });
-          });
-          
-          const createdNotifications = await Promise.all(notificationPromises);
-          console.log('All notifications created:', createdNotifications.filter(n => n !== null));
-          
-          // Emit socket event if available
-          if ((window as any).socket) {
-            usersToNotify.forEach((targetUser: any) => {
-              (window as any).socket.emit('newNotification', {
-                id: `post_liked_${Date.now()}_${targetUser.id}_${post.id}`,
-                type: 'post_liked',
-                userId: targetUser.id,
-                fromUser: {
-                  fullName: user.fullName || user.email || 'Người dùng',
-                  id: user.id || currentUserId
-                },
-                data: {
-                  postTitle: post.title,
-                  postId: post.id
-                },
-                isRead: false,
-                createdAt: new Date().toISOString()
-              });
-            });
-            console.log('Socket events emitted');
-          }
         } catch (notifError) {
           console.error('Error creating like notification:', notifError);
         }
@@ -392,18 +352,20 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
   
   const handleViewDetails = async () => {
     try {
-      // Increment views
-      const newViews = (postViews || 0) + 1;
-      
-      // Update in database
-      await api.patch(`/posts/${post.id}`, {
-        views: newViews
-      });
-      
-      // Update local state
-      setPostViews(newViews);
-      
-      // Navigate to detail page
+      const viewerId = currentUserId || 'guest';
+      const viewKey = `post_viewed_${post.id}_${viewerId}`;
+
+      if (!localStorage.getItem(viewKey)) {
+        const newViews = (postViews || 0) + 1;
+        try {
+          await api.patch(`/posts/${post.id}`, { views: newViews });
+          setPostViews(newViews);
+          localStorage.setItem(viewKey, 'true');
+        } catch (err) {
+          console.error('Error updating views:', err);
+        }
+      }
+
       navigate(`/post/${post.id}`);
     } catch (error) {
       console.error('Error updating views:', error);
@@ -560,17 +522,33 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
           <div className="flex items-center justify-between">
             {/* Author and Date */}
             <div className="flex items-center space-x-2 flex-1">
-              <img
-                src={post.authorAvatar || '/default-avatar.png'}
-                alt={post.authorName}
-                className="w-8 h-8 rounded-full object-cover"
-              />
+              {authorInfo && authorInfo.avatar ? (
+                <img
+                  key={`author-avatar-${authorInfo.id}-${authorInfo.avatar?.substring(0, 20)}`}
+                  src={authorInfo.avatar}
+                  alt={authorInfo.fullName || authorInfo.email || 'Chủ nhà'}
+                  className="w-8 h-8 rounded-full object-cover border border-gray-200"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    const placeholder = target.parentElement?.querySelector('.author-avatar-placeholder') as HTMLElement;
+                    if (placeholder) {
+                      placeholder.style.display = 'flex';
+                    }
+                  }}
+                />
+              ) : null}
+              <div 
+                className={`author-avatar-placeholder w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center bg-gray-100 ${authorInfo && authorInfo.avatar ? 'hidden' : 'flex'}`}
+              >
+                <User className="w-4 h-4 text-gray-400" />
+              </div>
               <div className="min-w-0 flex-1">
-                <div className="text-sm text-gray-800 line-clamp-1">
-                  {post.authorName || 'Chủ nhà'}
+                <div className="text-sm text-gray-800 line-clamp-1 font-semibold">
+                  {authorInfo ? (authorInfo.fullName || authorInfo.email || 'Chủ nhà') : (post.authorName || 'Chủ nhà')}
                 </div>
                 <div className="text-xs text-gray-500">
-                  {formatDate(post.createdAt)}
+                  {post?.createdAt ? formatDate(post.createdAt) : 'Không rõ thời gian'}
                 </div>
               </div>
             </div>

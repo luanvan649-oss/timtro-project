@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, ChangeEvent } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import PostCard from "../components/PostCard";
 import SearchFilter from "../components/SearchFilter";
 import Pagination from "../components/Pagination";
@@ -34,6 +34,8 @@ interface Filters {
   areaMin?: number;
   areaMax?: number;
   amenities?: string[];
+  interests?: string[];
+  lifestyle?: string[];
   [key: string]: any;
 }
 
@@ -48,6 +50,7 @@ const Home: React.FC<HomeProps> = ({
 }) => {
   // Receive globalSearchTerm and setGlobalSearchTerm
   const location = useLocation();
+  const navigate = useNavigate();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,10 +66,23 @@ const Home: React.FC<HomeProps> = ({
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const category = searchParams.get("category");
+
+    // Nếu có category trên URL thì dùng giá trị đó
     if (category) {
       setFilters((prev) => ({ ...prev, category }));
+      return;
     }
-  }, [location.search]);
+
+    // Nếu không có category trên URL và đang ở trang chủ,
+    // mặc định hiển thị danh sách "Phòng trọ" (room_listing)
+    if (!category && (location.pathname === "/" || location.pathname === "")) {
+      setFilters((prev) => ({ ...prev, category: "Phòng trọ" }));
+      return;
+    }
+
+    // Trường hợp khác, reset category
+    setFilters((prev) => ({ ...prev, category: "" }));
+  }, [location.search, location.pathname]);
 
   const loadPosts = useCallback(async () => {
     try {
@@ -90,7 +106,8 @@ const Home: React.FC<HomeProps> = ({
       if (filters.district) {
         queryParams.district = filters.district;
       }
-      if (filters.category) {
+      // Không gửi category lên API cho "Phòng trọ" và "Tìm người ở ghép" vì cần filter theo type ở client-side
+      if (filters.category && filters.category !== "Phòng trọ" && filters.category !== "Tìm người ở ghép") {
         queryParams.category = filters.category;
       }
 
@@ -141,11 +158,24 @@ const Home: React.FC<HomeProps> = ({
         );
       }
 
-      // Client-side filtering for category (if not already filtered by API)
-      if (filters.category && !queryParams.category) {
-        fetchedPosts = fetchedPosts.filter(
-          (post) => post.category === filters.category
-        );
+      // Client-side filtering for category with type logic
+      if (filters.category) {
+        if (filters.category === "Phòng trọ") {
+          // Trang "Phòng trọ" chỉ hiển thị room_listing với category "Phòng trọ"
+          fetchedPosts = fetchedPosts.filter(
+            (post) => post.category === "Phòng trọ" && post.type === "room_listing"
+          );
+        } else if (filters.category === "Tìm người ở ghép") {
+          // Trang "Tìm người ở ghép" chỉ hiển thị roommate_finding (người đã ở sẵn tìm thêm người ở cùng)
+          fetchedPosts = fetchedPosts.filter(
+            (post) => post.type === "roommate_finding"
+          );
+        } else {
+          // Các category khác filter theo category bình thường
+          fetchedPosts = fetchedPosts.filter(
+            (post) => post.category === filters.category
+          );
+        }
       }
 
       // Client-side filtering for amenities
@@ -153,6 +183,24 @@ const Home: React.FC<HomeProps> = ({
         fetchedPosts = fetchedPosts.filter((post) =>
           filters.amenities?.every((amenity) =>
             post.amenities?.includes(amenity)
+          )
+        );
+      }
+
+      // Client-side filtering for interests
+      if (filters.interests && filters.interests.length > 0) {
+        fetchedPosts = fetchedPosts.filter((post) =>
+          filters.interests?.some((interest) =>
+            post.interests?.includes(interest)
+          )
+        );
+      }
+
+      // Client-side filtering for lifestyle
+      if (filters.lifestyle && filters.lifestyle.length > 0) {
+        fetchedPosts = fetchedPosts.filter((post) =>
+          filters.lifestyle?.some((lifestyle) =>
+            post.lifestyle?.includes(lifestyle)
           )
         );
       }
@@ -257,6 +305,14 @@ const Home: React.FC<HomeProps> = ({
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const handleApplyCategoryNavigate = (category: string) => {
+    if (category) {
+      navigate(`/?category=${encodeURIComponent(category)}`);
+    } else {
+      navigate(`/`);
+    }
+  };
+
   const handleLocationFilter = (location?: string) => {
     setFilters((prevFilters) => {
       const newFilters = { ...prevFilters } as Filters;
@@ -286,6 +342,30 @@ const Home: React.FC<HomeProps> = ({
     );
   }
 
+  // Dynamic page title by category
+  const pageTitle = (() => {
+    switch (filters.category) {
+      case "Nhà nguyên căn":
+        return "Cho Thuê Nhà Nguyên Căn, Giá Rẻ";
+      case "Căn hộ chung cư":
+        return "Cho Thuê Căn Hộ Chung Cư, Giá Rẻ, View Đẹp";
+      case "Căn hộ mini":
+        return "Cho Thuê Căn Hộ Mini + Chung Cư Mini Giá Rẻ";
+      case "Căn hộ dịch vụ":
+        return "Cho Thuê Căn Hộ Dịch Vụ, Giá Rẻ";
+      case "Tìm người ở ghép":
+        return "Tìm Người Ở Ghép, Tìm Nam Ở Ghép, Tìm Nữ Ở Ghép";
+      case "Mặt bằng":
+        return "Cho Thuê Mặt Bằng, Giá Rẻ, Chính Chủ";
+      case "Phòng trọ":
+      case undefined:
+      case "":
+        return "Phòng trọ số 1 Việt Nam";
+      default:
+        return "Cho thuê phòng trọ, nhà nguyên căn, căn hộ";
+    }
+  })();
+
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
       <div className="flex flex-col lg:flex-row gap-6">
@@ -293,7 +373,7 @@ const Home: React.FC<HomeProps> = ({
         <div className="flex-1 min-w-0">
           {/* Page Title */}
           <h1 className="text-xl font-semibold text-gray-900 mb-4">
-            Cho thuê phòng trọ, nhà nguyên căn, căn hộ
+            {pageTitle}
           </h1>
           <p className="text-sm text-gray-600 mb-6">
             Hiện có{" "}
@@ -470,6 +550,7 @@ const Home: React.FC<HomeProps> = ({
             onSearch={handleSearch}
             onFilter={handleFilterChange}
             initialFilters={filters}
+            onApplyCategory={handleApplyCategoryNavigate}
           />
 
           {/* Recent Posts */}

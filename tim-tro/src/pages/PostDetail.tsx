@@ -32,7 +32,8 @@ import {
   Camera,
   Edit2,
   Check,
-  X as XIcon
+  X as XIcon,
+  User
 } from 'lucide-react';
 
 function PostDetail() {
@@ -70,20 +71,28 @@ function PostDetail() {
   }, [currentUser]);
 
   useEffect(() => {
-    // Load liked posts for this user
+    // Load liked posts for this user and sync with localStorage
     if (currentUserId && post && post.id) {
       const likedKey = `likedPosts_${currentUserId}`;
       const savedLikes = localStorage.getItem(likedKey);
       if (savedLikes) {
         try {
           const likedArray = JSON.parse(savedLikes);
-          setIsLiked(likedArray.includes(post.id));
+          const isPostLiked = likedArray.includes(post.id);
+          setIsLiked(isPostLiked);
         } catch (e) {
           console.error('Error parsing liked posts:', e);
+          setIsLiked(false);
         }
+      } else {
+        // No saved likes, ensure isLiked is false
+        setIsLiked(false);
       }
+    } else if (!currentUserId && post) {
+      // Guest user, ensure isLiked is false
+      setIsLiked(false);
     }
-  }, [currentUserId, post]);
+  }, [currentUserId, post?.id]);
 
   // Fallback contact phone: prefer author profile phone, then post.contactPhone or post.contact.phone
   const contactPhone = (authorInfo && (authorInfo.phone || authorInfo.contactPhone)) ||
@@ -119,18 +128,29 @@ function PostDetail() {
 
       setPost(postWithDefaults);
 
-      // Increment views when viewing detail (only once per session)
-      const viewKey = `post_viewed_${id}`;
-      if (!sessionStorage.getItem(viewKey)) {
+      // Increment views once per user (fallback guest) - only increment once per post per user
+      // Use a ref to track if view has been incremented to prevent double increment
+      const viewerId = currentUserId || 'guest';
+      const viewKey = `post_viewed_${id}_${viewerId}`;
+      
+      // Check if this user has already viewed this post
+      const hasViewed = localStorage.getItem(viewKey);
+      if (!hasViewed) {
+        // Mark as viewed immediately to prevent double increment
+        localStorage.setItem(viewKey, 'true');
+        
         const newViews = (postWithDefaults.views || 0) + 1;
         setPost((prev: any) => prev ? { ...prev, views: newViews } : null); // Optimistic update
+        
+        // Update views in database
         api.patch(`/posts/${id}`, {
           views: newViews
-        }).then(() => {
-          sessionStorage.setItem(viewKey, 'true');
         }).catch((viewError) => {
           console.error('Error updating views:', viewError);
-          setPost((prev: any) => prev ? { ...prev, views: postWithDefaults.views || 0 } : null); // Revert on error
+          // Revert optimistic update on error
+          setPost((prev: any) => prev ? { ...prev, views: postWithDefaults.views || 0 } : null);
+          // Remove the localStorage flag so user can try again
+          localStorage.removeItem(viewKey);
         });
       }
     } catch (error) {
@@ -204,6 +224,20 @@ function PostDetail() {
       }
     }
   }, [currentUser, post, reloadAuthorInfo]);
+
+  // Ensure authorInfo is loaded when post changes
+  useEffect(() => {
+    if (post && (post.userId || post.authorId) && !authorInfo) {
+      const authorId = post.userId || post.authorId;
+      api.get(`/users/${authorId}`)
+        .then(response => {
+          setAuthorInfo(response.data);
+        })
+        .catch(error => {
+          console.error('Error loading author info:', error);
+        });
+    }
+  }, [post, authorInfo]);
 
   // Thêm hàm fetchConnectionStatus phần kiểm tra trạng thái kết nối:
   const fetchConnectionStatus = useCallback(async () => {
@@ -328,8 +362,15 @@ function PostDetail() {
     if (!post) return;
 
     try {
-      const wasLiked = isLiked;
-      const newLikes = wasLiked ? (post.likes || 0) - 1 : (post.likes || 0) + 1;
+      // Double-check localStorage to ensure we have the correct state
+      const likedKey = `likedPosts_${currentUserId}`;
+      const savedLikes = localStorage.getItem(likedKey);
+      const likedPosts = savedLikes ? JSON.parse(savedLikes) : [];
+      const wasLiked = likedPosts.includes(post.id);
+      
+      // Use the actual current likes from post, not optimistic state
+      const currentLikes = post.likes || 0;
+      const newLikes = wasLiked ? Math.max(0, currentLikes - 1) : currentLikes + 1;
 
       // Optimistic update
       setPost((prev: any) => prev ? { ...prev, likes: newLikes } : null);
@@ -341,8 +382,6 @@ function PostDetail() {
       });
 
       // Update localStorage
-      const likedKey = `likedPosts_${currentUserId}`;
-      const likedPosts = JSON.parse(localStorage.getItem(likedKey) || '[]');
       if (wasLiked) {
         const updated = likedPosts.filter((postId: string) => postId !== post.id);
         localStorage.setItem(likedKey, JSON.stringify(updated));
@@ -679,13 +718,64 @@ function PostDetail() {
         <div className="lg:col-span-2">
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h1 className="text-2xl font-bold text-gray-900 mb-2">{post.title}</h1>
-            <p className="text-sm text-gray-500 mb-4">Ngày đăng: {formatDate(post.createdAt)}</p>
+            
+            {/* Author Info - Đồng bộ với sidebar */}
+            <div className="flex items-center space-x-3 mb-4">
+              {authorInfo ? (
+                <>
+                  {authorInfo.avatar ? (
+                    <img
+                      key={`author-avatar-${authorInfo.id}-${authorInfo.avatar?.substring(0, 20)}`}
+                      src={authorInfo.avatar}
+                      alt={authorInfo.fullName || authorInfo.email || 'Chủ nhà'}
+                      className="w-10 h-10 rounded-full object-cover border border-gray-200"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        const placeholder = target.parentElement?.querySelector('.author-avatar-placeholder') as HTMLElement;
+                        if (placeholder) {
+                          placeholder.style.display = 'flex';
+                        }
+                      }}
+                    />
+                  ) : null}
+                  <div 
+                    className={`author-avatar-placeholder w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center bg-gray-100 ${authorInfo.avatar ? 'hidden' : 'flex'}`}
+                  >
+                    <User className="w-5 h-5 text-gray-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">
+                      {authorInfo.fullName || authorInfo.email || 'Chủ nhà'}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {post?.createdAt ? formatDate(post.createdAt) : 'Không rõ thời gian'}
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center bg-gray-100">
+                    <User className="w-5 h-5 text-gray-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">Chủ nhà</p>
+                    <p className="text-xs text-gray-500">{post?.createdAt ? formatDate(post.createdAt) : 'Không rõ thời gian'}</p>
+                  </div>
+                </>
+              )}
+            </div>
+            
+            <p className="text-sm text-gray-500 mb-4">Ngày đăng: {post.createdAt ? formatDate(post.createdAt) : 'N/A'}</p>
 
             {/* Price, Location, Type */}
-            <div className="flex items-center text-blue-600 mb-2">
-              <span className="text-2xl font-bold">
-                ${post.type === 'room_listing' ? formatPrice(post.price, post.type) : formatPrice(post.budget, post.type, post.isFree)}
-              </span>
+            <div className="flex items-center mb-2">
+              <div className="flex items-center text-2xl font-bold text-green-600">
+                <DollarSign size={24} className="mr-1 text-green-600" />
+                <span className="text-green-600">
+                  {post.type === 'room_listing' ? formatPrice(post.price, post.type) : formatPrice(post.budget, post.type, post.isFree)}
+                </span>
+              </div>
               <span className="text-gray-600 ml-6 text-base">
                 {post.district}, {post.location}
                 {post.type === 'roommate_finding' && (
@@ -727,46 +817,159 @@ function PostDetail() {
               </div>
             )}
 
-            {/* Property Details / Roommate Details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div>
-                <h3 className="text-lg font-semibold mb-3">Thông tin tìm bạn ghép</h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Loại phòng:</span>
-                    <span className="font-medium">{getRoomTypeLabel(post.roomType)}</span>
+            {/* Property Details / Roommate Details - Only show for roommate_finding posts */}
+            {post.type === 'roommate_finding' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Thông tin tìm bạn ghép</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Loại phòng:</span>
+                      <span className="font-medium">{getRoomTypeLabel(post.roomType)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Giới tính mong muốn:</span>
+                      <span className="font-medium">{getGenderLabel(post.genderPreference)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Trường:</span>
+                      <span className="font-medium">{post.school || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Ngành:</span>
+                      <span className="font-medium">{post.major || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Năm học:</span>
+                      <span className="font-medium">{post.year || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Có thể vào ở từ:</span>
+                      <span className="font-medium">{formatDate(post.availableFrom) || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Tên liên hệ:</span>
+                      <span className="font-medium">{post.contactName || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Số điện thoại:</span>
+                      <span className="font-medium">{post.contactPhone || 'N/A'}</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Giới tính mong muốn:</span>
-                    <span className="font-medium">{getGenderLabel(post.genderPreference)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Trường:</span>
-                    <span className="font-medium">{post.school || 'N/A'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Ngành:</span>
-                    <span className="font-medium">{post.major || 'N/A'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Năm học:</span>
-                    <span className="font-medium">{post.year || 'N/A'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Có thể vào ở từ:</span>
-                    <span className="font-medium">{formatDate(post.availableFrom) || 'N/A'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Tên liên hệ:</span>
-                    <span className="font-medium">{post.contactName || 'N/A'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Số điện thoại:</span>
-                    <span className="font-medium">{post.contactPhone || 'N/A'}</span>
-                  </div>
+                  
+                  {/* Interests & Lifestyle for roommate_finding posts */}
+                  {(post.interests?.length > 0 || post.lifestyle?.length > 0) && (
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      {post.interests?.length > 0 && (
+                        <div className="mb-3">
+                          <h4 className="font-medium text-gray-700 mb-2 flex items-center">
+                            <span className="mr-2">⭐</span>
+                            Sở thích:
+                          </h4>
+                          <div className="flex flex-wrap gap-2">
+                            {post.interests.map(interest => (
+                              <span key={interest} className="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
+                                {interest}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {post.lifestyle?.length > 0 && (
+                        <div>
+                          <h4 className="font-medium text-gray-700 mb-2 flex items-center">
+                            <span className="mr-2">❤️</span>
+                            Lối sống:
+                          </h4>
+                          <div className="flex flex-wrap gap-2">
+                            {post.lifestyle.map(item => (
+                              <span key={item} className="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">
+                                {item}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
+            )}
+
+            {/* Property Details for room_listing posts */}
+            {post.type === 'room_listing' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Thông tin chi tiết</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Loại hình:</span>
+                      <span className="font-medium">{post.category || 'N/A'}</span>
+                    </div>
+                    {post.area && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Diện tích:</span>
+                        <span className="font-medium">{post.area}m²</span>
+                      </div>
+                    )}
+                    {post.deposit && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Tiền cọc:</span>
+                        <span className="font-medium">{post.deposit.toLocaleString('vi-VN')} đồng</span>
+                      </div>
+                    )}
+                    {post.contact?.name && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Tên liên hệ:</span>
+                        <span className="font-medium">{post.contact.name}</span>
+                      </div>
+                    )}
+                    {post.contact?.phone && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Số điện thoại:</span>
+                        <span className="font-medium">{post.contact.phone}</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Interests & Lifestyle for room_listing posts */}
+                  {(post.interests?.length > 0 || post.lifestyle?.length > 0) && (
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      {post.interests?.length > 0 && (
+                        <div className="mb-3">
+                          <h4 className="font-medium text-gray-700 mb-2 flex items-center">
+                            <span className="mr-2">⭐</span>
+                            Sở thích:
+                          </h4>
+                          <div className="flex flex-wrap gap-2">
+                            {post.interests.map(interest => (
+                              <span key={interest} className="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
+                                {interest}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {post.lifestyle?.length > 0 && (
+                        <div>
+                          <h4 className="font-medium text-gray-700 mb-2 flex items-center">
+                            <span className="mr-2">❤️</span>
+                            Lối sống:
+                          </h4>
+                          <div className="flex flex-wrap gap-2">
+                            {post.lifestyle.map(item => (
+                              <span key={item} className="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">
+                                {item}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Interests & Lifestyle - Only for roommate_finding posts */}
             {post.type === 'roommate_finding' && (post.interests?.length > 0 || post.lifestyle?.length > 0) && (
@@ -813,20 +1016,38 @@ function PostDetail() {
           <div className="bg-white rounded-lg shadow-lg p-6">
             <div className="flex items-center space-x-4 mb-4">
               <div className="relative group">
-                <img
-                  key={authorInfo?.avatar || 'default'}
-                  src={authorInfo?.avatar || '/default-avatar.png'}
-                  alt={authorInfo?.fullName || authorInfo?.email || 'Người dùng'}
-                  className="w-16 h-16 rounded-full object-cover border-2 border-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
+                {authorInfo && authorInfo.avatar ? (
+                  <img
+                    key={`avatar-${authorInfo.id}-${authorInfo.avatar?.substring(0, 20)}`}
+                    src={authorInfo.avatar}
+                    alt={authorInfo.fullName || authorInfo.email || 'Chủ nhà'}
+                    className="w-16 h-16 rounded-full object-cover border-2 border-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => {
+                      if (authorInfo.avatar) {
+                        setShowAvatarModal(true);
+                      }
+                    }}
+                    onError={(e) => {
+                      // Hide image and show placeholder
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      const placeholder = target.parentElement?.querySelector('.avatar-placeholder') as HTMLElement;
+                      if (placeholder) {
+                        placeholder.style.display = 'flex';
+                      }
+                    }}
+                  />
+                ) : null}
+                <div 
+                  className={`avatar-placeholder w-16 h-16 rounded-full border-2 border-gray-200 flex items-center justify-center bg-gray-100 ${authorInfo && authorInfo.avatar ? 'hidden' : 'flex'}`}
                   onClick={() => {
                     if (authorInfo?.avatar) {
                       setShowAvatarModal(true);
                     }
                   }}
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/default-avatar.png';
-                  }}
-                />
+                >
+                  <User className="w-8 h-8 text-gray-400" />
+                </div>
                 {currentUser && currentUser.id === authorInfo?.id && (
                   <label className="absolute bottom-0 right-0 bg-blue-500 text-white rounded-full p-2 cursor-pointer hover:bg-blue-600 transition-colors shadow-lg">
                     <Camera size={16} />
@@ -899,80 +1120,89 @@ function PostDetail() {
                 )}
               </div>
               <div className="flex-1">
-                {isEditingName && currentUser && currentUser.id === authorInfo?.id ? (
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={editingName}
-                      onChange={(e) => setEditingName(e.target.value)}
-                      className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
-                      placeholder="Nhập tên của bạn"
-                      autoFocus
-                    />
-                    <button
-                      onClick={async () => {
-                        try {
-                          const response = await api.patch(`/users/${currentUser.id}`, {
-                            fullName: editingName
-                          });
+                {authorInfo ? (
+                  <>
+                    {isEditingName && currentUser && currentUser.id === authorInfo.id ? (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={editingName}
+                          onChange={(e) => setEditingName(e.target.value)}
+                          className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                          placeholder="Nhập tên của bạn"
+                          autoFocus
+                        />
+                        <button
+                          onClick={async () => {
+                            try {
+                              const response = await api.patch(`/users/${currentUser.id}`, {
+                                fullName: editingName
+                              });
 
-                          // Update localStorage first
-                          const storedUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-                          const updatedUser = {
-                            ...storedUser,
-                            ...response.data,
-                            fullName: editingName
-                          };
-                          localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-                          setCurrentUser(updatedUser);
+                              // Update localStorage first
+                              const storedUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                              const updatedUser = {
+                                ...storedUser,
+                                ...response.data,
+                                fullName: editingName
+                              };
+                              localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+                              setCurrentUser(updatedUser);
 
-                          // Reload author info from server to get latest data
-                          await reloadAuthorInfo();
+                              // Reload author info from server to get latest data
+                              await reloadAuthorInfo();
 
-                          setIsEditingName(false);
-                          alert('Cập nhật tên thành công!');
-                        } catch (error: any) {
-                          console.error('Error updating name:', error);
-                          alert(`Có lỗi xảy ra: ${error.response?.data?.message || error.message || 'Vui lòng thử lại'}`);
-                        }
-                      }}
-                      className="p-1 text-green-600 hover:bg-green-50 rounded"
-                    >
-                      <Check size={16} />
-                    </button>
-                    <button
-                      onClick={() => {
-                        setIsEditingName(false);
-                        setEditingName(authorInfo?.fullName || '');
-                      }}
-                      className="p-1 text-red-600 hover:bg-red-50 rounded"
-                    >
-                      <XIcon size={16} />
-                    </button>
-                  </div>
+                              setIsEditingName(false);
+                              alert('Cập nhật tên thành công!');
+                            } catch (error: any) {
+                              console.error('Error updating name:', error);
+                              alert(`Có lỗi xảy ra: ${error.response?.data?.message || error.message || 'Vui lòng thử lại'}`);
+                            }
+                          }}
+                          className="p-1 text-green-600 hover:bg-green-50 rounded"
+                        >
+                          <Check size={16} />
+                        </button>
+                        <button
+                          onClick={() => {
+                            setIsEditingName(false);
+                            setEditingName(authorInfo.fullName || '');
+                          }}
+                          className="p-1 text-red-600 hover:bg-red-50 rounded"
+                        >
+                          <XIcon size={16} />
+                        </button>
+                      </div>
+                    ) : (
+                      <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                        <span>{authorInfo.fullName || authorInfo.email || 'Chủ nhà'}</span>
+                        {authorInfo.verified && (
+                          <CheckCircle size={16} className="text-green-500" />
+                        )}
+                        {currentUser && currentUser.id === authorInfo.id && (
+                          <button
+                            onClick={() => {
+                              setEditingName(authorInfo.fullName || '');
+                              setIsEditingName(true);
+                            }}
+                            className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded"
+                            title="Chỉnh sửa tên"
+                          >
+                            <Edit2 size={14} />
+                          </button>
+                        )}
+                      </h3>
+                    )}
+                    <p className="text-sm text-gray-600">
+                      {post?.createdAt ? formatDate(post.createdAt) : 'Không rõ thời gian'}
+                    </p>
+                  </>
                 ) : (
-                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                    <span>{authorInfo?.fullName || authorInfo?.email || 'Người dùng ẩn danh'}</span>
-                    {authorInfo?.verified && (
-                      <CheckCircle size={16} className="text-green-500" />
-                    )}
-                    {currentUser && currentUser.id === authorInfo?.id && (
-                      <button
-                        onClick={() => {
-                          setEditingName(authorInfo?.fullName || '');
-                          setIsEditingName(true);
-                        }}
-                        className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded"
-                        title="Chỉnh sửa tên"
-                      >
-                        <Edit2 size={14} />
-                      </button>
-                    )}
-                  </h3>
+                  <>
+                    <h3 className="font-semibold text-gray-900">Chủ nhà</h3>
+                    <p className="text-sm text-gray-600">{post?.createdAt ? formatDate(post.createdAt) : 'Không rõ thời gian'}</p>
+                  </>
                 )}
-                <p className="text-sm text-gray-600">
-                  Tham gia từ {formatDate(authorInfo?.createdAt || new Date())}
-                </p>
               </div>
             </div>
 

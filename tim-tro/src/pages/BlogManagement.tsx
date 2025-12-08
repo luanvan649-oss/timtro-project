@@ -469,8 +469,8 @@ const BlogManagement = () => {
           </div>
           <div>
             <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">Nội dung</label>
-            {/* Rich Text Editor for admin when creating new blog */}
-            {currentUser?.role === 'admin' && !currentBlog && editor && editor.isEditable ? (
+            {/* Rich Text Editor for admin when creating or editing blog */}
+            {currentUser?.role === 'admin' && editor && editor.isEditable ? (
               <div className="mt-1 border border-gray-300 rounded-md overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 bg-white">
                 {/* Toolbar */}
                 <div className="border-b border-gray-200 p-2 flex flex-wrap gap-2 bg-gray-50">

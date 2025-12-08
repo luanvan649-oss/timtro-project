@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom"; // Import useLocation
+import { Link, useLocation, useNavigate } from "react-router-dom"; // Import useLocation, useNavigate
 import SearchFilter from "../components/SearchFilter";
 import Pagination from "../components/Pagination";
 import api from "../api";
@@ -22,11 +22,14 @@ interface Filters {
   areaMin?: number;
   areaMax?: number;
   amenities?: string[];
+  interests?: string[];
+  lifestyle?: string[];
   [key: string]: any;
 }
 
 function SearchPosts() {
   const location = useLocation(); // Initialize useLocation
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<Filters>({});
   const [sortBy, setSortBy] = useState("newest");
@@ -37,6 +40,14 @@ function SearchPosts() {
   const [totalPosts, setTotalPosts] = useState(0);
 
   const postsPerPage = 9;
+
+  const handleApplyCategoryNavigate = (category: string) => {
+    if (category) {
+      navigate(`/?category=${encodeURIComponent(category)}`);
+    } else {
+      navigate(`/`);
+    }
+  };
 
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
@@ -113,6 +124,24 @@ function SearchPosts() {
         );
       }
 
+      // Client-side filtering for interests
+      if (filters.interests && filters.interests.length > 0) {
+        fetchedPosts = fetchedPosts.filter((post) =>
+          filters.interests?.some((interest) =>
+            post.interests?.includes(interest)
+          )
+        );
+      }
+
+      // Client-side filtering for lifestyle
+      if (filters.lifestyle && filters.lifestyle.length > 0) {
+        fetchedPosts = fetchedPosts.filter((post) =>
+          filters.lifestyle?.some((lifestyle) =>
+            post.lifestyle?.includes(lifestyle)
+          )
+        );
+      }
+
       setPosts(fetchedPosts);
       setTotalPosts(totalCount);
     } catch (error) {
@@ -185,6 +214,7 @@ function SearchPosts() {
                 onSearch={handleSearch}
                 onFilter={handleFilterChange}
                 initialFilters={filters}
+            onApplyCategory={handleApplyCategoryNavigate}
               />
 
               {/* Sort Options */}

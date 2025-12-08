@@ -126,28 +126,44 @@ const Layout = ({ children, searchTermValue, onSearchSubmit }: LayoutProps) => {
             <div className="flex items-center space-x-4">
               <Link
                 to="/suggestions"
-                className="text-gray-600 hover:text-gray-800 text-sm font-medium transition-colors"
+                className={`text-sm font-medium transition-colors border-b-2 pb-1 ${
+                  location.pathname === "/suggestions"
+                    ? "text-orange-500 border-orange-500"
+                    : "text-gray-600 border-transparent hover:text-gray-800"
+                }`}
               >
                 Gợi ý phòng trọ
               </Link>
 
               <Link
                 to="/connections"
-                className="text-gray-600 hover:text-gray-800 text-sm font-medium transition-colors"
+                className={`text-sm font-medium transition-colors border-b-2 pb-1 ${
+                  location.pathname === "/connections" || location.pathname === "/my-connections"
+                    ? "text-orange-500 border-orange-500"
+                    : "text-gray-600 border-transparent hover:text-gray-800"
+                }`}
               >
                 Kết nối
               </Link>
 
               <Link
                 to="/ratings"
-                className="text-gray-600 hover:text-gray-800 text-sm font-medium transition-colors"
+                className={`text-sm font-medium transition-colors border-b-2 pb-1 ${
+                  location.pathname === "/ratings"
+                    ? "text-orange-500 border-orange-500"
+                    : "text-gray-600 border-transparent hover:text-gray-800"
+                }`}
               >
                 Đánh giá
               </Link>
 
               <Link
                 to="/profile"
-                className="text-gray-600 hover:text-gray-800 text-sm font-medium transition-colors"
+                className={`text-sm font-medium transition-colors border-b-2 pb-1 ${
+                  location.pathname === "/profile" || location.pathname.startsWith("/profile/")
+                    ? "text-orange-500 border-orange-500"
+                    : "text-gray-600 border-transparent hover:text-gray-800"
+                }`}
               >
                 Hồ sơ
               </Link>
@@ -255,80 +271,77 @@ const Layout = ({ children, searchTermValue, onSearchSubmit }: LayoutProps) => {
       {/* Navigation Menu */}
       <nav className="bg-white border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="flex space-x-8">
-            <Link
-              to="/"
-              className={`py-3 text-sm font-medium border-b-2 transition-colors ${location.pathname === '/' && !location.search.includes('category=')
-                  ? 'text-orange-500 border-orange-500'
-                  : 'text-gray-600 border-transparent hover:text-gray-800'
-                }`}
-            >
-              Phòng trọ
-            </Link>
-            <Link
-              to="/?category=Nhà nguyên căn"
-              className={`py-3 text-sm font-medium border-b-2 transition-colors ${location.search.includes('category=Nhà nguyên căn')
-                  ? 'text-orange-500 border-orange-500'
-                  : 'text-gray-600 border-transparent hover:text-gray-800'
-                }`}
-            >
-              Nhà nguyên căn
-            </Link>
-            <Link
-              to="/?category=Căn hộ chung cư"
-              className={`py-3 text-sm font-medium border-b-2 transition-colors ${location.search.includes('category=Căn hộ chung cư')
-                  ? 'text-orange-500 border-orange-500'
-                  : 'text-gray-600 border-transparent hover:text-gray-800'
-                }`}
-            >
-              Căn hộ chung cư
-            </Link>
-            <Link
-              to="/?category=Căn hộ mini"
-              className={`py-3 text-sm font-medium border-b-2 transition-colors ${location.search.includes('category=Căn hộ mini')
-                  ? 'text-orange-500 border-orange-500'
-                  : 'text-gray-600 border-transparent hover:text-gray-800'
-                }`}
-            >
-              Căn hộ mini
-            </Link>
-            <Link
-              to="/?category=Căn hộ dịch vụ"
-              className={`py-3 text-sm font-medium border-b-2 transition-colors ${location.search.includes('category=Căn hộ dịch vụ')
-                  ? 'text-orange-500 border-orange-500'
-                  : 'text-gray-600 border-transparent hover:text-gray-800'
-                }`}
-            >
-              Căn hộ dịch vụ
-            </Link>
-            <Link
-              to="/?category=Ở ghép"
-              className={`py-3 text-sm font-medium border-b-2 transition-colors ${location.search.includes('category=Ở ghép')
-                  ? 'text-orange-500 border-orange-500'
-                  : 'text-gray-600 border-transparent hover:text-gray-800'
-                }`}
-            >
-              Ở ghép
-            </Link>
-            <Link
-              to="/?category=Mặt bằng"
-              className={`py-3 text-sm font-medium border-b-2 transition-colors ${location.search.includes('category=Mặt bằng')
-                  ? 'text-orange-500 border-orange-500'
-                  : 'text-gray-600 border-transparent hover:text-gray-800'
-                }`}
-            >
-              Mặt bằng
-            </Link>
-            <Link
-              to="/blog"
-              className={`py-3 text-sm font-medium border-b-2 transition-colors ${location.pathname === '/blog'
-                  ? 'text-orange-500 border-orange-500'
-                  : 'text-gray-600 border-transparent hover:text-gray-800'
-                }`}
-            >
-              Blog
-            </Link>
-          </div>
+          {(() => {
+            const searchParams = new URLSearchParams(location.search);
+            const currentCategory = searchParams.get("category") || "";
+
+            const isActiveCat = (cat: string) => {
+              if (cat === "Phòng trọ") {
+                return (
+                  location.pathname === "/" &&
+                  (currentCategory === "" || currentCategory === "Phòng trọ")
+                );
+              }
+              return location.pathname === "/" && currentCategory === cat;
+            };
+
+            const linkClass = (active: boolean) =>
+              `py-3 text-sm font-medium border-b-2 transition-colors ${
+                active
+                  ? "text-orange-500 border-orange-500"
+                  : "text-gray-600 border-transparent hover:text-gray-800"
+              }`;
+
+            return (
+              <div className="flex space-x-8">
+                <Link to="/" className={linkClass(isActiveCat("Phòng trọ"))}>
+                  Phòng trọ
+                </Link>
+                <Link
+                  to="/?category=Nhà nguyên căn"
+                  className={linkClass(isActiveCat("Nhà nguyên căn"))}
+                >
+                  Nhà nguyên căn
+                </Link>
+                <Link
+                  to="/?category=Căn hộ chung cư"
+                  className={linkClass(isActiveCat("Căn hộ chung cư"))}
+                >
+                  Căn hộ chung cư
+                </Link>
+                <Link
+                  to="/?category=Căn hộ mini"
+                  className={linkClass(isActiveCat("Căn hộ mini"))}
+                >
+                  Căn hộ mini
+                </Link>
+                <Link
+                  to="/?category=Căn hộ dịch vụ"
+                  className={linkClass(isActiveCat("Căn hộ dịch vụ"))}
+                >
+                  Căn hộ dịch vụ
+                </Link>
+                <Link
+                  to="/?category=Tìm người ở ghép"
+                  className={linkClass(isActiveCat("Tìm người ở ghép"))}
+                >
+                  Ở ghép
+                </Link>
+                <Link
+                  to="/?category=Mặt bằng"
+                  className={linkClass(isActiveCat("Mặt bằng"))}
+                >
+                  Mặt bằng
+                </Link>
+                <Link
+                  to="/blog"
+                  className={linkClass(location.pathname === "/blog")}
+                >
+                  Blog
+                </Link>
+              </div>
+            );
+          })()}
         </div>
       </nav>
 

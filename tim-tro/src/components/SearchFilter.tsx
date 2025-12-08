@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Search, Filter, X, MapPin, DollarSign, Home } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, Filter, X, MapPin, DollarSign, Home, Star, Heart, Sparkles } from 'lucide-react';
 import { VIETNAM_PROVINCES } from '../constants/vietnamLocations';
 
 interface Filters {
@@ -8,11 +8,25 @@ interface Filters {
   priceRange: string;
   areaRange: string;
   amenities: string[];
+  interests: string[];
+  lifestyle: string[];
 }
 
 type OnFilterFn = (apiFilters: Record<string, any>) => void;
 
-function SearchFilter({ onSearch, onFilter, initialFilters = {} }: { onSearch?: (term: string) => void; onFilter?: OnFilterFn; initialFilters?: Partial<Filters> }) {
+interface SearchFilterProps {
+  onSearch?: (term: string) => void;
+  onFilter?: OnFilterFn;
+  initialFilters?: Partial<Filters>;
+  onApplyCategory?: (category: string) => void; // callback to navigate when category applied/reset
+}
+
+function SearchFilter({
+  onSearch,
+  onFilter,
+  initialFilters = {},
+  onApplyCategory,
+}: SearchFilterProps) {
   const LOCATIONS = VIETNAM_PROVINCES;
 
   const CATEGORIES = [
@@ -21,7 +35,7 @@ function SearchFilter({ onSearch, onFilter, initialFilters = {} }: { onSearch?: 
     "Căn hộ chung cư",
     "Căn hộ mini",
     "Căn hộ dịch vụ",
-    "Ở ghép",
+    "Tìm người ở ghép",
     "Mặt bằng"
   ];
 
@@ -56,18 +70,39 @@ function SearchFilter({ onSearch, onFilter, initialFilters = {} }: { onSearch?: 
     "Bãi đậu xe",
     "An ninh 24/7"
   ];
+
+  const COMMON_INTERESTS = [
+    'Đọc sách', 'Xem phim', 'Nghe nhạc', 'Du lịch', 'Thể thao', 'Nấu ăn',
+    'Chơi game', 'Nhiếp ảnh', 'Học ngoại ngữ', 'Yoga', 'Gym', 'Vẽ'
+  ];
+
+  const LIFESTYLE_OPTIONS = [
+    'Sạch sẽ', 'Yên tĩnh', 'Thân thiện', 'Không hút thuốc', 'Không uống rượu',
+    'Dậy sớm', 'Đi ngủ muộn', 'Thích nấu ăn', 'Thích tiệc tùng', 'Học tập nhiều'
+  ];
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(true);
+  const baselineCategory = initialFilters.category || '';
+
   const [filters, setFilters] = useState<Filters>({
     location: '',
-    category: '',
+    category: baselineCategory, // default from parent if any
     priceRange: '',
     areaRange: '',
     amenities: [],
-    ...initialFilters
+    interests: [],
+    lifestyle: [],
+    ...initialFilters,
   });
 
   const [tempFilters, setTempFilters] = useState<Filters>(filters);
+
+  // Sync internal state when parent updates initialFilters (e.g., change tab/category)
+  useEffect(() => {
+    const nextCategory = initialFilters.category || '';
+    setFilters(prev => ({ ...prev, ...initialFilters, category: nextCategory }));
+    setTempFilters(prev => ({ ...prev, ...initialFilters, category: nextCategory }));
+  }, [initialFilters]);
 
   // Helper: convert internal Filters shape to API-friendly payload
   const convertFiltersToApi = (f: Partial<Filters>) => {
@@ -92,6 +127,8 @@ function SearchFilter({ onSearch, onFilter, initialFilters = {} }: { onSearch?: 
     }
 
     if (f.amenities && f.amenities.length > 0) apiFilters.amenities = f.amenities;
+    if (f.interests && f.interests.length > 0) apiFilters.interests = f.interests;
+    if (f.lifestyle && f.lifestyle.length > 0) apiFilters.lifestyle = f.lifestyle;
 
     return apiFilters;
   };
@@ -114,28 +151,57 @@ function SearchFilter({ onSearch, onFilter, initialFilters = {} }: { onSearch?: 
     }));
   };
 
+  // Handle interests toggle
+  const toggleInterest = (interest: string) => {
+    setTempFilters(prev => ({
+      ...prev,
+      interests: prev.interests.includes(interest)
+        ? prev.interests.filter(i => i !== interest)
+        : [...prev.interests, interest]
+    }));
+  };
+
+  // Handle lifestyle toggle
+  const toggleLifestyle = (lifestyle: string) => {
+    setTempFilters(prev => ({
+      ...prev,
+      lifestyle: prev.lifestyle.includes(lifestyle)
+        ? prev.lifestyle.filter(l => l !== lifestyle)
+        : [...prev.lifestyle, lifestyle]
+    }));
+  };
+
   // Apply filters
   const applyFilters = () => {
     // Commit temp filters to active filters, then send API payload
     setFilters(tempFilters);
     const apiPayload = convertFiltersToApi(tempFilters);
     if (onFilter) onFilter(apiPayload);
+    if (onApplyCategory) onApplyCategory(tempFilters.category || '');
     setShowFilters(false);
   };
 
-  // Reset filters
+  // Reset filters (restore baseline category)
   const resetFilters = () => {
-    const emptyFilters: Filters = {
+    const baseFilters: Filters = {
       location: '',
-      category: '',
+      category: baselineCategory,
       priceRange: '',
       areaRange: '',
-      amenities: []
+      amenities: [],
+      interests: [],
+      lifestyle: []
     };
-    setTempFilters(emptyFilters);
-    setFilters(emptyFilters);
+
+    setTempFilters(baseFilters);
+    setFilters(baseFilters);
+
     if (onFilter) {
-      onFilter({});
+      const payload = convertFiltersToApi(baseFilters);
+      onFilter(payload);
+    }
+    if (onApplyCategory) {
+      onApplyCategory(baselineCategory);
     }
     if (onSearch) {
       onSearch('');
@@ -143,10 +209,13 @@ function SearchFilter({ onSearch, onFilter, initialFilters = {} }: { onSearch?: 
     setSearchTerm('');
   };
 
-  // Count active filters
-  const activeFiltersCount = Object.values(filters).filter(value => 
-    Array.isArray(value) ? value.length > 0 : value !== ''
-  ).length;
+  // Count active filters (include category only if different from baseline)
+  const activeFiltersCount = Object.entries(filters).filter(([key, value]) => {
+    if (key === 'category') {
+      return value !== '' && value !== baselineCategory;
+    }
+    return Array.isArray(value) ? value.length > 0 : value !== '';
+  }).length;
 
   return (
     <div className="bg-white shadow-sm rounded-lg p-4 mb-6">
@@ -213,16 +282,17 @@ function SearchFilter({ onSearch, onFilter, initialFilters = {} }: { onSearch?: 
               </button>
             </span>
           )}
-          {filters.category && (
+          {filters.category && filters.category !== baselineCategory && (
             <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
               <Home className="w-3 h-3" />
               {filters.category}
               <button
                 onClick={() => {
-                  const newFilters: Filters = { ...filters, category: '' };
+                  const newFilters: Filters = { ...filters, category: baselineCategory };
                   setFilters(newFilters);
                   setTempFilters(newFilters);
                   if (onFilter) onFilter(convertFiltersToApi(newFilters));
+                  if (onApplyCategory) onApplyCategory(baselineCategory);
                 }}
                 className="ml-1 hover:text-green-600"
               >
@@ -275,6 +345,42 @@ function SearchFilter({ onSearch, onFilter, initialFilters = {} }: { onSearch?: 
                   if (onFilter) onFilter(convertFiltersToApi(newFilters));
                 }}
                 className="ml-1 hover:text-indigo-600"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          ))}
+          {filters.interests.map(interest => (
+            <span key={interest} className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+              <Star className="w-3 h-3" />
+              {interest}
+              <button
+                onClick={() => {
+                  const newInterests = filters.interests.filter(i => i !== interest);
+                  const newFilters: Filters = { ...filters, interests: newInterests };
+                  setFilters(newFilters);
+                  setTempFilters(newFilters);
+                  if (onFilter) onFilter(convertFiltersToApi(newFilters));
+                }}
+                className="ml-1 hover:text-blue-600"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          ))}
+          {filters.lifestyle.map(lifestyle => (
+            <span key={lifestyle} className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+              <Heart className="w-3 h-3" />
+              {lifestyle}
+              <button
+                onClick={() => {
+                  const newLifestyle = filters.lifestyle.filter(l => l !== lifestyle);
+                  const newFilters: Filters = { ...filters, lifestyle: newLifestyle };
+                  setFilters(newFilters);
+                  setTempFilters(newFilters);
+                  if (onFilter) onFilter(convertFiltersToApi(newFilters));
+                }}
+                className="ml-1 hover:text-green-600"
               >
                 <X className="w-3 h-3" />
               </button>
@@ -356,7 +462,10 @@ function SearchFilter({ onSearch, onFilter, initialFilters = {} }: { onSearch?: 
 
           {/* Amenities Filter */}
           <div className="mb-4 border rounded-lg p-4 bg-gray-50">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Tiện ích</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+              <Sparkles className="w-4 h-4 mr-2 text-blue-500" />
+              Tiện ích
+            </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
               {AMENITIES_LIST.map(amenity => (
                 <label key={amenity} className="flex items-center space-x-2 cursor-pointer">
@@ -367,6 +476,48 @@ function SearchFilter({ onSearch, onFilter, initialFilters = {} }: { onSearch?: 
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
                   <span className="text-sm text-gray-700">{amenity}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Interests Filter */}
+          <div className="mb-4 border rounded-lg p-4 bg-gray-50">
+            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+              <Star className="w-4 h-4 mr-2 text-yellow-500" />
+              Sở thích
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+              {COMMON_INTERESTS.map(interest => (
+                <label key={interest} className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={tempFilters.interests.includes(interest)}
+                    onChange={() => toggleInterest(interest)}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">{interest}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Lifestyle Filter */}
+          <div className="mb-4 border rounded-lg p-4 bg-gray-50">
+            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+              <Heart className="w-4 h-4 mr-2 text-red-500" />
+              Lối sống
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+              {LIFESTYLE_OPTIONS.map(lifestyle => (
+                <label key={lifestyle} className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={tempFilters.lifestyle.includes(lifestyle)}
+                    onChange={() => toggleLifestyle(lifestyle)}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">{lifestyle}</span>
                 </label>
               ))}
             </div>
