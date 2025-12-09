@@ -177,11 +177,17 @@ io.on('connection', (socket) => {
     }
 
     try {
-      // Check if a connection request already exists or if they are already connected
+      // Check if a connection request already exists with pending or accepted status
+      // Allow sending new requests if previous ones were rejected or cancelled
       const existingConnections = await axios.get(`${JSON_SERVER_URL}/connections?senderId=${senderId}&receiverId=${receiverId}&postId=${postId}`);
       const existingConnection = existingConnections.data.find(
-        conn => (conn.senderId === senderId && conn.receiverId === receiverId && conn.postId === postId) ||
-          (conn.senderId === receiverId && conn.receiverId === senderId && conn.postId === postId && conn.status === 'accepted')
+        conn => {
+          // Check if there's a pending or accepted connection
+          const isSameDirection = conn.senderId === senderId && conn.receiverId === receiverId && conn.postId === postId;
+          const isReverseDirectionAccepted = conn.senderId === receiverId && conn.receiverId === senderId && conn.postId === postId && conn.status === 'accepted';
+          // Only block if status is pending or accepted, not rejected or cancelled
+          return (isSameDirection || isReverseDirectionAccepted) && (conn.status === 'pending' || conn.status === 'accepted');
+        }
       );
 
       if (existingConnection) {
